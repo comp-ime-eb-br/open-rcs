@@ -46,14 +46,14 @@ else:
 Co=1  # wave amplitude at all vertices
 
 # processing coordinate data 
-fname = "./models/"+input_model+"/coordinates.m"
+fname = "./models/"+input_model+"/coordinates.txt"
 coordinates = np.loadtxt(fname)
 xpts = coordinates[:, 0]
 ypts = coordinates[:, 1]
 zpts = coordinates[:, 2]
 nverts = len(xpts)
 
-fname2 = "./models/"+input_model+"/facets.m"
+fname2 = "./models/"+input_model+"/facets.txt"
 facets = np.loadtxt(fname2)
 nfc = facets[:, 0]
 node1 = facets[:, 1].astype(int)
@@ -92,7 +92,7 @@ plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 # plot model before simulation
 fig = plt.figure(1,[7,4])
-fig.suptitle(f'RCS Monostatic Simulation of Target: BOX')
+fig.suptitle(f'RCS Monostatic Simulation of Target: {input_model}')
 
 # plot triangle model
 ax = fig.add_subplot(1,2,1, projection='3d')
@@ -394,7 +394,7 @@ for i1 in range(ip):
 if ip==1:
     plt.figure(1)
     plt.suptitle("RCS Simulation IR Signature")
-    plt.title(f"target: BOX   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
+    plt.title(f"target: {input_model}   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
     plt.xlabel("Monostatic Angle, theta (deg)")
     plt.ylabel("RCS (dBsm)")
     plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
@@ -405,7 +405,7 @@ if ip==1:
 if it==1:
     plt.figure(1)
     plt.suptitle("RCS Simulation IR Signature")
-    plt.title(f"target: BOX   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
+    plt.title(f"target: {input_model}   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
     plt.xlabel('Monostatic Angle, phi (deg)')
     plt.ylabel('RCS (dBsm)')
     plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
