@@ -3,6 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
+
+SMALL_SIZE = 8
+MEDIUM_SIZE = 10
+BIGGER_SIZE = 12
+def setFontOption(fontSize=SMALL_SIZE, axesTitle=MEDIUM_SIZE, axesLabel=SMALL_SIZE, xtickLabel=SMALL_SIZE, 
+ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
+    plt.rc('font', size=fontSize)          # controls default text sizes
+    plt.rc('axes', titlesize=axesTitle)    # fontsize of the axes title
+    plt.rc('axes', labelsize=axesLabel)     # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=xtickLabel)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=ytickLabel)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=legendSize)    # legend fontsize
+    plt.rc('figure', titlesize=figureTitle)  
+
 # open input data file and gather parameters
 # input_model="BOX"
 input_data_file = "input_data_file.dat"
@@ -79,16 +93,7 @@ for i in range(nverts):
     r[i, :] = [x[i], y[i], z[i]]
 
 # plot font options
-SMALL_SIZE = 8
-MEDIUM_SIZE = 10
-BIGGER_SIZE = 12
-plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=MEDIUM_SIZE)    # fontsize of the axes title
-plt.rc('axes', labelsize=SMALL_SIZE)     # fontsize of the x and y labels
-plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+setFontOption()
 
 # plot model before simulation
 fig = plt.figure(1,[7,4])
