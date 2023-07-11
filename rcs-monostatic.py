@@ -8,9 +8,9 @@ MEDIUM_SIZE = 10
 BIGGER_SIZE = 12
 
 def getPolarization(incidentPolarization):
-    if incidentPolarization == 0: # Theta-polarized (TM-z) 
+    if incidentPolarization == 0: # Theta-polarized (TM-z)
         pol_aux = 'TM-z'
-        Et_aux = 1 + 1j * 0   
+        Et_aux = 1 + 1j * 0
         Ep_aux = 0 + 1j * 0
         return [pol_aux,Et_aux,Ep_aux]
     elif incidentPolarization == 1: # Phi-polarized (TE-z)
@@ -21,6 +21,16 @@ def getPolarization(incidentPolarization):
     else:
         raise ValueError('Invalid input')
 
+
+def getStandardDeviation(delstd,corel,wave):
+    delsq = delstd ** 2
+    bk = 2 * np.pi / wave
+    cfac1 = np.exp(-4 * bk ** 2 * delsq)
+    cfac2 = 4 * np.pi * (bk * corel) ** 2 * delsq
+    rad = np.pi / 180
+    Lt = 0.05  # taylor series region
+    Nt = 5 # number of terms in Taylor series
+    return[bk,cfac1,cfac2,rad,Lt,Nt]
 
 def setFontOption(fontSize=SMALL_SIZE, axesTitle=MEDIUM_SIZE, axesLabel=SMALL_SIZE, xtickLabel=SMALL_SIZE, 
 ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
@@ -53,13 +63,7 @@ wave = 3e8 / freq
 corel = corr/wave
 
 # 3: standard deviation
-delsq = delstd ** 2
-bk = 2 * np.pi / wave
-cfac1 = np.exp(-4 * bk ** 2 * delsq)
-cfac2 = 4 * np.pi * (bk * corel) ** 2 * delsq
-rad = np.pi / 180
-Lt = 0.05  # taylor series region
-Nt = 5 # number of terms in Taylor series
+[bk,cfac1,cfac2,rad,Lt,Nt] = getStandardDeviation(delstd,corel,wave)
 
 # 4: incident wave polarization
 [pol,Et,Ep] = getPolarization(ipol)
