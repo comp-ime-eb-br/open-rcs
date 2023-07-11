@@ -3,10 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
 BIGGER_SIZE = 12
+
+def getPolarization(incidentPolarization):
+    if incidentPolarization == 0: # Theta-polarized (TM-z) 
+        pol_aux = 'TM-z'
+        Et_aux = 1 + 1j * 0   
+        Ep_aux = 0 + 1j * 0
+        return [pol_aux,Et_aux,Ep_aux]
+    elif incidentPolarization == 1: # Phi-polarized (TE-z)
+        pol_aux = 'TE-z'
+        Et_aux = 0 + 1j * 0   
+        Ep_aux = 1 + 1j * 0
+        return [pol_aux,Et_aux,Ep_aux]
+    else:
+        raise ValueError('Invalid input')
+
+
 def setFontOption(fontSize=SMALL_SIZE, axesTitle=MEDIUM_SIZE, axesLabel=SMALL_SIZE, xtickLabel=SMALL_SIZE, 
 ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
     plt.rc('font', size=fontSize)          # controls default text sizes
@@ -47,16 +62,8 @@ Lt = 0.05  # taylor series region
 Nt = 5 # number of terms in Taylor series
 
 # 4: incident wave polarization
-if ipol == 0: # Theta-polarized (TM-z) 
-    pol = 'TM-z'
-    Et = 1 + 1j * 0   
-    Ep = 0 + 1j * 0
-elif ipol == 1: # Phi-polarized (TE-z)
-    pol = 'TE-z'
-    Et = 0 + 1j * 0   
-    Ep = 1 + 1j * 0
-else:
-    raise ValueError('Invalid input')
+[pol,Et,Ep] = getPolarization(ipol)
+
 Co=1  # wave amplitude at all vertices
 
 # processing coordinate data 
