@@ -42,6 +42,48 @@ ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
     plt.rc('legend', fontsize=legendSize)    # legend fontsize
     plt.rc('figure', titlesize=figureTitle)  
 
+
+def read_coordinates(input_model):
+    fname = "./models/" + input_model + "/coordinates.txt"
+    coordinates = np.loadtxt(fname)
+    xpts = coordinates[:, 0]
+    ypts = coordinates[:, 1]
+    zpts = coordinates[:, 2]
+
+    x = xpts
+    y = ypts
+    z = zpts
+
+    nverts = len(xpts)
+    return x, y, z, xpts, ypts, zpts, nverts
+
+def read_facets(input_model):
+    fname2 = "./models/" + input_model + "/facets.txt"
+    facets = np.loadtxt(fname2)
+    nfc = facets[:, 0]
+    node1 = facets[:, 1].astype(int)
+    node2 = facets[:, 2].astype(int)
+    node3 = facets[:, 3].astype(int)
+    iflag = 0
+    ilum = facets[:, 4]
+    Rs = facets[:, 5]
+    ntria = len(node3)
+    return nfc, node1, node2, node3, iflag, ilum, Rs, ntria
+
+def create_vind(node1, node2, node3):
+    vind = np.empty([len(node3), 3])
+    for i in range(len(node3)):
+        pts = np.array([node1[i], node2[i], node3[i]])
+        vind[i, :] = pts
+    vind = vind.astype(int)
+    return vind
+
+def calculate_r(x, y, z, nverts):
+    r = np.zeros([nverts, 3], np.double)
+    for i in range(nverts):
+        r[i, :] = [x[i], y[i], z[i]]
+    return r
+
 # open input data file and gather parameters
 # input_model="BOX"
 input_data_file = "input_data_file.dat"
@@ -71,37 +113,10 @@ corel = corr/wave
 Co=1  # wave amplitude at all vertices
 
 # processing coordinate data 
-fname = "./models/"+input_model+"/coordinates.txt"
-coordinates = np.loadtxt(fname)
-xpts = coordinates[:, 0]
-ypts = coordinates[:, 1]
-zpts = coordinates[:, 2]
-nverts = len(xpts)
-
-fname2 = "./models/"+input_model+"/facets.txt"
-facets = np.loadtxt(fname2)
-nfc = facets[:, 0]
-node1 = facets[:, 1].astype(int)
-node2 = facets[:, 2].astype(int)
-node3 = facets[:, 3].astype(int)
-iflag = 0           # illumination flag: iflag = 0, external face only
-ilum = facets[:, 4] # illumination flags for each triangle
-Rs = facets[:, 5]   # resistivity of each triangle
-ntria = len(node3)
-
-vind = np.empty([ntria, 3])
-for i in range(ntria):
-    pts = np.array([node1[i], node2[i], node3[i]])
-    vind[i, :] = pts
-vind = vind.astype(int)
-
-x = xpts
-y = ypts
-z = zpts
-
-r = np.zeros([nverts, 3], np.double) # define position vectors to vertices
-for i in range(nverts):
-    r[i, :] = [x[i], y[i], z[i]]
+x, y, z, xpts, ypts, zpts, nverts = read_coordinates(input_model)
+nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model)
+vind = create_vind(node1, node2, node3)
+r = calculate_r(x, y, z, nverts)
 
 # plot font options
 setFontOption()
