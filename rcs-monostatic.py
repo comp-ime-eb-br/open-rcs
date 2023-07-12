@@ -21,7 +21,6 @@ def getPolarization(incidentPolarization):
     else:
         raise ValueError('Invalid input')
 
-
 def getStandardDeviation(delstd,corel,wave):
     delsq = delstd ** 2
     bk = 2 * np.pi / wave
@@ -41,7 +40,6 @@ ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
     plt.rc('ytick', labelsize=ytickLabel)    # fontsize of the tick labels
     plt.rc('legend', fontsize=legendSize)    # legend fontsize
     plt.rc('figure', titlesize=figureTitle)  
-
 
 def read_coordinates(input_model):
     fname = "./models/" + input_model + "/coordinates.txt"
@@ -83,7 +81,6 @@ def calculate_r(x, y, z, nverts):
     for i in range(nverts):
         r[i, :] = [x[i], y[i], z[i]]
     return r
-
 
 def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf):
     for i in range(ntria):
@@ -168,9 +165,6 @@ ilabv ='n'; ilabf='n' # label vertices and faces
 ax = fig.add_subplot(1,2,1, projection='3d')
 
 [xmin, ymin, zmin, xmax, zmax, ymax] = plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf)
-
-plt.show()
-
 
 # plot parameters info
 bx = fig.add_subplot(1,2,2,projection='3d')
