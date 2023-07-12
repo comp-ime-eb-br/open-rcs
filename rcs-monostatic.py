@@ -84,6 +84,44 @@ def calculate_r(x, y, z, nverts):
         r[i, :] = [x[i], y[i], z[i]]
     return r
 
+ilabv ='n'; ilabf='n' # label vertices and faces
+ax = fig.add_subplot(1,2,1, projection='3d')
+
+def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf):
+    for i in range(ntria):
+        X = [x[vind[i, 0]-1], x[vind[i, 1]-1], x[vind[i, 2]-1], x[vind[i, 0]-1]]
+        Y = [y[vind[i, 0]-1], y[vind[i, 1]-1], y[vind[i, 2]-1], y[vind[i, 0]-1]]
+        Z = [z[vind[i, 0]-1], z[vind[i, 1]-1], z[vind[i, 2]-1], z[vind[i, 0]-1]]
+        ax.plot(X, Y, Z)
+    ax.set_title(f'Triangle Model of Target:')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    xmax = max(xpts)
+    xmin = min(xpts)
+    ymax = max(ypts)
+    ymin = min(ypts)
+    zmax = max(zpts)
+    zmin = min(zpts)
+    dmax = max([xmax, ymax, zmax])
+    dmin = min([xmin, ymin, zmin])
+    # this is to avoid both a max and min of zero in any one dimension
+    xmax = dmax; ymax = dmax; zmax = dmax
+    xmin = dmin; ymin = dmin; zmin = dmin
+
+    
+    if ilabv == 'y':
+        for i in range(nverts):
+            ax.text(x[i]-max(x)/20, y[i]-max(y)/20, z[i], str(i+1))
+    
+    if ilabf == 'y':
+        for i in range(ntria):
+            xav = (xpts[node1[i]-1] + xpts[node2[i]-1] + xpts[node3[i]-1]) / 3
+            yav = (ypts[node1[i]-1] + ypts[node2[i]-1] + ypts[node3[i]-1]) / 3
+            zav = (zpts[node1[i]-1] + zpts[node2[i]-1] + zpts[node3[i]-1]) / 3
+            ax.text(xav, yav, zav, str(nfc[i]))
+    return xmin, ymin, zmin, xmax, ymax, zmax
+
 # open input data file and gather parameters
 # input_model="BOX"
 input_data_file = "input_data_file.dat"
@@ -125,39 +163,11 @@ setFontOption()
 fig = plt.figure(1,[7,4])
 fig.suptitle(f'RCS Monostatic Simulation of Target: {input_model}')
 
-# plot triangle model
-ax = fig.add_subplot(1,2,1, projection='3d')
-for i in range(ntria):
-    X = [x[vind[i, 0]-1], x[vind[i, 1]-1], x[vind[i, 2]-1], x[vind[i, 0]-1]]
-    Y = [y[vind[i, 0]-1], y[vind[i, 1]-1], y[vind[i, 2]-1], y[vind[i, 0]-1]]
-    Z = [z[vind[i, 0]-1], z[vind[i, 1]-1], z[vind[i, 2]-1], z[vind[i, 0]-1]]
-    ax.plot(X, Y, Z)
-ax.set_title(f'Triangle Model of Target:')
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_zlabel('z')
-xmax = max(xpts)
-xmin = min(xpts)
-ymax = max(ypts)
-ymin = min(ypts)
-zmax = max(zpts)
-zmin = min(zpts)
-dmax = max([xmax, ymax, zmax])
-dmin = min([xmin, ymin, zmin])
-# this is to avoid both a max and min of zero in any one dimension
-xmax = dmax; ymax = dmax; zmax = dmax
-xmin = dmin; ymin = dmin; zmin = dmin
 
-ilabv ='n'; ilabf='n' # label vertices and faces
-if ilabv == 'y':
-    for i in range(nverts):
-        ax.text(x[i]-max(x)/20, y[i]-max(y)/20, z[i], str(i+1))
-if ilabf == 'y':
-    for i in range(ntria): # compute centroid of face number i
-        xav = (xpts[node1[i]-1] + xpts[node2[i]-1] + xpts[node3[i]-1]) / 3
-        yav = (ypts[node1[i]-1] + ypts[node2[i]-1] + ypts[node3[i]-1]) / 3
-        zav = (zpts[node1[i]-1] + zpts[node2[i]-1] + zpts[node3[i]-1]) / 3
-        ax.text(xav, yav, zav, str(nfc[i]))
+# plot triangle model
+xmin, ymin, zmin, xmax, zmax, ymax =plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf)
+
+plt.show()
 
 
 # plot parameters info
