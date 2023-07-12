@@ -46,14 +46,14 @@ else:
 Co=1  # wave amplitude at all vertices
 
 # processing coordinate data 
-fname = "./models/"+input_model+"/coordinates.txt"
+fname = "./models/"+input_model+"/coordinates.m"
 coordinates = np.loadtxt(fname)
 xpts = coordinates[:, 0]
 ypts = coordinates[:, 1]
 zpts = coordinates[:, 2]
 nverts = len(xpts)
 
-fname2 = "./models/"+input_model+"/facets.txt"
+fname2 = "./models/"+input_model+"/facets.m"
 facets = np.loadtxt(fname2)
 nfc = facets[:, 0]
 node1 = facets[:, 1].astype(int)
