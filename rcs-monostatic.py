@@ -84,8 +84,6 @@ def calculate_r(x, y, z, nverts):
         r[i, :] = [x[i], y[i], z[i]]
     return r
 
-ilabv ='n'; ilabf='n' # label vertices and faces
-ax = fig.add_subplot(1,2,1, projection='3d')
 
 def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf):
     for i in range(ntria):
@@ -165,7 +163,11 @@ fig.suptitle(f'RCS Monostatic Simulation of Target: {input_model}')
 
 
 # plot triangle model
-xmin, ymin, zmin, xmax, zmax, ymax =plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf)
+
+ilabv ='n'; ilabf='n' # label vertices and faces
+ax = fig.add_subplot(1,2,1, projection='3d')
+
+[xmin, ymin, zmin, xmax, zmax, ymax] = plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf)
 
 plt.show()
 
