@@ -211,7 +211,88 @@ def G(n,w):
                                 g=(cmath.exp(jw)-n*go)/jw
                         return g
 
+def reflectionCoefficients(Rs, th2):
+                        perp=-1/(2*Rs[m]*math.cos(th2)+1)  #local TE polarization
+                        para=0  #local TM polarization
+                        if (2*Rs[m]+math.cos(th2))!=0:
+                            para=-math.cos(th2)/(2*Rs[m]+math.cos(th2))
+                        return perp, para
 
+def incidentFieldSphericalCoordinates(th2,e2,phi2):
+                        Et2=e2[0]*math.cos(th2)*math.cos(phi2)+e2[1]*math.cos(th2)*math.sin(phi2)-e2[2]*math.sin(th2)
+                        Ep2=-e2[0]*math.sin(phi2)+e2[1]*math.cos(phi2)
+                        return Et2, Ep2
+
+
+def finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now):
+    if ip==1:
+        plt.figure(1)
+        plt.suptitle("RCS Simulation IR Signature")
+        plt.title(f"target: {input_model}   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
+        plt.xlabel("Monostatic Angle, theta (deg)")
+        plt.ylabel("RCS (dBsm)")
+        plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
+        plt.plot(theta[0],Sth[0])
+        plt.plot(theta[0],Sph[0],linestyle="dashed")
+        plt.grid(True)
+        
+    if it==1:
+        plt.figure(1)
+        plt.suptitle("RCS Simulation IR Signature")
+        plt.title(f"target: {input_model}   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
+        plt.xlabel('Monostatic Angle, phi (deg)')
+        plt.ylabel('RCS (dBsm)')
+        plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
+        plt.plot(phi[0],Sth[0])
+        plt.plot(phi[0],Sph[0],linestyle="dashed")
+        plt.grid(True)
+        
+    if ip>1 and it>1:
+        fig = plt.figure(1,[10,4])
+        fig.suptitle("RCS Simulation IR Signature")
+        
+        ax=fig.add_subplot(1,2,1)
+        cp=ax.contour(U, V, Sth)
+        ax.set_title('RCS-theta')
+        ax.set_xlabel('U')
+        ax.set_ylabel('V')
+        ax.axis('square')
+        cbar=fig.colorbar(cp)
+        cbar.set_label('RCS (dBsm)')
+        
+        bx=fig.add_subplot(1,2,2)
+        cp=bx.contour(U, V, Sph)
+        bx.set_title('RCS-phi')
+        bx.set_xlabel('U')
+        bx.set_ylabel('V')
+        bx.axis('square')
+        cbar=fig.colorbar(cp)
+        cbar.set_label('RCS (dBsm)')
+        
+    plt.savefig("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".png")
+    plt.show()
+
+def generateResultFiles(theta, Sth, phi,Sph):
+    now = datetime.now().strftime("%Y%m%d%H%M%S")
+    result_file = open("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".dat", 'w')
+
+    result_file.write("RCS SIMULATOR MONOSTITC "+now+"\n")
+    result_file.write("\nSimulation Parameters:\n"+param)
+    result_file.write("\nSimulation Results IR Signature:")
+    result_file.write("\nTheta (deg):\n")
+    for i1 in range(ip):
+        result_file.write(str(theta[i1])+"\n")
+    result_file.write("\nRCS Theta (dBsm):\n")
+    for i1 in range(ip):
+        result_file.write(str(Sth[i1])+"\n")
+    result_file.write("\nPhi (deg):\n")
+    for i1 in range(ip):
+        result_file.write(str(phi[i1])+"\n")
+    result_file.write("\nRCS Phi (dBsm):\n")
+    for i1 in range(ip):
+        result_file.write(str(Sph[i1])+"\n")
+    return now
+        
 # open input data file and gather parameters
 # input_model="BOX"
 input_data_file = "input_data_file.dat"
@@ -224,6 +305,13 @@ for line in params:
         else: param_list.append(line)
 input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
 params.close()
+
+def areaIntegral(Dq, Dp,Do):
+                        DD=Dq-Dp
+                        expDo=cmath.exp(1j*Do)
+                        expDp=cmath.exp(1j*Dp)
+                        expDq=cmath.exp(1j*Dq)
+                        return DD, expDo, expDp, expDq
 
 # 1: radar frequency
 wave = 3e8 / freq
@@ -355,23 +443,19 @@ for i1 in range(ip):
                     th2, phi2 = sphericalAngles(u2,v2,w2)
 
                     # phase at the three vertices of triangle m; monostatic RCS needs "2"
-                    
-                    
-                    
                     Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w)
 
                     # incident field in local cartesian coordinates (stored in e2)
                     e1=np.dot(T1,np.transpose(np.conj(e0)))
                     e2=np.dot(T2,e1)
+
                     # incident field in local spherical coordinates
-                    Et2=e2[0]*math.cos(th2)*math.cos(phi2)+e2[1]*math.cos(th2)*math.sin(phi2)-e2[2]*math.sin(th2)
-                    Ep2=-e2[0]*math.sin(phi2)+e2[1]*math.cos(phi2)
+                    
+                    Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
 
                     # reflection coefficients (Rs is normalized to eta0)
-                    perp=-1/(2*Rs[m]*math.cos(th2)+1)  #local TE polarization
-                    para=0  #local TM polarization
-                    if (2*Rs[m]+math.cos(th2))!=0:
-                        para=-math.cos(th2)/(2*Rs[m]+math.cos(th2))
+                   
+                    perp, para = reflectionCoefficients(Rs, th2)
 
                     # surface current components in local Cartesian coordinates
                     Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp);   # math.cos(th2) removed
@@ -379,14 +463,8 @@ for i1 in range(ip):
 
                     # area integral for general case
                     
-                    DD=Dq-Dp
-                    expDo=cmath.exp(1j*Do)
-                    expDp=cmath.exp(1j*Dp)
-                    expDq=cmath.exp(1j*Dq)
+                    DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
 
-                    
-                    
-                    g = G(n,w)
 
                     # special case 1
                     if abs(Dp)<Lt and abs(Dq)>=Lt:
@@ -456,70 +534,7 @@ Sth[:,:]=np.maximum(Sth[:,:],Lmin)
 Sph[:,:]=np.maximum(Sph[:,:],Lmin)
 
 # generate result files
-now = datetime.now().strftime("%Y%m%d%H%M%S")
-result_file = open("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".dat", 'w')
-
-result_file.write("RCS SIMULATOR MONOSTITC "+now+"\n")
-result_file.write("\nSimulation Parameters:\n"+param)
-result_file.write("\nSimulation Results IR Signature:")
-result_file.write("\nTheta (deg):\n")
-for i1 in range(ip):
-    result_file.write(str(theta[i1])+"\n")
-result_file.write("\nRCS Theta (dBsm):\n")
-for i1 in range(ip):
-    result_file.write(str(Sth[i1])+"\n")
-result_file.write("\nPhi (deg):\n")
-for i1 in range(ip):
-    result_file.write(str(phi[i1])+"\n")
-result_file.write("\nRCS Phi (dBsm):\n")
-for i1 in range(ip):
-    result_file.write(str(Sph[i1])+"\n")
-
+now = generateResultFiles(theta, Sth, phi,Sph)
 
 # final plots
-if ip==1:
-    plt.figure(1)
-    plt.suptitle("RCS Simulation IR Signature")
-    plt.title(f"target: {input_model}   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
-    plt.xlabel("Monostatic Angle, theta (deg)")
-    plt.ylabel("RCS (dBsm)")
-    plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
-    plt.plot(theta[0],Sth[0])
-    plt.plot(theta[0],Sph[0],linestyle="dashed")
-    plt.grid(True)
-    
-if it==1:
-    plt.figure(1)
-    plt.suptitle("RCS Simulation IR Signature")
-    plt.title(f"target: {input_model}   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
-    plt.xlabel('Monostatic Angle, phi (deg)')
-    plt.ylabel('RCS (dBsm)')
-    plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
-    plt.plot(phi[0],Sth[0])
-    plt.plot(phi[0],Sph[0],linestyle="dashed")
-    plt.grid(True)
-    
-if ip>1 and it>1:
-    fig = plt.figure(1,[10,4])
-    fig.suptitle("RCS Simulation IR Signature")
-    
-    ax=fig.add_subplot(1,2,1)
-    cp=ax.contour(U, V, Sth)
-    ax.set_title('RCS-theta')
-    ax.set_xlabel('U')
-    ax.set_ylabel('V')
-    ax.axis('square')
-    cbar=fig.colorbar(cp)
-    cbar.set_label('RCS (dBsm)')
-    
-    bx=fig.add_subplot(1,2,2)
-    cp=bx.contour(U, V, Sph)
-    bx.set_title('RCS-phi')
-    bx.set_xlabel('U')
-    bx.set_ylabel('V')
-    bx.axis('square')
-    cbar=fig.colorbar(cp)
-    cbar.set_label('RCS (dBsm)')
-    
-plt.savefig("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".png")
-plt.show()
+finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now)
