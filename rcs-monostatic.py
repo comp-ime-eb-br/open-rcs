@@ -223,7 +223,6 @@ def incidentFieldSphericalCoordinates(th2,e2,phi2):
                         Ep2=-e2[0]*math.sin(phi2)+e2[1]*math.cos(phi2)
                         return Et2, Ep2
 
-
 def finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now):
     if ip==1:
         plt.figure(1)
@@ -503,27 +502,36 @@ for i1 in range(ip):
                 if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0:
                     # local direction cosine
                     u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0)
+
                     # find spherical angles in local coordinates
                     th2, phi2 = sphericalAngles(u2,v2,w2)
+
                     # phase at the three vertices of triangle m; monostatic RCS needs "2"
                     Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w)
                     # incident field in local cartesian coordinates (stored in e2)
                     e1=np.dot(T1,np.transpose(np.conj(e0)))
                     e2=np.dot(T2,e1)
+
                     # incident field in local spherical coordinates
                     Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
+
                     # reflection coefficients (Rs is normalized to eta0)
                     perp, para = reflectionCoefficients(Rs, th2)
+
                     # surface current components in local Cartesian coordinates
                     Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp);   # math.cos(th2) removed
                     Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp);   # math.cos(th2) removed
+
                     # area integral for general case
                     DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
+
                     Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq)
                     sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp)
         Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave) 
 Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico()
+
 # generate result files
 now = generateResultFiles(theta, Sth, phi,Sph)
+
 # final plots
 finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now)
