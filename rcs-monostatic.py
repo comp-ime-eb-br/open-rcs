@@ -117,6 +117,19 @@ def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node
             ax.text(xav, yav, zav, str(nfc[i]))
     return xmin, ymin, zmin, xmax, ymax, zmax
 
+def diretionCosines(alpha, beta, D0):
+                        T1=np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
+                                        [-math.sin(alpha[m]), math.cos(alpha[m]),   0],
+                                        [0,                   0,                    1]])
+                        T2=np.array([[math.cos(beta[m]), 0, -math.sin(beta[m])],
+                                        [0,                 1, 0],
+                                        [math.sin(beta[m]), 0, math.cos(beta[m])]])
+                        D1=np.dot(T1,np.transpose(D0))
+                        D2=np.dot(T2,D1)
+                        u2=D2[0]
+                        v2=D2[1]
+                        w2=D2[2]
+                        return u2, v2, w2, T1, T2
 
 def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
     def calculate_ip():
@@ -151,6 +164,53 @@ def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
     d = np.empty([ntria, 3], np.double)
     
     return Area, alpha, beta, N, d, ip, it 
+
+def globalAngles(thr,phr,i1,i2):
+            u=math.sin(thr)*math.cos(phr)
+            v=math.sin(thr)*math.sin(phr)
+            w=math.cos(thr)
+            U[i1,i2]=u 
+            V[i1,i2]=v
+            W[i1,i2]=w
+            D0=np.array([u,v,w])
+            uu=math.cos(thr)*math.cos(phr)
+            vv=math.cos(thr)*math.sin(phr)
+            ww=-math.sin(thr)
+            return U, V, W, D0, uu, vv, ww, u, v, w
+
+def incidentFieldCartesian(uu,vv,ww,Et,phr,Ep):
+            e0[0]=uu*Et-math.sin(phr)*Ep
+            e0[1]=vv*Et+math.cos(phr)*Ep
+            e0[2]=ww*Et
+            return e0
+
+def sphericalAngles(u2,v2,w2):
+                        th2=math.asin(np.sqrt(u2**2+v2**2)*np.sign(w2))
+                        phi2=math.atan2(v2,u2+1e-10)
+                        if(v2==u2+1e-10==0): #porque precisou disso?
+                            phi2=0
+                        return th2, phi2
+
+def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w):
+                        
+                        Dp=2*bk*((x[vind[m,0]-1]-x[vind[m,2]-1])*u+
+                                (y[vind[m,0]-1]-y[vind[m,2]-1])*v+
+                                (z[vind[m,0]-1]-z[vind[m,2]-1])*w)
+                        Dq=2*bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*u+
+                                (y[vind[m,1]-1]-y[vind[m,2]-1])*v+
+                                (z[vind[m,1]-1]-z[vind[m,2]-1])*w)
+                        Do=2*bk*(x[vind[m,2]-1]*u + y[vind[m,2]-1]*v + z[vind[m,2]-1]*w)
+                        return(Dp,Dq,Do)
+
+def G(n,w):
+                        jw=1j*w
+                        g=(np.exp(jw)-1)/jw
+                        if n > 0:
+                            for m in range(1,n+1):
+                                go=g
+                                g=(cmath.exp(jw)-n*go)/jw
+                        return g
+
 
 # open input data file and gather parameters
 # input_model="BOX"
@@ -269,24 +329,14 @@ for i1 in range(ip):
         theta[i1,i2]=tstart+(i2)*delt
         thr=theta[i1,i2]*rad
 
-        # global angles and direction cosines
-        u=math.sin(thr)*math.cos(phr)
-        v=math.sin(thr)*math.sin(phr)
-        w=math.cos(thr)
-        U[i1,i2]=u 
-        V[i1,i2]=v
-        W[i1,i2]=w
-        D0=np.array([u,v,w])
-        uu=math.cos(thr)*math.cos(phr)
-        vv=math.cos(thr)*math.sin(phr)
-        ww=-math.sin(thr)
+        # global angles and direction cosine
+    
+        U, V, W, D0, uu, vv, ww, u, v, w = globalAngles(thr,phr,i1,i2)
 
         # spherical coordinate system radial unit vector
         R=np.array([u,v,w])
         # incident field in global cartesian coordinates
-        e0[0]=uu*Et-math.sin(phr)*Ep
-        e0[1]=vv*Et+math.cos(phr)*Ep
-        e0[2]=ww*Et
+        e0  = incidentFieldCartesian(uu,vv,ww,Et,phr,Ep)
 
         # begin loop over triangles
         sumt=0
@@ -298,34 +348,18 @@ for i1 in range(ip):
             ndotk=np.dot(N[m,:],np.transpose(R))
             if iflag==0:
                 if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0:
-                    # local direction cosines
-                    T1=np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
-                                 [-math.sin(alpha[m]), math.cos(alpha[m]),   0],
-                                 [0,                   0,                    1]])
-                    T2=np.array([[math.cos(beta[m]), 0, -math.sin(beta[m])],
-                                 [0,                 1, 0],
-                                 [math.sin(beta[m]), 0, math.cos(beta[m])]])
-                    D1=np.dot(T1,np.transpose(D0))
-                    D2=np.dot(T2,D1)
-                    u2=D2[0]
-                    v2=D2[1]
-                    w2=D2[2]
+                    # local direction cosine
+                    u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0)
 
                     # find spherical angles in local coordinates
-                    th2=math.asin(np.sqrt(u2**2+v2**2)*np.sign(w2))
-                    phi2=math.atan2(v2,u2+1e-10)
-                    if(v2==u2+1e-10==0): #porque precisou disso?
-                        phi2=0
+                    th2, phi2 = sphericalAngles(u2,v2,w2)
 
                     # phase at the three vertices of triangle m; monostatic RCS needs "2"
-                    Dp=2*bk*((x[vind[m,0]-1]-x[vind[m,2]-1])*u+
-                             (y[vind[m,0]-1]-y[vind[m,2]-1])*v+
-                             (z[vind[m,0]-1]-z[vind[m,2]-1])*w)
-                    Dq=2*bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*u+
-                             (y[vind[m,1]-1]-y[vind[m,2]-1])*v+
-                             (z[vind[m,1]-1]-z[vind[m,2]-1])*w)
-                    Do=2*bk*(x[vind[m,2]-1]*u + y[vind[m,2]-1]*v + z[vind[m,2]-1]*w)
                     
+                    
+                    
+                    Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w)
+
                     # incident field in local cartesian coordinates (stored in e2)
                     e1=np.dot(T1,np.transpose(np.conj(e0)))
                     e2=np.dot(T2,e1)
@@ -344,19 +378,15 @@ for i1 in range(ip):
                     Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp);   # math.cos(th2) removed
 
                     # area integral for general case
+                    
                     DD=Dq-Dp
                     expDo=cmath.exp(1j*Do)
                     expDp=cmath.exp(1j*Dp)
                     expDq=cmath.exp(1j*Dq)
 
-                    def G(n,w):
-                        jw=1j*w
-                        g=(np.exp(jw)-1)/jw
-                        if n > 0:
-                            for m in range(1,n+1):
-                                go=g
-                                g=(cmath.exp(jw)-n*go)/jw
-                        return g
+                    
+                    
+                    g = G(n,w)
 
                     # special case 1
                     if abs(Dp)<Lt and abs(Dq)>=Lt:
