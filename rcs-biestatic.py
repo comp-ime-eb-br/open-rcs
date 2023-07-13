@@ -256,14 +256,13 @@ def calculaCoisas(ui2,vi2,wi2):
 
 
 def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
-     # Calcula Dp
-    Dp = bk * ((x[vind[m, 0]] - x[vind[m, 2]]) * (u + ui) +(y[vind[m, 0]] - y[vind[m,2]]) * (v + vi) + (z[vind[m, 0]] - z[vind[m, 2]]) * (w + wi))
-
-    # Calcula Dq
-    Dq = bk * ((x[vind[m, 1]] - x[vind[m, 2]]) * (u + ui) + (y[vind[m, 1]] - y[vind[m,2]]) * (v + vi) + (z[vind[m, 1]] - z[vind[m, 2]]) * (w + wi))
-
-    # Calcula Do
-    Do = bk * ( x[vind[m, 2]] * (u + ui) + y[vind[m, 2]] * (v + vi) + z[vind[m, 2]] * (w - wi))
+    Dp=bk*((x[vind[m,0]-1]-x[vind[m,2]-1])*(u+ui)+
+            (y[vind[m,0]-1]-y[vind[m,2]-1])*(v + vi)+
+            (z[vind[m,0]-1]-z[vind[m,2]-1])*(w + wi))
+    Dq=bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*(u+ui)+
+            (y[vind[m,1]-1]-y[vind[m,2]-1])*(v + vi)+
+            (z[vind[m,1]-1]-z[vind[m,2]-1])*(w + wi))
+    Do=bk*(x[vind[m,2]-1]*(u+ui) + y[vind[m,2]-1]*(v + vi) + z[vind[m,2]-1]*(w + wi))
     return(Dp,Dq,Do)
 
 def G(n,w):
@@ -275,16 +274,16 @@ def G(n,w):
                                 g=(cmath.exp(jw)-n*go)/jw
                         return g
 
-def reflectionCoefficients(Rs, th2):
-                        perp=-1/(2*Rs[m]*math.cos(th2)+1)  #local TE polarization
+def reflectionCoefficients(Rs, thi2):
+                        perp=-1/(2*Rs[m]*math.cos(thi2)+1)  #local TE polarization
                         para=0  #local TM polarization
-                        if (2*Rs[m]+math.cos(th2))!=0:
-                            para=-math.cos(th2)/(2*Rs[m]+math.cos(th2))
+                        if (2*Rs[m]+math.cos(thi2))!=0:
+                            para=-math.cos(thi2)/(2*Rs[m]+math.cos(thi2))
                         return perp, para
 
-def incidentFieldSphericalCoordinates(th2,e2,phi2):
-                        Et2=e2[0]*math.cos(th2)*math.cos(phi2)+e2[1]*math.cos(th2)*math.sin(phi2)-e2[2]*math.sin(th2)
-                        Ep2=-e2[0]*math.sin(phi2)+e2[1]*math.cos(phi2)
+def incidentFieldSphericalCoordinates(thi2,e2,phii2):
+                        Et2=e2[0]*math.cos(thi2)*math.cos(phii2)+e2[1]*math.cos(thi2)*math.sin(phii2)-e2[2]*math.sin(thi2)
+                        Ep2=-e2[0]*math.sin(phii2)+e2[1]*math.cos(phii2)
                         return Et2, Ep2
 
 def finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now):
@@ -292,54 +291,57 @@ def finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now):
         plt.figure(1)
         plt.suptitle("RCS Simulation IR Signature")
         plt.title(f"target: {input_model}   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
-        plt.xlabel("Monostatic Angle, theta (deg)")
+        plt.xlabel("biestatic Angle, theta (deg)")
         plt.ylabel("RCS (dBsm)")
         plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
         plt.plot(theta[0],Sth[0])
         plt.plot(theta[0],Sph[0],linestyle="dashed")
         plt.grid(True)
         
-    if it==1:
+    if it == 1:
         plt.figure(1)
-        plt.suptitle("RCS Simulation IR Signature")
-        plt.title(f"target: {input_model}   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
-        plt.xlabel('Monostatic Angle, phi (deg)')
-        plt.ylabel('RCS (dBsm)')
-        plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
-        plt.plot(phi[0],Sth[0])
-        plt.plot(phi[0],Sph[0],linestyle="dashed")
+        plt.plot(phi, Sth, phi, Sph, '--')
         plt.grid(True)
+        plt.title('Target: ' +{input_model} + '  (thetai, phii):  (' + str(thetai) + ' ' + str(fii) + ') solid: theta  dashed: phi  theta= ' + str(theta[0, 0]) +
+                '  wave (m): ' + str(wave))
+        plt.xlabel('Bistatic Angle, phi (deg)')
+        plt.ylabel('RCS (dBsm)')
+        plt.axis([min(phi), max(phi), Lmin, Lmax])
+        plt.show()
         
-    if ip>1 and it>1:
-        fig = plt.figure(1,[10,4])
-        fig.suptitle("RCS Simulation IR Signature")
-        
-        ax=fig.add_subplot(1,2,1)
-        cp=ax.contour(U, V, Sth)
-        ax.set_title('RCS-theta')
-        ax.set_xlabel('U')
-        ax.set_ylabel('V')
-        ax.axis('square')
-        cbar=fig.colorbar(cp)
-        cbar.set_label('RCS (dBsm)')
-        
-        bx=fig.add_subplot(1,2,2)
-        cp=bx.contour(U, V, Sph)
-        bx.set_title('RCS-phi')
-        bx.set_xlabel('U')
-        bx.set_ylabel('V')
-        bx.axis('square')
-        cbar=fig.colorbar(cp)
-        cbar.set_label('RCS (dBsm)')
-        
-    plt.savefig("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".png")
     plt.show()
+
+    if ip > 1 and it > 1:
+        Lv = [0, -20]
+        print('contour levels are set at', Lv)
+        
+        plt.figure(2)
+        
+        plt.subplot(121)
+        plt.contour(U, V, Sth, Lv)
+        plt.colorbar()
+        plt.title('RCS-theta')
+        plt.axis('square')
+        plt.xlabel('U')
+        plt.ylabel('V')
+        plt.zlabel('RCS (dBsm)')
+        
+        plt.subplot(122)
+        plt.contour(U, V, Sph, Lv)
+        plt.colorbar()
+        plt.title('RCS-phi')
+        plt.axis('square')
+        plt.xlabel('U')
+        plt.ylabel('V')
+        plt.zlabel('RCS (dBsm)')
+        plt.savefig("./results/"+"RCSSimulator_Biestatic_"+"_"+now+".png")
+        plt.show()
 
 def generateResultFiles(theta, Sth, phi,Sph):
     now = datetime.now().strftime("%Y%m%d%H%M%S")
-    result_file = open("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".dat", 'w')
+    result_file = open("./results/"+"RCSSimulator_biestatic_"+"_"+now+".dat", 'w')
 
-    result_file.write("RCS SIMULATOR MONOSTITC "+now+"\n")
+    result_file.write("RCS SIMULATOR bieSTITC "+now+"\n")
     result_file.write("\nSimulation Parameters:\n"+param)
     result_file.write("\nSimulation Results IR Signature:")
     result_file.write("\nTheta (deg):\n")
@@ -521,7 +523,7 @@ r = calculate_r(x, y, z, nverts)
 setFontOption()
 # plot model before simulation
 fig = plt.figure(1,[7,4])
-fig.suptitle(f'RCS Monostatic Simulation of Target: {input_model}')
+fig.suptitle(f'RCS biestatic Simulation of Target: {input_model}')
 # plot triangle model
 ilabv ='n'; ilabf='n' # label vertices and faces
 ax = fig.add_subplot(1,2,1, projection='3d')
@@ -575,10 +577,10 @@ for i1 in range(ip):
                     thi2, phii2 = sphericalAngles(ui2,vi2,wi2)
 
                     cpi2,spi2 = calculaCoisas(ui2,vi2,wi2)
-                    # phase at the three vertices of triangle m; monostatic RCS needs "2"
+                    # phase at the three vertices of triangle m; biestatic RCS needs "2"
                     Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
                     # incident field in local cartesian coordinates (stored in e2)
-                    e1=np.dot(T1,np.transpose(np.conj(e0)))
+                    e1=np.dot(T1,e0)
                     e2=np.dot(T2,e1)
 
                     # incident field in local spherical coordinates
