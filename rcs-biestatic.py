@@ -44,9 +44,17 @@ ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
 def read_coordinates(input_model):
     fname = "./models/" + input_model + "/coordinates.txt"
     coordinates = np.loadtxt(fname)
-    xpts = coordinates[:, 0]
-    ypts = coordinates[:, 1]
-    zpts = coordinates[:, 2]
+        # Define the scale factor
+    scl = 1
+
+    # Check if scaling is desired
+    if scl != 1:
+        print('dimensions have been scaled by a factor of', scl)
+
+    # Rescale the coordinates
+    xpts = coordinates[:, 0] * scl
+    ypts = coordinates[:, 1] * scl
+    zpts = coordinates[:, 2] * scl
 
     x = xpts
     y = ypts
@@ -131,7 +139,28 @@ def diretionCosines(alpha, beta, D0):
                         w2=D2[2]
                         return u2, v2, w2, T1, T2
 
-def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
+def deg2rad(deg):
+ return deg * np.pi / 180.0
+
+def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad, fii,thetai):
+
+    # Calcula os valores das funções trigonométricas
+    cpi = np.cos(fii* np.pi / 180.0)
+    spi = np.sin(fii* np.pi / 180.0)
+    sti = np.sin(thetai* np.pi / 180.0)
+    cti = np.cos(thetai* np.pi / 180.0)
+
+    # Calcula os valores dos vetores
+    ui = sti * cpi
+    vi = sti * spi
+    wi = cti
+    D0i = np.array([ui, vi, wi])
+
+    uui = cti * cpi
+    vvi = cti * spi
+    wwi = -sti
+    Ri = -np.array([ui, vi, wi])
+
     def calculate_ip():
         if delp == 0:
             return int((pstop - pstart)) + 1
@@ -163,7 +192,7 @@ def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
     N = np.empty([ntria, 3], np.double)
     d = np.empty([ntria, 3], np.double)
     
-    return Area, alpha, beta, N, d, ip, it 
+    return Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,D0i,wwi,Ri
 
 def globalAngles(thr,phr,i1,i2):
             u=math.sin(thr)*math.cos(phr)
@@ -475,8 +504,12 @@ ax.set_xlim(xmin, xmax)
 ax.set_ylim(ymin, ymax)
 ax.set_zlim(zmin, zmax)
 # pattern loop
-Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
+fii=0
+thetai=0
+Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,D0i,wwi,Ri = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad,fii,thetai)
 # get edge vectors and normals from edge cross products
+
+
 A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,r,vind)
 phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it,np)
 for i1 in range(ip):
