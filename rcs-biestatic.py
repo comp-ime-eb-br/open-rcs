@@ -125,19 +125,24 @@ def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node
             ax.text(xav, yav, zav, str(nfc[i]))
     return xmin, ymin, zmin, xmax, ymax, zmax
 
-def diretionCosines(alpha, beta, D0):
-                        T1=np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
-                                        [-math.sin(alpha[m]), math.cos(alpha[m]),   0],
-                                        [0,                   0,                    1]])
-                        T2=np.array([[math.cos(beta[m]), 0, -math.sin(beta[m])],
-                                        [0,                 1, 0],
-                                        [math.sin(beta[m]), 0, math.cos(beta[m])]])
-                        D1=np.dot(T1,np.transpose(D0))
-                        D2=np.dot(T2,D1)
-                        u2=D2[0]
-                        v2=D2[1]
-                        w2=D2[2]
-                        return u2, v2, w2, T1, T2
+def diretionCosines(alpha, beta, D0i):
+    T1=np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
+                    [-math.sin(alpha[m]), math.cos(alpha[m]),   0],
+                    [0,                   0,                    1]])
+    T2=np.array([[math.cos(beta[m]), 0, -math.sin(beta[m])],
+                    [0,                 1, 0],
+                    [math.sin(beta[m]), 0, math.cos(beta[m])]])
+    # Calcula D1i
+    D1i = np.dot(T1, D0i.T)
+
+    # Calcula D2i
+    D2i = np.dot(T2, D1i)
+
+    # Extrai os valores de ui2, vi2 e wi2
+    ui2 = D2i[0]
+    vi2 = D2i[1]
+    wi2 = D2i[2]
+    return ui2, vi2, wi2, T1, T2
 
 def deg2rad(deg):
  return deg * np.pi / 180.0
@@ -192,7 +197,7 @@ def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad, fii,t
     N = np.empty([ntria, 3], np.double)
     d = np.empty([ntria, 3], np.double)
     
-    return Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,D0i,wwi,Ri
+    return Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri
 
 def globalAngles(thr,phr,i1,i2):
             u=math.sin(thr)*math.cos(phr)
@@ -207,29 +212,59 @@ def globalAngles(thr,phr,i1,i2):
             ww=-math.sin(thr)
             return U, V, W, D0, uu, vv, ww, u, v, w
 
-def incidentFieldCartesian(uu,vv,ww,Et,phr,Ep):
-            e0[0]=uu*Et-math.sin(phr)*Ep
-            e0[1]=vv*Et+math.cos(phr)*Ep
-            e0[2]=ww*Et
-            return e0
+def incidentFieldCartesian(uu,vv,ww,Et,phr,Ep,uui,vvi,wwi):
+    e0[0] = uui * Et - spi * Ep
+    e0[1] = vvi * Et + cpi * Ep
+    e0[2] = wwi * Et
+    return e0
 
-def sphericalAngles(u2,v2,w2):
-                        th2=math.asin(np.sqrt(u2**2+v2**2)*np.sign(w2))
-                        phi2=math.atan2(v2,u2+1e-10)
-                        if(v2==u2+1e-10==0): #porque precisou disso?
-                            phi2=0
-                        return th2, phi2
+def sphericalAngles(ui2,vi2,wi2):
+    # Calcula sti2
+    sti2 = np.sqrt(ui2**2 + vi2**2) * np.sign(wi2)
 
-def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w):
-                        
-                        Dp=2*bk*((x[vind[m,0]-1]-x[vind[m,2]-1])*u+
-                                (y[vind[m,0]-1]-y[vind[m,2]-1])*v+
-                                (z[vind[m,0]-1]-z[vind[m,2]-1])*w)
-                        Dq=2*bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*u+
-                                (y[vind[m,1]-1]-y[vind[m,2]-1])*v+
-                                (z[vind[m,1]-1]-z[vind[m,2]-1])*w)
-                        Do=2*bk*(x[vind[m,2]-1]*u + y[vind[m,2]-1]*v + z[vind[m,2]-1]*w)
-                        return(Dp,Dq,Do)
+    # Calcula cti2
+    cti2 = np.sqrt(1 - sti2**2)
+
+    # Calcula phii2
+    phii2 = np.arctan2(vi2, ui2 + 1e-10)
+
+    # Calcula thi2
+    thi2 = np.arccos(cti2)
+
+    # Calcula cpi2 e spi2
+    cpi2 = np.cos(phii2)
+    spi2 = np.sin(phii2)
+    return thi2, phii2
+
+def calculaCoisas(ui2,vi2,wi2):
+    # Calcula sti2
+    sti2 = np.sqrt(ui2**2 + vi2**2) * np.sign(wi2)
+
+    # Calcula cti2
+    cti2 = np.sqrt(1 - sti2**2)
+
+    # Calcula phii2
+    phii2 = np.arctan2(vi2, ui2 + 1e-10)
+
+    # Calcula thi2
+    thi2 = np.arccos(cti2)
+
+    # Calcula cpi2 e spi2
+    cpi2 = np.cos(phii2)
+    spi2 = np.sin(phii2)
+    return cpi2,spi2
+
+
+def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
+     # Calcula Dp
+    Dp = bk * ((x[vind[m, 0]] - x[vind[m, 2]]) * (u + ui) +(y[vind[m, 0]] - y[vind[m, 2]]) * (v + vi) + (z[vind[m, 0]] - z[vind[m, 2]]) * (w + wi))
+
+    # Calcula Dq
+    Dq = bk * ((x[vind[m, 1]] - x[vind[m, 2]]) * (u + ui) + (y[vind[m, 1]] - y[vind[m, 2]]) * (v + vi) + (z[vind[m, 1]] - z[vind[m, 2]]) * (w + wi))
+
+    # Calcula Do
+    Do = bk * ( x[vind[m, 2]] * (u + ui) + y[vind[m, 2]] * (v + vi) + z[vind[m, 2]] * (w - wi))
+    return(Dp,Dq,Do)
 
 def G(n,w):
                         jw=1j*w
@@ -506,7 +541,7 @@ ax.set_zlim(zmin, zmax)
 # pattern loop
 fii=0
 thetai=0
-Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,D0i,wwi,Ri = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad,fii,thetai)
+Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad,fii,thetai)
 # get edge vectors and normals from edge cross products
 
 
@@ -523,7 +558,7 @@ for i1 in range(ip):
         # spherical coordinate system radial unit vector
         R=np.array([u,v,w])
         # incident field in global cartesian coordinates
-        e0  = incidentFieldCartesian(uu,vv,ww,Et,phr,Ep)
+        e0  = incidentFieldCartesian(uu,vv,ww,Et,phr,Ep,uui,vvi,wwi)
         # begin loop over triangles
         sumt=0
         sump=0
@@ -534,32 +569,33 @@ for i1 in range(ip):
             if iflag==0:
                 if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0:
                     # local direction cosine
-                    u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0)
+                    ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i)
 
                     # find spherical angles in local coordinates
-                    th2, phi2 = sphericalAngles(u2,v2,w2)
+                    thi2, phii2 = sphericalAngles(ui2,vi2,wi2)
 
+                    cpi2,spi2 = calculaCoisas(ui2,vi2,wi2)
                     # phase at the three vertices of triangle m; monostatic RCS needs "2"
-                    Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w)
+                    Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
                     # incident field in local cartesian coordinates (stored in e2)
                     e1=np.dot(T1,np.transpose(np.conj(e0)))
                     e2=np.dot(T2,e1)
 
                     # incident field in local spherical coordinates
-                    Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
+                    Et2, Ep2 = incidentFieldSphericalCoordinates(thi2,e2,phii2)
 
                     # reflection coefficients (Rs is normalized to eta0)
-                    perp, para = reflectionCoefficients(Rs, th2)
+                    perp, para = reflectionCoefficients(Rs, thi2)
 
                     # surface current components in local Cartesian coordinates
-                    Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp);   # math.cos(th2) removed
-                    Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp);   # math.cos(th2) removed
+                    Jx2=(-Et2*math.cos(phii2)*para+Ep2*math.sin(phii2)*perp);   # math.cos(th2) removed
+                    Jy2=(-Et2*math.sin(phii2)*para-Ep2*math.cos(phii2)*perp);   # math.cos(th2) removed
 
                     # area integral for general case
                     DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
 
                     Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq)
-                    sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp)
+                    sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, thi2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp)
         Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave) 
 Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico()
 
