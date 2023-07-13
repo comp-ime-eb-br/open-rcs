@@ -381,6 +381,50 @@ def calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,su
                         sump=sump+Eps; sumdp=sumdp+abs(Epd)
                         return sumt,sump,sumdp,sumdt
 
+def calculateSth_Sph(cfac1,sumt,sump,sumdt,wave):          
+            Sth[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sumt)**2+np.sqrt(1-cfac1**2)*sumdt)/wave**2+1e-10)
+            Sph[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sump)**2+np.sqrt(1-cfac1**2)*sumdp)/wave**2+1e-10)
+            return Sth, Sph
+
+def parametrosGrafico():
+    Smax=max(np.max(Sth),np.max(Sph))
+    Lmax=(np.floor(Smax/5)+1)*5
+    Lmin=Lmax-60
+    Sth[:,:]=np.maximum(Sth[:,:],Lmin)
+    Sph[:,:]=np.maximum(Sph[:,:],Lmin)
+    return Smax,Lmax, Lmin,Sth, Sph
+
+def productVector(ntria,r,vind):
+    for i in range(ntria):
+        A = r[vind[i, 1]-1, :]-r[vind[i, 0]-1, :]
+        B = r[vind[i, 2]-1, :]-r[vind[i, 1]-1, :]
+        C = r[vind[i, 0]-1, :]-r[vind[i, 2]-1, :]
+        N[i, :] = -np.cross(B, A)
+        d[i, 0] = np.linalg.norm(A) # edge lengths for triangle "i"
+        d[i, 1] = np.linalg.norm(B)
+        d[i, 2] = np.linalg.norm(C)
+        ss = .5*sum(d[i, :])
+        Area[i] = np.sqrt(ss*(ss-d[i, 0])*(ss-d[i, 1])*(ss-d[i, 2]))
+        Nn = np.linalg.norm(N[i, :]) # unit normals
+        N[i, :] = N[i, :]/Nn
+        beta[i] = math.acos(N[i, 2])  # 0<beta<180, -180<phi<180
+        alpha[i] = math.atan2(N[i, 1], N[i, 0])
+        if(N[i, 1]==N[i, 0]==0): #porque precisou disso?
+            alpha[i]=0
+    return A,B,C,N,d,ss,Area, Nn, N, beta,alpha
+
+def otherVectorComponents(ip,it,np):
+    phi = np.zeros([ip, it], np.double)
+    theta = np.zeros([ip, it], np.double)
+    U = np.zeros([ip, it], np.double)
+    V = np.zeros([ip, it], np.double)
+    W = np.zeros([ip, it], np.double)
+    e0 = [0,0,0]
+
+    Sth = np.zeros([ip,it], np.double)
+    Sph = np.zeros([ip,it], np.double)
+    return phi, theta, U,V,W,e0, Sth,Sph
+
 # open input data file and gather parameters
 # input_model="BOX"
 input_data_file = "input_data_file.dat"
@@ -393,6 +437,7 @@ for line in params:
         else: param_list.append(line)
 input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
 params.close()
+
 
 # 1: radar frequency
 wave = 3e8 / freq
@@ -433,104 +478,52 @@ ax.set_zlim(zmin, zmax)
 # pattern loop
 Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
 # get edge vectors and normals from edge cross products
-for i in range(ntria):
-    A = r[vind[i, 1]-1, :]-r[vind[i, 0]-1, :]
-    B = r[vind[i, 2]-1, :]-r[vind[i, 1]-1, :]
-    C = r[vind[i, 0]-1, :]-r[vind[i, 2]-1, :]
-    N[i, :] = -np.cross(B, A)
-    d[i, 0] = np.linalg.norm(A) # edge lengths for triangle "i"
-    d[i, 1] = np.linalg.norm(B)
-    d[i, 2] = np.linalg.norm(C)
-    ss = .5*sum(d[i, :])
-    Area[i] = np.sqrt(ss*(ss-d[i, 0])*(ss-d[i, 1])*(ss-d[i, 2]))
-    Nn = np.linalg.norm(N[i, :]) # unit normals
-    N[i, :] = N[i, :]/Nn
-    beta[i] = math.acos(N[i, 2])  # 0<beta<180, -180<phi<180
-    alpha[i] = math.atan2(N[i, 1], N[i, 0])
-    if(N[i, 1]==N[i, 0]==0): #porque precisou disso?
-        alpha[i]=0
-
-phi = np.zeros([ip, it], np.double)
-theta = np.zeros([ip, it], np.double)
-U = np.zeros([ip, it], np.double)
-V = np.zeros([ip, it], np.double)
-W = np.zeros([ip, it], np.double)
-e0 = [0,0,0]
-
-Sth = np.zeros([ip,it], np.double)
-Sph = np.zeros([ip,it], np.double)
+A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,r,vind)
+phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it,np)
 for i1 in range(ip):
     for i2 in range(it):
         phi[i1,i2]=pstart+(i1)*delp
         phr=phi[i1,i2]*rad
         theta[i1,i2]=tstart+(i2)*delt
         thr=theta[i1,i2]*rad
-
         # global angles and direction cosine
-    
         U, V, W, D0, uu, vv, ww, u, v, w = globalAngles(thr,phr,i1,i2)
-
         # spherical coordinate system radial unit vector
         R=np.array([u,v,w])
         # incident field in global cartesian coordinates
         e0  = incidentFieldCartesian(uu,vv,ww,Et,phr,Ep)
-
         # begin loop over triangles
         sumt=0
         sump=0
         sumdt=0
         sumdp=0
-
         for m in range(ntria): # test to see if front face is illuminated
             ndotk=np.dot(N[m,:],np.transpose(R))
             if iflag==0:
                 if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0:
                     # local direction cosine
                     u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0)
-
                     # find spherical angles in local coordinates
                     th2, phi2 = sphericalAngles(u2,v2,w2)
-
                     # phase at the three vertices of triangle m; monostatic RCS needs "2"
                     Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w)
-
                     # incident field in local cartesian coordinates (stored in e2)
                     e1=np.dot(T1,np.transpose(np.conj(e0)))
                     e2=np.dot(T2,e1)
-
                     # incident field in local spherical coordinates
-                    
                     Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
-
                     # reflection coefficients (Rs is normalized to eta0)
-                   
                     perp, para = reflectionCoefficients(Rs, th2)
-
                     # surface current components in local Cartesian coordinates
                     Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp);   # math.cos(th2) removed
                     Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp);   # math.cos(th2) removed
-
                     # area integral for general case
-                    
                     DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
-
-                    
                     Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq)
-
-                    
                     sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp)
-                    
-        Sth[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sumt)**2+np.sqrt(1-cfac1**2)*sumdt)/wave**2+1e-10)
-        Sph[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sump)**2+np.sqrt(1-cfac1**2)*sumdp)/wave**2+1e-10)
-        
-Smax=max(np.max(Sth),np.max(Sph))
-Lmax=(np.floor(Smax/5)+1)*5
-Lmin=Lmax-60
-Sth[:,:]=np.maximum(Sth[:,:],Lmin)
-Sph[:,:]=np.maximum(Sph[:,:],Lmin)
-
+        Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave) 
+Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico()
 # generate result files
 now = generateResultFiles(theta, Sth, phi,Sph)
-
 # final plots
 finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now)
