@@ -117,6 +117,41 @@ def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node
             ax.text(xav, yav, zav, str(nfc[i]))
     return xmin, ymin, zmin, xmax, ymax, zmax
 
+
+def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
+    def calculate_ip():
+        if delp == 0:
+            return int((pstop - pstart)) + 1
+        else:
+            return int((pstop - pstart) / delp) + 1
+    
+    def calculate_it():
+        if delt == 0:
+            return int((tstop - tstart)) + 1
+        else:
+            return int((tstop - tstart) / delt) + 1
+    
+    def calculate_phr0():
+        if pstart == pstop:
+            return pstart * rad
+    
+    def calculate_thr0():
+        if tstart == tstop:
+            return tstart * rad
+    
+    ip = calculate_ip()
+    it = calculate_it()
+    phr0 = calculate_phr0()
+    thr0 = calculate_thr0()
+    
+    Area = np.empty(ntria, np.double)
+    alpha = np.empty(ntria, np.double)
+    beta = np.empty(ntria, np.double)
+    N = np.empty([ntria, 3], np.double)
+    d = np.empty([ntria, 3], np.double)
+    
+    return Area, alpha, beta, N, d, ip, it 
+
 # open input data file and gather parameters
 # input_model="BOX"
 input_data_file = "input_data_file.dat"
@@ -197,26 +232,10 @@ ax.set_ylim(ymin, ymax)
 ax.set_zlim(zmin, zmax)
 
 # pattern loop
-if delp == 0:
-    ip = int((pstop - pstart)) + 1 # number of vertical rotations in the simulation
-else:
-    ip = int((pstop - pstart) / delp) + 1 
-if pstart == pstop:
-    phr0 = pstart * rad
-if delt == 0:
-    it = int((tstop - tstart)) + 1 # number of horizontal rotations in the simulation
-else:
-    it = int((tstop - tstart) / delt) + 1
-if tstart == tstop:
-    thr0 = tstart * rad
-
-Area =  np.empty(ntria, np.double)
-alpha =  np.empty(ntria, np.double)
-beta = np.empty(ntria, np.double)
-N = np.empty([ntria, 3], np.double)
-d = np.empty([ntria, 3], np.double)
+Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
 
 # get edge vectors and normals from edge cross products
+
 for i in range(ntria):
     A = r[vind[i, 1]-1, :]-r[vind[i, 0]-1, :]
     B = r[vind[i, 2]-1, :]-r[vind[i, 1]-1, :]
