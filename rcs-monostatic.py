@@ -336,6 +336,50 @@ def calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq):
                         # end of special cases test
                         return Ic
 
+def plotParameters(wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt):
+    bx = fig.add_subplot(1,2,2,projection='3d')
+    bx.set_axis_off()
+    bx.set_title(f'Simulation Parameters:') 
+    param = f'Radar Frequency (GHz): {freq/1e9}\n\
+    Wavelength (m): {wave}\n\
+    Correlation distance (m): {corr}\n\
+    Standard Deviation (m): {delstd}\n\
+    Incident wave polarization: {pol}\n\
+    Number of model faces: {ntria}\n\
+    Start phi angle (degrees): {pstart}\n\
+    Stop phi angle (degrees): {pstop}\n\
+    Phi increment step (degrees): {delp}\n\
+    Start theta angle (degrees): {tstart}\n\
+    Stop theta angle (degrees): {tstop}\n\
+    Phi increment step (degrees): {delt}\n'
+    bx.text(0, 0, 0, param)
+    return param
+
+def calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp):
+                        Es0=np.empty(3,complex)
+                        Es1=np.empty(3,complex)
+                        Es2=np.empty(3,complex)
+                        Ed0=np.empty(3,complex)
+                        Ed1=np.empty(3,complex)
+                        Ed2=np.empty(3,complex)
+                        # add diffuse component
+                        Edif=cfac2*Area[m]*(math.cos(th2)**2)*np.exp(-(corel*np.pi*math.sin(th2)/wave)**2)
+                        # scattered field components for triangle m in local coordinates
+                        Es2[0]=Jx2*Ic; Es2[1]=Jy2*Ic; Es2[2]=0
+                        Ed2[0]=Jx2*Edif; Ed2[1]=Jy2*Edif; Ed2[2]=0
+                        # transform back to global coordinates, then sum field
+                        Es1=np.dot(np.transpose(T2),np.transpose(Es2))
+                        Es0=np.dot(np.transpose(T1),Es1)
+                        Ed1=np.dot(np.transpose(T2),np.transpose(Ed2))
+                        Ed0=np.dot(np.transpose(T1),Ed1)
+                        Ets=uu*Es0[0]+vv*Es0[1]+ww*Es0[2]
+                        Eps=-math.sin(phr)*Es0[0]+math.cos(phr)*Es0[1]
+                        Etd=uu*Ed0[0]+vv*Ed0[1]+ww*Ed0[2]
+                        Epd=-math.sin(phr)*Ed0[0]+math.cos(phr)*Ed0[1]
+                        # sum over all triangles to get the total field
+                        sumt=sumt+Ets; sumdt=sumdt+abs(Etd)
+                        sump=sump+Eps; sumdp=sumdp+abs(Epd)
+                        return sumt,sump,sumdp,sumdt
 
 # open input data file and gather parameters
 # input_model="BOX"
@@ -350,79 +394,45 @@ for line in params:
 input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
 params.close()
 
-
-
 # 1: radar frequency
 wave = 3e8 / freq
-
 # surface roughness of model is approximated by correlation distance and standard deviation (for smooth surface, both are 0)
 # 2: correlation distance 
 corel = corr/wave
-
 # 3: standard deviation
 [bk,cfac1,cfac2,rad,Lt,Nt] = getStandardDeviation(delstd,corel,wave)
-
 # 4: incident wave polarization
 [pol,Et,Ep] = getPolarization(ipol)
-
 Co=1  # wave amplitude at all vertices
-
 # processing coordinate data 
 x, y, z, xpts, ypts, zpts, nverts = read_coordinates(input_model)
 nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model)
 vind = create_vind(node1, node2, node3)
 r = calculate_r(x, y, z, nverts)
-
 # plot font options
 setFontOption()
-
 # plot model before simulation
 fig = plt.figure(1,[7,4])
 fig.suptitle(f'RCS Monostatic Simulation of Target: {input_model}')
-
-
 # plot triangle model
-
 ilabv ='n'; ilabf='n' # label vertices and faces
 ax = fig.add_subplot(1,2,1, projection='3d')
-
 [xmin, ymin, zmin, xmax, zmax, ymax] = plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf)
-
 # plot parameters info
-bx = fig.add_subplot(1,2,2,projection='3d')
-bx.set_axis_off()
-bx.set_title(f'Simulation Parameters:') 
-param = f'Radar Frequency (GHz): {freq/1e9}\n\
-Wavelength (m): {wave}\n\
-Correlation distance (m): {corr}\n\
-Standard Deviation (m): {delstd}\n\
-Incident wave polarization: {pol}\n\
-Number of model faces: {ntria}\n\
-Start phi angle (degrees): {pstart}\n\
-Stop phi angle (degrees): {pstop}\n\
-Phi increment step (degrees): {delp}\n\
-Start theta angle (degrees): {tstart}\n\
-Stop theta angle (degrees): {tstop}\n\
-Phi increment step (degrees): {delt}\n'
-bx.text(0, 0, 0, param)
-
+param = plotParameters(wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
 # bpos = plt.axes([0.75, 0.2, 0.2, 0.075])
 # bstart = Button(bpos, 'Start Simulation')
 # bstart.on_clicked()
 # bpos = plt.axes([0.75, 0.1, 0.2, 0.075])
 # bstop = Button(bpos, 'Cancel Simulation')
 # bstop.on_clicked()
-
 plt.show()
 ax.set_xlim(xmin, xmax)
 ax.set_ylim(ymin, ymax)
 ax.set_zlim(zmin, zmax)
-
 # pattern loop
 Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
-
 # get edge vectors and normals from edge cross products
-
 for i in range(ntria):
     A = r[vind[i, 1]-1, :]-r[vind[i, 0]-1, :]
     B = r[vind[i, 2]-1, :]-r[vind[i, 1]-1, :]
@@ -507,29 +517,8 @@ for i1 in range(ip):
                     
                     Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq)
 
-                    Es0=np.empty(3,complex)
-                    Es1=np.empty(3,complex)
-                    Es2=np.empty(3,complex)
-                    Ed0=np.empty(3,complex)
-                    Ed1=np.empty(3,complex)
-                    Ed2=np.empty(3,complex)
-                    # add diffuse component
-                    Edif=cfac2*Area[m]*(math.cos(th2)**2)*np.exp(-(corel*np.pi*math.sin(th2)/wave)**2)
-                    # scattered field components for triangle m in local coordinates
-                    Es2[0]=Jx2*Ic; Es2[1]=Jy2*Ic; Es2[2]=0
-                    Ed2[0]=Jx2*Edif; Ed2[1]=Jy2*Edif; Ed2[2]=0
-                    # transform back to global coordinates, then sum field
-                    Es1=np.dot(np.transpose(T2),np.transpose(Es2))
-                    Es0=np.dot(np.transpose(T1),Es1)
-                    Ed1=np.dot(np.transpose(T2),np.transpose(Ed2))
-                    Ed0=np.dot(np.transpose(T1),Ed1)
-                    Ets=uu*Es0[0]+vv*Es0[1]+ww*Es0[2]
-                    Eps=-math.sin(phr)*Es0[0]+math.cos(phr)*Es0[1]
-                    Etd=uu*Ed0[0]+vv*Ed0[1]+ww*Ed0[2]
-                    Epd=-math.sin(phr)*Ed0[0]+math.cos(phr)*Ed0[1]
-                    # sum over all triangles to get the total field
-                    sumt=sumt+Ets; sumdt=sumdt+abs(Etd)
-                    sump=sump+Eps; sumdp=sumdp+abs(Epd)
+                    
+                    sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp)
                     
         Sth[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sumt)**2+np.sqrt(1-cfac1**2)*sumdt)/wave**2+1e-10)
         Sph[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sump)**2+np.sqrt(1-cfac1**2)*sumdp)/wave**2+1e-10)
