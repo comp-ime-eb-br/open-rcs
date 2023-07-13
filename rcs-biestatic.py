@@ -1,82 +1,92 @@
-import math
-import cmath
+import math, cmath
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-def read_parameters(input_data_file):
-    params = open(input_data_file, 'r')
-    param_list = []
-    for line in params:
-        line = line.strip("\n")
-        if not line.startswith("#"):
-            if line.isnumeric():
-                param_list.append(int(line))
-            else:
-                param_list.append(line)
-    params.close()
-    return param_list
+SMALL_SIZE = 8
+MEDIUM_SIZE = 10
+BIGGER_SIZE = 12
 
-def calculate_wave_frequency(freq):
-    return 3e8 / freq
+def getPolarization(incidentPolarization):
+    if incidentPolarization == 0: # Theta-polarized (TM-z)
+        pol_aux = 'TM-z'
+        Et_aux = 1 + 1j * 0
+        Ep_aux = 0 + 1j * 0
+        return [pol_aux,Et_aux,Ep_aux]
+    elif incidentPolarization == 1: # Phi-polarized (TE-z)
+        pol_aux = 'TE-z'
+        Et_aux = 0 + 1j * 0   
+        Ep_aux = 1 + 1j * 0
+        return [pol_aux,Et_aux,Ep_aux]
+    else:
+        raise ValueError('Invalid input')
 
-def calculate_corel(wave, corr):
-    return corr / wave
-
-def calculate_delsq(delstd):
-    return delstd ** 2
-
-def calculate_cfactors(wave, corel, delsq):
+def getStandardDeviation(delstd,corel,wave):
+    delsq = delstd ** 2
     bk = 2 * np.pi / wave
     cfac1 = np.exp(-4 * bk ** 2 * delsq)
     cfac2 = 4 * np.pi * (bk * corel) ** 2 * delsq
-    return cfac1, cfac2
+    rad = np.pi / 180
+    Lt = 0.05  # taylor series region
+    Nt = 5 # number of terms in Taylor series
+    return[bk,cfac1,cfac2,rad,Lt,Nt]
 
-def process_coordinates(input_model):
-    fname = f"./models/{input_model}/coordinates.txt"
+def setFontOption(fontSize=SMALL_SIZE, axesTitle=MEDIUM_SIZE, axesLabel=SMALL_SIZE, xtickLabel=SMALL_SIZE, 
+ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
+    plt.rc('font', size=fontSize)          # controls default text sizes
+    plt.rc('axes', titlesize=axesTitle)    # fontsize of the axes title
+    plt.rc('axes', labelsize=axesLabel)     # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=xtickLabel)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=ytickLabel)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=legendSize)    # legend fontsize
+    plt.rc('figure', titlesize=figureTitle)  
+
+def read_coordinates(input_model):
+    fname = "./models/" + input_model + "/coordinates.txt"
     coordinates = np.loadtxt(fname)
     xpts = coordinates[:, 0]
     ypts = coordinates[:, 1]
     zpts = coordinates[:, 2]
-    nverts = len(xpts)
-    return xpts, ypts, zpts, nverts
 
-def process_facets(input_model):
-    fname2 = f"./models/{input_model}/facets.txt"
+    x = xpts
+    y = ypts
+    z = zpts
+
+    nverts = len(xpts)
+    return x, y, z, xpts, ypts, zpts, nverts
+
+def read_facets(input_model):
+    fname2 = "./models/" + input_model + "/facets.txt"
     facets = np.loadtxt(fname2)
     nfc = facets[:, 0]
     node1 = facets[:, 1].astype(int)
     node2 = facets[:, 2].astype(int)
     node3 = facets[:, 3].astype(int)
+    iflag = 0
     ilum = facets[:, 4]
     Rs = facets[:, 5]
     ntria = len(node3)
-    vind = np.empty([ntria, 3], dtype=int)
-    for i in range(ntria):
+    return nfc, node1, node2, node3, iflag, ilum, Rs, ntria
+
+def create_vind(node1, node2, node3):
+    vind = np.empty([len(node3), 3])
+    for i in range(len(node3)):
         pts = np.array([node1[i], node2[i], node3[i]])
         vind[i, :] = pts
-    return nfc, node1, node2, node3, ilum, Rs, ntria, vind
+    vind = vind.astype(int)
+    return vind
 
-def create_plot_font_options():
-    SMALL_SIZE = 8
-    MEDIUM_SIZE = 10
-    BIGGER_SIZE = 12
-    plt.rc('font', size=SMALL_SIZE)
-    plt.rc('axes', titlesize=MEDIUM_SIZE)
-    plt.rc('axes', labelsize=SMALL_SIZE)
-    plt.rc('xtick', labelsize=SMALL_SIZE)
-    plt.rc('ytick', labelsize=SMALL_SIZE)
-    plt.rc('legend', fontsize=SMALL_SIZE)
-    plt.rc('figure', titlesize=BIGGER_SIZE)
+def calculate_r(x, y, z, nverts):
+    r = np.zeros([nverts, 3], np.double)
+    for i in range(nverts):
+        r[i, :] = [x[i], y[i], z[i]]
+    return r
 
-def plot_model(input_model, xpts, ypts, zpts, nverts, vind):
-    fig = plt.figure(1, [7, 4])
-    fig.suptitle(f'RCS Monostatic Simulation of Target: {input_model}')
-    ax = fig.add_subplot(1, 2, 1, projection='3d')
+def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf):
     for i in range(ntria):
-        X = [xpts[vind[i, 0]-1], xpts[vind[i, 1]-1], xpts[vind[i, 2]-1], xpts[vind[i, 0]-1]]
-        Y = [ypts[vind[i, 0]-1], ypts[vind[i, 1]-1], ypts[vind[i, 2]-1], ypts[vind[i, 0]-1]]
-        Z = [zpts[vind[i, 0]-1], zpts[vind[i, 1]-1], zpts[vind[i, 2]-1], zpts[vind[i, 0]-1]]
+        X = [x[vind[i, 0]-1], x[vind[i, 1]-1], x[vind[i, 2]-1], x[vind[i, 0]-1]]
+        Y = [y[vind[i, 0]-1], y[vind[i, 1]-1], y[vind[i, 2]-1], y[vind[i, 0]-1]]
+        Z = [z[vind[i, 0]-1], z[vind[i, 1]-1], z[vind[i, 2]-1], z[vind[i, 0]-1]]
         ax.plot(X, Y, Z)
     ax.set_title(f'Triangle Model of Target:')
     ax.set_xlabel('x')
@@ -90,36 +100,245 @@ def plot_model(input_model, xpts, ypts, zpts, nverts, vind):
     zmin = min(zpts)
     dmax = max([xmax, ymax, zmax])
     dmin = min([xmin, ymin, zmin])
-    xmax = dmax
-    ymax = dmax
-    zmax = dmax
-    xmin = dmin
-    ymin = dmin
-    zmin = dmin
-    ilabv = 'n'
-    ilabf = 'n'
+    # this is to avoid both a max and min of zero in any one dimension
+    xmax = dmax; ymax = dmax; zmax = dmax
+    xmin = dmin; ymin = dmin; zmin = dmin
+
+    
     if ilabv == 'y':
         for i in range(nverts):
-            ax.text(xpts[i]-max(xpts)/20, ypts[i]-max(ypts)/20, zpts[i], str(i+1))
+            ax.text(x[i]-max(x)/20, y[i]-max(y)/20, z[i], str(i+1))
+    
     if ilabf == 'y':
         for i in range(ntria):
             xav = (xpts[node1[i]-1] + xpts[node2[i]-1] + xpts[node3[i]-1]) / 3
             yav = (ypts[node1[i]-1] + ypts[node2[i]-1] + ypts[node3[i]-1]) / 3
             zav = (zpts[node1[i]-1] + zpts[node2[i]-1] + zpts[node3[i]-1]) / 3
             ax.text(xav, yav, zav, str(nfc[i]))
-    return ax, xmax, xmin, ymax, ymin, zmax, zmin
+    return xmin, ymin, zmin, xmax, ymax, zmax
 
-def calculate_position_vectors(xpts, ypts, zpts):
-    nverts = len(xpts)
-    r = np.zeros([nverts, 3], np.double)
-    for i in range(nverts):
-        r[i, :] = [xpts[i], ypts[i], zpts[i]]
-    return r
+def diretionCosines(alpha, beta, D0):
+                        T1=np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
+                                        [-math.sin(alpha[m]), math.cos(alpha[m]),   0],
+                                        [0,                   0,                    1]])
+                        T2=np.array([[math.cos(beta[m]), 0, -math.sin(beta[m])],
+                                        [0,                 1, 0],
+                                        [math.sin(beta[m]), 0, math.cos(beta[m])]])
+                        D1=np.dot(T1,np.transpose(D0))
+                        D2=np.dot(T2,D1)
+                        u2=D2[0]
+                        v2=D2[1]
+                        w2=D2[2]
+                        return u2, v2, w2, T1, T2
 
-def plot_parameters_info(ax, freq, wave, corr, delstd, pol, ntria, pstart, pstop, delp, tstart, tstop, delt):
-    bx = fig.add_subplot(1, 2, 2, projection='3d')
+def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
+    def calculate_ip():
+        if delp == 0:
+            return int((pstop - pstart)) + 1
+        else:
+            return int((pstop - pstart) / delp) + 1
+    
+    def calculate_it():
+        if delt == 0:
+            return int((tstop - tstart)) + 1
+        else:
+            return int((tstop - tstart) / delt) + 1
+    
+    def calculate_phr0():
+        if pstart == pstop:
+            return pstart * rad
+    
+    def calculate_thr0():
+        if tstart == tstop:
+            return tstart * rad
+    
+    ip = calculate_ip()
+    it = calculate_it()
+    phr0 = calculate_phr0()
+    thr0 = calculate_thr0()
+    
+    Area = np.empty(ntria, np.double)
+    alpha = np.empty(ntria, np.double)
+    beta = np.empty(ntria, np.double)
+    N = np.empty([ntria, 3], np.double)
+    d = np.empty([ntria, 3], np.double)
+    
+    return Area, alpha, beta, N, d, ip, it 
+
+def globalAngles(thr,phr,i1,i2):
+            u=math.sin(thr)*math.cos(phr)
+            v=math.sin(thr)*math.sin(phr)
+            w=math.cos(thr)
+            U[i1,i2]=u 
+            V[i1,i2]=v
+            W[i1,i2]=w
+            D0=np.array([u,v,w])
+            uu=math.cos(thr)*math.cos(phr)
+            vv=math.cos(thr)*math.sin(phr)
+            ww=-math.sin(thr)
+            return U, V, W, D0, uu, vv, ww, u, v, w
+
+def incidentFieldCartesian(uu,vv,ww,Et,phr,Ep):
+            e0[0]=uu*Et-math.sin(phr)*Ep
+            e0[1]=vv*Et+math.cos(phr)*Ep
+            e0[2]=ww*Et
+            return e0
+
+def sphericalAngles(u2,v2,w2):
+                        th2=math.asin(np.sqrt(u2**2+v2**2)*np.sign(w2))
+                        phi2=math.atan2(v2,u2+1e-10)
+                        if(v2==u2+1e-10==0): #porque precisou disso?
+                            phi2=0
+                        return th2, phi2
+
+def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w):
+                        
+                        Dp=2*bk*((x[vind[m,0]-1]-x[vind[m,2]-1])*u+
+                                (y[vind[m,0]-1]-y[vind[m,2]-1])*v+
+                                (z[vind[m,0]-1]-z[vind[m,2]-1])*w)
+                        Dq=2*bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*u+
+                                (y[vind[m,1]-1]-y[vind[m,2]-1])*v+
+                                (z[vind[m,1]-1]-z[vind[m,2]-1])*w)
+                        Do=2*bk*(x[vind[m,2]-1]*u + y[vind[m,2]-1]*v + z[vind[m,2]-1]*w)
+                        return(Dp,Dq,Do)
+
+def G(n,w):
+                        jw=1j*w
+                        g=(np.exp(jw)-1)/jw
+                        if n > 0:
+                            for m in range(1,n+1):
+                                go=g
+                                g=(cmath.exp(jw)-n*go)/jw
+                        return g
+
+def reflectionCoefficients(Rs, th2):
+                        perp=-1/(2*Rs[m]*math.cos(th2)+1)  #local TE polarization
+                        para=0  #local TM polarization
+                        if (2*Rs[m]+math.cos(th2))!=0:
+                            para=-math.cos(th2)/(2*Rs[m]+math.cos(th2))
+                        return perp, para
+
+def incidentFieldSphericalCoordinates(th2,e2,phi2):
+                        Et2=e2[0]*math.cos(th2)*math.cos(phi2)+e2[1]*math.cos(th2)*math.sin(phi2)-e2[2]*math.sin(th2)
+                        Ep2=-e2[0]*math.sin(phi2)+e2[1]*math.cos(phi2)
+                        return Et2, Ep2
+
+def finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now):
+    if ip==1:
+        plt.figure(1)
+        plt.suptitle("RCS Simulation IR Signature")
+        plt.title(f"target: {input_model}   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
+        plt.xlabel("Monostatic Angle, theta (deg)")
+        plt.ylabel("RCS (dBsm)")
+        plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
+        plt.plot(theta[0],Sth[0])
+        plt.plot(theta[0],Sph[0],linestyle="dashed")
+        plt.grid(True)
+        
+    if it==1:
+        plt.figure(1)
+        plt.suptitle("RCS Simulation IR Signature")
+        plt.title(f"target: {input_model}   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
+        plt.xlabel('Monostatic Angle, phi (deg)')
+        plt.ylabel('RCS (dBsm)')
+        plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
+        plt.plot(phi[0],Sth[0])
+        plt.plot(phi[0],Sph[0],linestyle="dashed")
+        plt.grid(True)
+        
+    if ip>1 and it>1:
+        fig = plt.figure(1,[10,4])
+        fig.suptitle("RCS Simulation IR Signature")
+        
+        ax=fig.add_subplot(1,2,1)
+        cp=ax.contour(U, V, Sth)
+        ax.set_title('RCS-theta')
+        ax.set_xlabel('U')
+        ax.set_ylabel('V')
+        ax.axis('square')
+        cbar=fig.colorbar(cp)
+        cbar.set_label('RCS (dBsm)')
+        
+        bx=fig.add_subplot(1,2,2)
+        cp=bx.contour(U, V, Sph)
+        bx.set_title('RCS-phi')
+        bx.set_xlabel('U')
+        bx.set_ylabel('V')
+        bx.axis('square')
+        cbar=fig.colorbar(cp)
+        cbar.set_label('RCS (dBsm)')
+        
+    plt.savefig("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".png")
+    plt.show()
+
+def generateResultFiles(theta, Sth, phi,Sph):
+    now = datetime.now().strftime("%Y%m%d%H%M%S")
+    result_file = open("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".dat", 'w')
+
+    result_file.write("RCS SIMULATOR MONOSTITC "+now+"\n")
+    result_file.write("\nSimulation Parameters:\n"+param)
+    result_file.write("\nSimulation Results IR Signature:")
+    result_file.write("\nTheta (deg):\n")
+    for i1 in range(ip):
+        result_file.write(str(theta[i1])+"\n")
+    result_file.write("\nRCS Theta (dBsm):\n")
+    for i1 in range(ip):
+        result_file.write(str(Sth[i1])+"\n")
+    result_file.write("\nPhi (deg):\n")
+    for i1 in range(ip):
+        result_file.write(str(phi[i1])+"\n")
+    result_file.write("\nRCS Phi (dBsm):\n")
+    for i1 in range(ip):
+        result_file.write(str(Sph[i1])+"\n")
+    return now
+        
+def areaIntegral(Dq, Dp,Do):
+                        DD=Dq-Dp
+                        expDo=cmath.exp(1j*Do)
+                        expDp=cmath.exp(1j*Dp)
+                        expDq=cmath.exp(1j*Dq)
+                        return DD, expDo, expDp, expDq
+
+def calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq):
+                        # special case 1
+                        if abs(Dp)<Lt and abs(Dq)>=Lt:
+                            specialcase=1
+                            sic=0
+                            for n in range(Nt+1):
+                                sic=sic+(1j*Dp)**n/math.factorial(n)*(-Co/(n+1)+expDq*(Co*G(n,-Dq)))
+                            Ic=sic*2*Area[m]*expDo/(1j*Dq)
+                        # special case 2
+                        elif abs(Dp)<Lt and abs(Dq)<Lt:
+                            specialcase=2
+                            sic=0
+                            for n in range(Nt+1):
+                                for nn in range(Nt):
+                                    sic=sic+(1j*Dp)**n*(1j*Dq)**nn/math.factorial(nn+n+2)*Co
+                            Ic=sic*2*Area[m]*expDo
+                        # special case 3
+                        elif abs(Dp)>=Lt and abs(Dq)<Lt:
+                            specialcase=3
+                            sic=0.0
+                            for n in range(Nt+1):
+                                sic=sic+(1j*Dq)**n/math.factorial(n)*Co*G(n+1,-Dp)/(n+1)
+                            Ic=sic*2*Area[m]*expDo*expDp
+                        # special case 4
+                        elif abs(Dp)>=Lt and abs(Dq)>=Lt and abs(DD)<Lt:
+                            specialcase=4
+                            sic=0
+                            for n in range(Nt+1):
+                                sic=sic+(1j*DD)**n/math.factorial(n)*(-Co*G(n,Dq)+expDq*Co/(n+1))
+                            Ic=sic*2*Area[m]*expDo/(1j*Dq)
+                        else:
+                            specialcase=0
+                            Ic=2*Area[m]*expDo*(expDp*Co/(Dp*DD)-expDq*Co/(Dq*DD)-Co/(Dp*Dq))
+                        # end of special cases test
+                        return Ic
+
+def plotParameters(wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt):
+    bx = fig.add_subplot(1,2,2,projection='3d')
     bx.set_axis_off()
-    bx.set_title(f'Simulation Parameters:')
+    bx.set_title(f'Simulation Parameters:') 
     param = f'Radar Frequency (GHz): {freq/1e9}\n\
     Wavelength (m): {wave}\n\
     Correlation distance (m): {corr}\n\
@@ -133,251 +352,186 @@ def plot_parameters_info(ax, freq, wave, corr, delstd, pol, ntria, pstart, pstop
     Stop theta angle (degrees): {tstop}\n\
     Phi increment step (degrees): {delt}\n'
     bx.text(0, 0, 0, param)
-    returnHere's the continued modularized code:
+    return param
 
-```python
-def calculate_triangle_properties(r, vind):
-    ntria = len(vind)
-    Area = np.empty(ntria, np.double)
-    alpha = np.empty(ntria, np.double)
-    beta = np.empty(ntria, np.double)
-    N = np.empty([ntria, 3], np.double)
-    d = np.empty([ntria, 3], np.double)
+def calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp):
+                        Es0=np.empty(3,complex)
+                        Es1=np.empty(3,complex)
+                        Es2=np.empty(3,complex)
+                        Ed0=np.empty(3,complex)
+                        Ed1=np.empty(3,complex)
+                        Ed2=np.empty(3,complex)
+                        # add diffuse component
+                        Edif=cfac2*Area[m]*(math.cos(th2)**2)*np.exp(-(corel*np.pi*math.sin(th2)/wave)**2)
+                        # scattered field components for triangle m in local coordinates
+                        Es2[0]=Jx2*Ic; Es2[1]=Jy2*Ic; Es2[2]=0
+                        Ed2[0]=Jx2*Edif; Ed2[1]=Jy2*Edif; Ed2[2]=0
+                        # transform back to global coordinates, then sum field
+                        Es1=np.dot(np.transpose(T2),np.transpose(Es2))
+                        Es0=np.dot(np.transpose(T1),Es1)
+                        Ed1=np.dot(np.transpose(T2),np.transpose(Ed2))
+                        Ed0=np.dot(np.transpose(T1),Ed1)
+                        Ets=uu*Es0[0]+vv*Es0[1]+ww*Es0[2]
+                        Eps=-math.sin(phr)*Es0[0]+math.cos(phr)*Es0[1]
+                        Etd=uu*Ed0[0]+vv*Ed0[1]+ww*Ed0[2]
+                        Epd=-math.sin(phr)*Ed0[0]+math.cos(phr)*Ed0[1]
+                        # sum over all triangles to get the total field
+                        sumt=sumt+Ets; sumdt=sumdt+abs(Etd)
+                        sump=sump+Eps; sumdp=sumdp+abs(Epd)
+                        return sumt,sump,sumdp,sumdt
+
+def calculateSth_Sph(cfac1,sumt,sump,sumdt,wave):          
+            Sth[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sumt)**2+np.sqrt(1-cfac1**2)*sumdt)/wave**2+1e-10)
+            Sph[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sump)**2+np.sqrt(1-cfac1**2)*sumdp)/wave**2+1e-10)
+            return Sth, Sph
+
+def parametrosGrafico():
+    Smax=max(np.max(Sth),np.max(Sph))
+    Lmax=(np.floor(Smax/5)+1)*5
+    Lmin=Lmax-60
+    Sth[:,:]=np.maximum(Sth[:,:],Lmin)
+    Sph[:,:]=np.maximum(Sph[:,:],Lmin)
+    return Smax,Lmax, Lmin,Sth, Sph
+
+def productVector(ntria,r,vind):
     for i in range(ntria):
-        A = r[vind[i, 1]-1, :] - r[vind[i, 0]-1, :]
-        B = r[vind[i, 2]-1, :] - r[vind[i, 1]-1, :]
-        C = r[vind[i, 0]-1, :] - r[vind[i, 2]-1, :]
+        A = r[vind[i, 1]-1, :]-r[vind[i, 0]-1, :]
+        B = r[vind[i, 2]-1, :]-r[vind[i, 1]-1, :]
+        C = r[vind[i, 0]-1, :]-r[vind[i, 2]-1, :]
         N[i, :] = -np.cross(B, A)
-        d[i, 0] = np.linalg.norm(A)
+        d[i, 0] = np.linalg.norm(A) # edge lengths for triangle "i"
         d[i, 1] = np.linalg.norm(B)
         d[i, 2] = np.linalg.norm(C)
-        ss = .5 * sum(d[i, :])
-        Area[i] = np.sqrt(ss * (ss - d[i, 0]) * (ss - d[i, 1]) * (ss - d[i, 2]))
-        Nn = np.linalg.norm(N[i, :])
-        N[i, :] = N[i, :] / Nn
-        beta[i] = math.acos(N[i, 2])
+        ss = .5*sum(d[i, :])
+        Area[i] = np.sqrt(ss*(ss-d[i, 0])*(ss-d[i, 1])*(ss-d[i, 2]))
+        Nn = np.linalg.norm(N[i, :]) # unit normals
+        N[i, :] = N[i, :]/Nn
+        beta[i] = math.acos(N[i, 2])  # 0<beta<180, -180<phi<180
         alpha[i] = math.atan2(N[i, 1], N[i, 0])
-        if (N[i, 1] == N[i, 0] == 0):
-            alpha[i] = 0
-    return Area, alpha, beta, N, d
+        if(N[i, 1]==N[i, 0]==0): #porque precisou disso?
+            alpha[i]=0
+    return A,B,C,N,d,ss,Area, Nn, N, beta,alpha
 
-def calculate_incident_field(ip, it, pstart, pstop, delp, tstart, tstop, delt):
+def otherVectorComponents(ip,it,np):
     phi = np.zeros([ip, it], np.double)
     theta = np.zeros([ip, it], np.double)
     U = np.zeros([ip, it], np.double)
     V = np.zeros([ip, it], np.double)
     W = np.zeros([ip, it], np.double)
-    for i1 in range(ip):
-        for i2 in range(it):
-            phi[i1, i2] = pstart + (i1) * delp
-            phr = phi[i1, i2] * rad
-            theta[i1, i2] = tstart + (i2) * delt
-            thr = theta[i1, i2] * rad
-            u = math.sin(thr) * math.cos(phr)
-            v = math.sin(thr) * math.sin(phr)
-            w = math.cos(thr)
-            U[i1, i2] = u
-            V[i1, i2] = v
-            W[i1, i2] = w
-    return phi, theta, U, V, W
+    e0 = [0,0,0]
 
-def calculate_special_cases(ip, it, Nt, Dp, Dq, Do, Co, Lt, cfac2, corel, wave):
-    sic = 0
-    if abs(Dp) < Lt and abs(Dq) >= Lt:
-        specialcase = 1
-        for n in range(Nt + 1):
-            sic += (1j * Dp) ** n / math.factorial(n) * (-Co / (n + 1) + cmath.exp(1j * Dq) * (Co * G(n, -Dq)))
-        Ic = sic * 2 * Area[m] * cmath.exp(1j * Do) / (1j * Dq)
-    elif abs(Dp) < Lt and abs(Dq) < Lt:
-        specialcase = 2
-        sic = 0
-        for n in range(Nt + 1):
-            for nn in range(Nt):
-                sic += (1j * Dp) ** n * (1j * Dq) ** nn / math.factorial(nn + n + 2) * Co
-        Ic = sic * 2 * Area[m] * cmath.exp(1j * Do)
-    elif abs(Dp) >= Lt and abs(Dq) < Lt:
-        specialcase = 3
-        sic = 0.0
-        for n in range(Nt + 1):
-            sic += (1j * Dq) ** n / math.factorial(n) * Co * G(n + 1, -Dp) / (n + 1)
-        Ic = sic * 2 * Area[m] * cmath.exp(1j * Do) * cmath.exp(1j * Dp)
-    elif abs(Dp) >= Lt and abs(Dq) >= Lt and abs(DD) < Lt:
-        specialcase = 4
-        sic = 0
-        for n in range(Nt + 1):
-            sic += (1j * DD) ** n / math.factorial(n) * (-Co * G(n, Dq) + cmath.exp(1j * Dq) * Co / (n + 1))
-        Ic = sic * 2 * Area[m] * cmath.exp(1j * Do) / (1j * Dq)
-    else:
-        specialcase = 0
-        Ic = 2 * Area[m] * cmath.exp(1j * Do) * (cmath.exp(1j * Dp) * Co / (Dp * DD) - cmath.exp(1j * Dq) * Co / (Dq * DD) - Co / (Dp * Dq))
-    return specialcase, Ic
+    Sth = np.zeros([ip,it], np.double)
+    Sph = np.zeros([ip,it], np.double)
+    return phi, theta, U,V,W,e0, Sth,Sph
 
-def calculate_scattered_field_components(Jx2, Jy2, Ic, Edif, uu, vv, ww, Es0, Es1, Es2, Ed0, Ed1, Ed2, e0, r, vind, ilum, ntria, N, wave, cfac1):
-    sumt = 0
-    sump = 0
-    sumdt = 0
-    sumdp = 0
-    for m in range(ntria):
-        ndotk = np.dot(N[m, :], np.transpose(R))
-        if iflag == 0:
-            if (ilum[m] == 1 and ndotk >= 1e-5) or ilum[m] == 0:
-                T1 = np.array```python
-def calculate_scattered_field_components(Jx2, Jy2, Ic, Edif, uu, vv, ww, Es0, Es1, Es2, Ed0, Ed1, Ed2, e0, r, vind, ilum, ntria, N, wave, cfac1):
-    sumt = 0
-    sump = 0
-    sumdt = 0
-    sumdp = 0
-    for m in range(ntria):
-        ndotk = np.dot(N[m, :], np.transpose(R))
-        if iflag == 0:
-            if (ilum[m] == 1 and ndotk >= 1e-5) or ilum[m] == 0:
-                T1 = np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
-                               [-math.sin(alpha[m]), math.cos(alpha[m]),   0],
-                               [0,                   0,                    1]])
-                T2 = np.array([[math.cos(beta[m]), 0, -math.sin(beta[m])],
-                               [0,                 1, 0],
-                               [math.sin(beta[m]), 0, math.cos(beta[m])]])
-                D1 = np.dot(T1, np.transpose(D0))
-                D2 = np.dot(T2, D1)
-                u2 = D2[0]
-                v2 = D2[1]
-                w2 = D2[2]
-                th2 = math.asin(np.sqrt(u2 ** 2 + v2 ** 2) * np.sign(w2))
-                phi2 = math.atan2(v2, u2 + 1e-10)
-                if v2 == u2 + 1e-10 == 0:
-                    phi2 = 0
-                Dp = 2 * bk * ((x[vind[m, 0] - 1] - x[vind[m, 2] - 1]) * u +
-                               (y[vind[m, 0] - 1] - y[vind[m, 2] - 1]) * v +
-                               (z[vind[m, 0] - 1] - z[vind[m, 2] - 1]) * w)
-                Dq = 2 * bk * ((x[vind[m, 1] - 1] - x[vind[m, 2] - 1]) * u +
-                               (y[vind[m, 1] - 1] - y[vind[m, 2] - 1]) * v +
-                               (z[vind[m, 1] - 1] - z[vind[m, 2] - 1]) * w)
-                Do = 2 * bk * (x[vind[m, 2] - 1] * u + y[vind[m, 2] - 1] * v + z[vind[m, 2] - 1] * w)
-                e1 = np.dot(T1, np.transpose(np.conj(e0)))
-                e2 = np.dot(T2, e1)
-                Et2 = e2[0] * math.cos(th2) * math.cos(phi2) + e2[1] * math.cos(th2) * math.sin(phi2) - e2[2] * math.sin(th2)
-                Ep2 = -e2[0] * math.sin(phi2) + e2[1] * math.cos(phi2)
-                perp = -1 / (2 * Rs[m] * math.cos(th2) + 1)
-                para = 0
-                if (2 * Rs[m] + math.cos(th2)) != 0:
-                    para = -math.cos(th2) / (2 * Rs[m] + math.cos(th2))
-                Jx2 = (-Et2 * math.cos(phi2) * para + Ep2 * math.sin(phi2) * perp)
-                Jy2 = (-Et2 * math.sin(phi2) * para - Ep2 * math.cos(phi2) * perp)
-                DD = Dq - Dp
-                expDo = cmath.exp(1j * Do)
-                expDp = cmath.exp(1j * Dp)
-                expDq = cmath.exp(1j * Dq)
-                Ic = calculate_special_cases(ip, it, Nt, Dp, Dq, Do, Co, Lt, cfac2, corel, wave)
-                Es2[0] = Jx2 * Ic
-                Es2[1] = Jy2 * Ic
-                Es2[2] = 0
-                Ed2[0] = Jx2 * Edif
-                Ed2[1] = Jy2 * Edif
-                Ed2[2] = 0
-                Es1 = np.dot(np.transpose(T2), np.transpose(Es2))
-                Es0 = np.dot(np.transpose(T1), Es1)
-                Ed1 = np.dot(np.transpose(T2), np.transpose(Ed2))
-                Ed0 = np.dot(np.transpose(T1), Ed1)
-                Ets = uu * Es0[0] + vv * Es0[1] + ww * Es0[2]
-                Eps = -math.sin(phr) * Es0[0] + math.cos(phr) * Es0[1]
-                Etd = uu * Ed0[0] + vv * Ed0[1] + ww * Ed0[2]
-                Epd = -math.sin(phr) * Ed0[0] + math.cos(phr) * Ed0[1]
-                sumt += Ets
-                sumdt += abs(Etd)
-                sump += Eps
-                sumdp += abs(Epd)
-    return sumt, sumdt, sump, sumdp
+# open input data file and gather parameters
+# input_model="BOX"
+input_data_file = "input_data_file.dat"
+params = open(input_data_file, 'r')
+param_list = []
+for line in params:
+    line=line.strip("\n")
+    if not line.startswith("#"):
+        if line.isnumeric(): param_list.append(int(line))
+        else: param_list.append(line)
+input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
+params.close()
 
-def generate_result_files(input_model, now, param, theta, Sth, phi, Sph):
-    result_file = open("./results/" + "RCSSimulator_Monostatic_" + "_" + now + ".dat", 'w')
-    result_file.write("RCS SIMULATOR MONOSTATIC " + now + "\n")
-    result_file.write("\nSimulation Parameters:\n" + param)
-    result_file.write("\nSimulation Results IR Signature:")
-    result_file.write("\nTheta (deg):\n")
-    for i1 in range(ip):
-        result_file.write(str(theta[i1]) + "\n")
-    result_file.write("\nRCS Theta (dBsm):\n")
-    for i1 in range(ip):
-        result_file.write(str(Sth[i1]) + "\n")
-    result_file.write("\nPhi (deg):\n")
-    for i1 in range(ip):
-        result_file.write(str(phi[i1]) + "\n")
-    result_file.write("\nRCS Phi (dBsm):\n")
-    for i1 in range(ip):
-        result_file.write(str(Sph[i1]) + "\n")
-    result_file.close()
 
-def plot_final_results(ip, it, Sth, Sph, Lmin, Lmax, theta, phi):
-    if ip == 1:
-        plt.figure(1)
-        plt.suptitle("RCSMonostatic Simulation Results")
+# 1: radar frequency
+wave = 3e8 / freq
+# surface roughness of model is approximated by correlation distance and standard deviation (for smooth surface, both are 0)
+# 2: correlation distance 
+corel = corr/wave
+# 3: standard deviation
+[bk,cfac1,cfac2,rad,Lt,Nt] = getStandardDeviation(delstd,corel,wave)
+# 4: incident wave polarization
+[pol,Et,Ep] = getPolarization(ipol)
+Co=1  # wave amplitude at all vertices
+# processing coordinate data 
+x, y, z, xpts, ypts, zpts, nverts = read_coordinates(input_model)
+nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model)
+vind = create_vind(node1, node2, node3)
+r = calculate_r(x, y, z, nverts)
+# plot font options
+setFontOption()
+# plot model before simulation
+fig = plt.figure(1,[7,4])
+fig.suptitle(f'RCS Monostatic Simulation of Target: {input_model}')
+# plot triangle model
+ilabv ='n'; ilabf='n' # label vertices and faces
+ax = fig.add_subplot(1,2,1, projection='3d')
+[xmin, ymin, zmin, xmax, zmax, ymax] = plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf)
+# plot parameters info
+param = plotParameters(wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
+# bpos = plt.axes([0.75, 0.2, 0.2, 0.075])
+# bstart = Button(bpos, 'Start Simulation')
+# bstart.on_clicked()
+# bpos = plt.axes([0.75, 0.1, 0.2, 0.075])
+# bstop = Button(bpos, 'Cancel Simulation')
+# bstop.on_clicked()
+plt.show()
+ax.set_xlim(xmin, xmax)
+ax.set_ylim(ymin, ymax)
+ax.set_zlim(zmin, zmax)
+# pattern loop
+Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
+# get edge vectors and normals from edge cross products
+A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,r,vind)
+phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it,np)
+for i1 in range(ip):
+    for i2 in range(it):
+        phi[i1,i2]=pstart+(i1)*delp
+        phr=phi[i1,i2]*rad
+        theta[i1,i2]=tstart+(i2)*delt
+        thr=theta[i1,i2]*rad
+        # global angles and direction cosine
+        U, V, W, D0, uu, vv, ww, u, v, w = globalAngles(thr,phr,i1,i2)
+        # spherical coordinate system radial unit vector
+        R=np.array([u,v,w])
+        # incident field in global cartesian coordinates
+        e0  = incidentFieldCartesian(uu,vv,ww,Et,phr,Ep)
+        # begin loop over triangles
+        sumt=0
+        sump=0
+        sumdt=0
+        sumdp=0
+        for m in range(ntria): # test to see if front face is illuminated
+            ndotk=np.dot(N[m,:],np.transpose(R))
+            if iflag==0:
+                if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0:
+                    # local direction cosine
+                    u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0)
 
-        plt.subplot(2, 1, 1)
-        plt.plot(phi, Sph, "b-")
-        plt.xlabel("Phi (deg)")
-        plt.ylabel("RCS Phi (dBsm)")
-        plt.grid(True)
+                    # find spherical angles in local coordinates
+                    th2, phi2 = sphericalAngles(u2,v2,w2)
 
-        plt.subplot(2, 1, 2)
-        plt.plot(theta, Sth, "r-")
-        plt.xlabel("Theta (deg)")
-        plt.ylabel("RCS Theta (dBsm)")
-        plt.grid(True)
+                    # phase at the three vertices of triangle m; monostatic RCS needs "2"
+                    Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w)
+                    # incident field in local cartesian coordinates (stored in e2)
+                    e1=np.dot(T1,np.transpose(np.conj(e0)))
+                    e2=np.dot(T2,e1)
 
-        plt.tight_layout()
-        plt.savefig(f"./results/RCSSimulator_Monostatic_{now}.png")
-        plt.show()
+                    # incident field in local spherical coordinates
+                    Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
 
-def main():
-    input_data_file = "./input_data.txt"
-    input_model = read_parameters(input_data_file)[0]
+                    # reflection coefficients (Rs is normalized to eta0)
+                    perp, para = reflectionCoefficients(Rs, th2)
 
-    freq = read_parameters(input_data_file)[1]
-    wave = calculate_wave_frequency(freq)
-    corr = read_parameters(input_data_file)[2]
-    delstd = read_parameters(input_data_file)[3]
-    pol = read_parameters(input_data_file)[4]
+                    # surface current components in local Cartesian coordinates
+                    Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp);   # math.cos(th2) removed
+                    Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp);   # math.cos(th2) removed
 
-    xpts, ypts, zpts, nverts = process_coordinates(input_model)
-    nfc, node1, node2, node3, ilum, Rs, ntria, vind = process_facets(input_model)
+                    # area integral for general case
+                    DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
 
-    create_plot_font_options()
-    ax, xmax, xmin, ymax, ymin, zmax, zmin = plot_model(input_model, xpts, ypts, zpts, nverts, vind)
+                    Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq)
+                    sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp)
+        Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave) 
+Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico()
 
-    r = calculate_position_vectors(xpts, ypts, zpts)
-    Area, alpha, beta, N, d = calculate_triangle_properties(r, vind)
+# generate result files
+now = generateResultFiles(theta, Sth, phi,Sph)
 
-    phi, theta, U, V, W = calculate_incident_field(ip, it, pstart, pstop, delp, tstart, tstop, delt)
-
-    Jx2 = 0
-    Jy2 = 0
-    Ic = 0
-    Edif = 1
-    Es0 = np.zeros(3, dtype=np.complex_)
-    Es1 = np.zeros(3, dtype=np.complex_)
-    Es2 = np.zeros(3, dtype=np.complex_)
-    Ed0 = np.zeros(3, dtype=np.complex_)
-    Ed1 = np.zeros(3, dtype=np.complex_)
-    Ed2 = np.zeros(3, dtype=np.complex_)
-    Ets = 0
-    Eps = 0
-    Etd = 0
-    Epd = 0
-
-    sumt, sumdt, sump, sumdp = calculate_scattered_field_components(Jx2, Jy2, Ic, Edif, uu, vv, ww, Es0, Es1, Es2, Ed0, Ed1, Ed2, e0, r, vind, ilum, ntria, N, wave, cfac1)
-
-    Sth = 10 * np.log10(sumdt / abs(Etd) ** 2)
-    Sph = 10 * np.log10(sumdp / abs(Epd) ** 2)
-
-    Lmin = min(Sth.min(), Sph.min())
-    Lmax = max(Sth.max(), Sph.max())
-
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    param = f"Radar Frequency (GHz): {freq / 1e9}\nWavelength (m): {wave}\nCorrelation distance (m): {corr}\nStandard Deviation (m): {delstd}\nIncident wave polarization: {pol}\nNumber of model faces: {ntria}\nStart phi angle (degrees): {pstart}\nStop phi angle (degrees): {pstop}\nPhi increment step (degrees): {delp}\nStart theta angle (degrees): {tstart}\nStop theta angle (degrees): {tstop}\nPhi increment step (degrees): {delt}\n"
-
-    generate_result_files(input_model, now, param, theta, Sth, phi, Sph)
-
-    plot_final_results(ip, it, Sth, Sph, Lmin, Lmax, theta, phi)
-
-if __name__ == "__main__":
-    main()
+# final plots
+finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now)
