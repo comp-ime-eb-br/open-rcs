@@ -293,6 +293,50 @@ def generateResultFiles(theta, Sth, phi,Sph):
         result_file.write(str(Sph[i1])+"\n")
     return now
         
+def areaIntegral(Dq, Dp,Do):
+                        DD=Dq-Dp
+                        expDo=cmath.exp(1j*Do)
+                        expDp=cmath.exp(1j*Dp)
+                        expDq=cmath.exp(1j*Dq)
+                        return DD, expDo, expDp, expDq
+
+def calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq):
+                        # special case 1
+                        if abs(Dp)<Lt and abs(Dq)>=Lt:
+                            specialcase=1
+                            sic=0
+                            for n in range(Nt+1):
+                                sic=sic+(1j*Dp)**n/math.factorial(n)*(-Co/(n+1)+expDq*(Co*G(n,-Dq)))
+                            Ic=sic*2*Area[m]*expDo/(1j*Dq)
+                        # special case 2
+                        elif abs(Dp)<Lt and abs(Dq)<Lt:
+                            specialcase=2
+                            sic=0
+                            for n in range(Nt+1):
+                                for nn in range(Nt):
+                                    sic=sic+(1j*Dp)**n*(1j*Dq)**nn/math.factorial(nn+n+2)*Co
+                            Ic=sic*2*Area[m]*expDo
+                        # special case 3
+                        elif abs(Dp)>=Lt and abs(Dq)<Lt:
+                            specialcase=3
+                            sic=0.0
+                            for n in range(Nt+1):
+                                sic=sic+(1j*Dq)**n/math.factorial(n)*Co*G(n+1,-Dp)/(n+1)
+                            Ic=sic*2*Area[m]*expDo*expDp
+                        # special case 4
+                        elif abs(Dp)>=Lt and abs(Dq)>=Lt and abs(DD)<Lt:
+                            specialcase=4
+                            sic=0
+                            for n in range(Nt+1):
+                                sic=sic+(1j*DD)**n/math.factorial(n)*(-Co*G(n,Dq)+expDq*Co/(n+1))
+                            Ic=sic*2*Area[m]*expDo/(1j*Dq)
+                        else:
+                            specialcase=0
+                            Ic=2*Area[m]*expDo*(expDp*Co/(Dp*DD)-expDq*Co/(Dq*DD)-Co/(Dp*Dq))
+                        # end of special cases test
+                        return Ic
+
+
 # open input data file and gather parameters
 # input_model="BOX"
 input_data_file = "input_data_file.dat"
@@ -306,12 +350,7 @@ for line in params:
 input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
 params.close()
 
-def areaIntegral(Dq, Dp,Do):
-                        DD=Dq-Dp
-                        expDo=cmath.exp(1j*Do)
-                        expDp=cmath.exp(1j*Dp)
-                        expDq=cmath.exp(1j*Dq)
-                        return DD, expDo, expDp, expDq
+
 
 # 1: radar frequency
 wave = 3e8 / freq
@@ -465,40 +504,8 @@ for i1 in range(ip):
                     
                     DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
 
-
-                    # special case 1
-                    if abs(Dp)<Lt and abs(Dq)>=Lt:
-                        specialcase=1
-                        sic=0
-                        for n in range(Nt+1):
-                            sic=sic+(1j*Dp)**n/math.factorial(n)*(-Co/(n+1)+expDq*(Co*G(n,-Dq)))
-                        Ic=sic*2*Area[m]*expDo/(1j*Dq)
-                    # special case 2
-                    elif abs(Dp)<Lt and abs(Dq)<Lt:
-                        specialcase=2
-                        sic=0
-                        for n in range(Nt+1):
-                            for nn in range(Nt):
-                                sic=sic+(1j*Dp)**n*(1j*Dq)**nn/math.factorial(nn+n+2)*Co
-                        Ic=sic*2*Area[m]*expDo
-                    # special case 3
-                    elif abs(Dp)>=Lt and abs(Dq)<Lt:
-                        specialcase=3
-                        sic=0.0
-                        for n in range(Nt+1):
-                            sic=sic+(1j*Dq)**n/math.factorial(n)*Co*G(n+1,-Dp)/(n+1)
-                        Ic=sic*2*Area[m]*expDo*expDp
-                    # special case 4
-                    elif abs(Dp)>=Lt and abs(Dq)>=Lt and abs(DD)<Lt:
-                        specialcase=4
-                        sic=0
-                        for n in range(Nt+1):
-                            sic=sic+(1j*DD)**n/math.factorial(n)*(-Co*G(n,Dq)+expDq*Co/(n+1))
-                        Ic=sic*2*Area[m]*expDo/(1j*Dq)
-                    else:
-                        specialcase=0
-                        Ic=2*Area[m]*expDo*(expDp*Co/(Dp*DD)-expDq*Co/(Dq*DD)-Co/(Dp*Dq))
-                    # end of special cases test
+                    
+                    Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq)
 
                     Es0=np.empty(3,complex)
                     Es1=np.empty(3,complex)
