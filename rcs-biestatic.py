@@ -257,10 +257,10 @@ def calculaCoisas(ui2,vi2,wi2):
 
 def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
      # Calcula Dp
-    Dp = bk * ((x[vind[m, 0]] - x[vind[m, 2]]) * (u + ui) +(y[vind[m, 0]] - y[vind[m, 2]]) * (v + vi) + (z[vind[m, 0]] - z[vind[m, 2]]) * (w + wi))
+    Dp = bk * ((x[vind[m, 0]] - x[vind[m, 2]]) * (u + ui) +(y[vind[m, 0]] - y[vind[m,2]]) * (v + vi) + (z[vind[m, 0]] - z[vind[m, 2]]) * (w + wi))
 
     # Calcula Dq
-    Dq = bk * ((x[vind[m, 1]] - x[vind[m, 2]]) * (u + ui) + (y[vind[m, 1]] - y[vind[m, 2]]) * (v + vi) + (z[vind[m, 1]] - z[vind[m, 2]]) * (w + wi))
+    Dq = bk * ((x[vind[m, 1]] - x[vind[m, 2]]) * (u + ui) + (y[vind[m, 1]] - y[vind[m,2]]) * (v + vi) + (z[vind[m, 1]] - z[vind[m, 2]]) * (w + wi))
 
     # Calcula Do
     Do = bk * ( x[vind[m, 2]] * (u + ui) + y[vind[m, 2]] * (v + vi) + z[vind[m, 2]] * (w - wi))
