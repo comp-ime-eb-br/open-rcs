@@ -123,7 +123,7 @@ def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node
             ax.text(xav, yav, zav, str(nfc[i]))
     return xmin, ymin, zmin, xmax, ymax, zmax
 
-def diretionCosines(alpha, beta, D0i):
+def diretionCosines(alpha, beta, D0i, m):
     T1=np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
                     [-math.sin(alpha[m]), math.cos(alpha[m]),   0],
                     [0,                   0,                    1]])
@@ -216,7 +216,7 @@ def incidentFieldCartesian(uu,vv,ww,Et,phr,Ep,uui,vvi,wwi):
     e0[2] = wwi * Et
     return e0
 
-def sphericalAngles(ui2,vi2,wi2):
+def sphericalAngles_bistatic(ui2,vi2,wi2):
     # Calcula sti2
     sti2 = np.sqrt(ui2**2 + vi2**2) * np.sign(wi2)
 
@@ -232,7 +232,15 @@ def sphericalAngles(ui2,vi2,wi2):
     # Calcula cpi2 e spi2
     cpi2 = np.cos(phii2)
     spi2 = np.sin(phii2)
+    
     return thi2, phii2
+
+def sphericalAngles_monostatic(u2,v2,w2):
+                        th2=math.asin(np.sqrt(u2**2+v2**2)*np.sign(w2))
+                        phi2=math.atan2(v2,u2+1e-10)
+                        if(v2==u2+1e-10==0): #porque precisou disso?
+                            phi2=0
+                        return th2, phi2
 
 def calculaCoisas(ui2,vi2,wi2):
     # Calcula sti2
@@ -490,7 +498,7 @@ def otherVectorComponents(ip,it,np):
 
 # open input data file and gather parameters
 # input_model="BOX"
-input_data_file = "input_data_file.dat"
+input_data_file = "input_data_file_bistatic.dat"
 params = open(input_data_file, 'r')
 param_list = []
 for line in params:
@@ -498,7 +506,7 @@ for line in params:
     if not line.startswith("#"):
         if line.isnumeric(): param_list.append(int(line))
         else: param_list.append(line)
-input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
+input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, thetai, fii = param_list
 params.close()
 
 
@@ -539,8 +547,7 @@ ax.set_xlim(xmin, xmax)
 ax.set_ylim(ymin, ymax)
 ax.set_zlim(zmin, zmax)
 # pattern loop
-fii=0
-thetai=0
+
 Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad,fii,thetai)
 # get edge vectors and normals from edge cross products
 
@@ -570,12 +577,19 @@ for i1 in range(ip):
         
             if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0 or iflag==1:
                 # local direction cosine
-                ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i)
+                ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i, m)
 
                 # find spherical angles in local coordinates
-                thi2, phii2 = sphericalAngles(ui2,vi2,wi2)
+                thi2, phii2 = sphericalAngles_bistatic(ui2,vi2,wi2)
 
                 cpi2,spi2 = calculaCoisas(ui2,vi2,wi2)
+
+                #Transform observation quantities
+                u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0, m)
+
+
+                th2, phi2 = sphericalAngles_monostatic(u2,v2,w2)
+
                 # phase at the three vertices of triangle m; biestatic RCS needs "2"
                 Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
                 # incident field in local cartesian coordinates (stored in e2)

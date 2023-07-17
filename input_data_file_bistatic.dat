@@ -20,3 +20,7 @@ BOXSTL
 360
 # 10 theta increment (step) in degrees
 2
+# 11 theta incidence in degrees
+30
+# 12 phi incidence in degrees
+0
