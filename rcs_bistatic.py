@@ -210,7 +210,7 @@ def globalAngles(thr,phr,i1,i2):
             ww=-math.sin(thr)
             return U, V, W, D0, uu, vv, ww, u, v, w
 
-def incidentFieldCartesian(uu,vv,ww,Et,phr,Ep,uui,vvi,wwi):
+def incidentFieldCartesian(Et,Ep,uui,vvi,wwi):
     e0[0] = uui * Et - spi * Ep
     e0[1] = vvi * Et + cpi * Ep
     e0[2] = wwi * Et
@@ -554,18 +554,22 @@ Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri = c
 
 A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,r,vind)
 phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it,np)
+
+# incident field in global cartesian coordinates
+e0  = incidentFieldCartesian(Et,Ep,uui,vvi,wwi)
+
 for i1 in range(ip):
     for i2 in range(it):
         phi[i1,i2]=pstart+(i1)*delp
         phr=phi[i1,i2]*rad
         theta[i1,i2]=tstart+(i2)*delt
         thr=theta[i1,i2]*rad
+        
         # global angles and direction cosine
         U, V, W, D0, uu, vv, ww, u, v, w = globalAngles(thr,phr,i1,i2)
         # spherical coordinate system radial unit vector
         R=np.array([u,v,w])
-        # incident field in global cartesian coordinates
-        e0  = incidentFieldCartesian(uu,vv,ww,Et,phr,Ep,uui,vvi,wwi)
+        
         # begin loop over triangles
         sumt=0
         sump=0
@@ -605,6 +609,7 @@ for i1 in range(ip):
                 # surface current components in local Cartesian coordinates
                 Jx2=(-Et2*math.cos(phii2)*para+Ep2*math.sin(phii2)*perp);   # math.cos(th2) removed
                 Jy2=(-Et2*math.sin(phii2)*para-Ep2*math.cos(phii2)*perp);   # math.cos(th2) removed
+
 
                 # area integral for general case
                 DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
