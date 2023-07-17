@@ -18,8 +18,6 @@ def getPolarization(incidentPolarization):
         Et_aux = 0 + 1j * 0   
         Ep_aux = 1 + 1j * 0
         return [pol_aux,Et_aux,Ep_aux]
-    else:
-        raise ValueError('Invalid input')
 
 def getStandardDeviation(delstd,corel,wave):
     delsq = delstd ** 2
@@ -568,36 +566,37 @@ for i1 in range(ip):
         sumdp=0
         for m in range(ntria): # test to see if front face is illuminated
             ndotk=np.dot(N[m,:],np.transpose(R))
-            if iflag==0:
-                if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0:
-                    # local direction cosine
-                    ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i)
+            nidotk = np.dot(N[m, :],np.transpose(Ri))
+        
+            if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0 or iflag==1:
+                # local direction cosine
+                ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i)
 
-                    # find spherical angles in local coordinates
-                    thi2, phii2 = sphericalAngles(ui2,vi2,wi2)
+                # find spherical angles in local coordinates
+                thi2, phii2 = sphericalAngles(ui2,vi2,wi2)
 
-                    cpi2,spi2 = calculaCoisas(ui2,vi2,wi2)
-                    # phase at the three vertices of triangle m; biestatic RCS needs "2"
-                    Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
-                    # incident field in local cartesian coordinates (stored in e2)
-                    e1=np.dot(T1,e0)
-                    e2=np.dot(T2,e1)
+                cpi2,spi2 = calculaCoisas(ui2,vi2,wi2)
+                # phase at the three vertices of triangle m; biestatic RCS needs "2"
+                Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
+                # incident field in local cartesian coordinates (stored in e2)
+                e1=np.dot(T1,e0)
+                e2=np.dot(T2,e1)
 
-                    # incident field in local spherical coordinates
-                    Et2, Ep2 = incidentFieldSphericalCoordinates(thi2,e2,phii2)
+                # incident field in local spherical coordinates
+                Et2, Ep2 = incidentFieldSphericalCoordinates(thi2,e2,phii2)
 
-                    # reflection coefficients (Rs is normalized to eta0)
-                    perp, para = reflectionCoefficients(Rs, thi2)
+                # reflection coefficients (Rs is normalized to eta0)
+                perp, para = reflectionCoefficients(Rs, thi2)
 
-                    # surface current components in local Cartesian coordinates
-                    Jx2=(-Et2*math.cos(phii2)*para+Ep2*math.sin(phii2)*perp);   # math.cos(th2) removed
-                    Jy2=(-Et2*math.sin(phii2)*para-Ep2*math.cos(phii2)*perp);   # math.cos(th2) removed
+                # surface current components in local Cartesian coordinates
+                Jx2=(-Et2*math.cos(phii2)*para+Ep2*math.sin(phii2)*perp);   # math.cos(th2) removed
+                Jy2=(-Et2*math.sin(phii2)*para-Ep2*math.cos(phii2)*perp);   # math.cos(th2) removed
 
-                    # area integral for general case
-                    DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
+                # area integral for general case
+                DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
 
-                    Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq)
-                    sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, thi2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp)
+                Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq)
+                sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, thi2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp)
         Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave) 
 Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico()
 
