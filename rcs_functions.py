@@ -214,6 +214,8 @@ def bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad, fi
     beta = np.empty(ntria, np.double)
     N = np.empty([ntria, 3], np.double)
     d = np.empty([ntria, 3], np.double)
+
+    print(Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri)
     
     return Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri
 
