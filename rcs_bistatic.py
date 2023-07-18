@@ -263,11 +263,11 @@ def G(n,w):
                         return g
 
 def reflectionCoefficients(Rs, thi2):
-                        perp=-1/(2*Rs[m]*math.cos(thi2)+1)  #local TE polarization
-                        para=0  #local TM polarization
-                        if (2*Rs[m]+math.cos(thi2))!=0:
-                            para=-math.cos(thi2)/(2*Rs[m]+math.cos(thi2))
-                        return perp, para
+    perp=-1/(2*Rs[m]*math.cos(thi2)+1)  #local TE polarization
+    para=0  #local TM polarization
+    if (2*Rs[m]+math.cos(thi2))!=0:
+        para=-math.cos(thi2)/(2*Rs[m]+math.cos(thi2))
+    return perp, para
 
 def incidentFieldSphericalCoordinates(thi2,e2,phii2):
                         Et2=e2[0]*math.cos(thi2)*math.cos(phii2)+e2[1]*math.cos(thi2)*math.sin(phii2)-e2[2]*math.sin(thi2)
