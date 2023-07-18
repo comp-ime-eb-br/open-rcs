@@ -233,7 +233,7 @@ def sphericalAngles_bistatic(ui2,vi2,wi2):
     cpi2 = np.cos(phii2)
     spi2 = np.sin(phii2)
     
-    return thi2, phii2
+    return thi2, phii2, cpi2, spi2
 
 def sphericalAngles_monostatic(u2,v2,w2):
                         th2=math.asin(np.sqrt(u2**2+v2**2)*np.sign(w2))
@@ -241,24 +241,6 @@ def sphericalAngles_monostatic(u2,v2,w2):
                         if(v2==u2+1e-10==0): #porque precisou disso?
                             phi2=0
                         return th2, phi2
-
-def calculaCoisas(ui2,vi2,wi2):
-    # Calcula sti2
-    sti2 = np.sqrt(ui2**2 + vi2**2) * np.sign(wi2)
-
-    # Calcula cti2
-    cti2 = np.sqrt(1 - sti2**2)
-
-    # Calcula phii2
-    phii2 = np.arctan2(vi2, ui2 + 1e-10)
-
-    # Calcula thi2
-    thi2 = np.arccos(cti2)
-
-    # Calcula cpi2 e spi2
-    cpi2 = np.cos(phii2)
-    spi2 = np.sin(phii2)
-    return cpi2,spi2
 
 
 def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
@@ -584,13 +566,10 @@ for i1 in range(ip):
                 ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i, m)
 
                 # find spherical angles in local coordinates
-                thi2, phii2 = sphericalAngles_bistatic(ui2,vi2,wi2)
-
-                cpi2,spi2 = calculaCoisas(ui2,vi2,wi2)
+                thi2, phii2, cpi2, spi2 = sphericalAngles_bistatic(ui2,vi2,wi2)
 
                 #Transform observation quantities
                 u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0, m)
-
 
                 th2, phi2 = sphericalAngles_monostatic(u2,v2,w2)
 
