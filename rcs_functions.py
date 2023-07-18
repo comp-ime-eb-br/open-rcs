@@ -166,6 +166,58 @@ def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
     
     return Area, alpha, beta, N, d, ip, it 
 
+def bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad, fii,thetai):
+    # Calcula os valores das funções trigonométricas
+    cpi = np.cos(fii* np.pi / 180.0)
+    spi = np.sin(fii* np.pi / 180.0)
+    sti = np.sin(thetai* np.pi / 180.0)
+    cti = np.cos(thetai* np.pi / 180.0)
+
+    # Calcula os valores dos vetores
+    ui = sti * cpi
+    vi = sti * spi
+    wi = cti
+    D0i = np.array([ui, vi, wi])
+
+    uui = cti * cpi
+    vvi = cti * spi
+    wwi = -sti
+    Ri = -np.array([ui, vi, wi])
+
+    def calculate_ip():
+        if delp == 0:
+            return int((pstop - pstart)) + 1
+        else:
+            return int((pstop - pstart) / delp) + 1
+    
+    def calculate_it():
+        if delt == 0:
+            return int((tstop - tstart)) + 1
+        else:
+            return int((tstop - tstart) / delt) + 1
+    
+    def calculate_phr0():
+        if pstart == pstop:
+            return pstart * rad
+    
+    def calculate_thr0():
+        if tstart == tstop:
+            return tstart * rad
+    
+    ip = calculate_ip()
+    it = calculate_it()
+    phr0 = calculate_phr0()
+    thr0 = calculate_thr0()
+    
+    Area = np.empty(ntria, np.double)
+    alpha = np.empty(ntria, np.double)
+    beta = np.empty(ntria, np.double)
+    N = np.empty([ntria, 3], np.double)
+    d = np.empty([ntria, 3], np.double)
+
+    
+    return Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri
+
 def globalAngles(U,V,W,thr,phr,i1,i2):
             u=math.sin(thr)*math.cos(phr)
             v=math.sin(thr)*math.sin(phr)
@@ -180,10 +232,16 @@ def globalAngles(U,V,W,thr,phr,i1,i2):
             return U, V, W, D0, uu, vv, ww, u, v, w
 
 def incidentFieldCartesian(uu,vv,ww,e0,Et,phr,Ep):
-            e0[0]=uu*Et-math.sin(phr)*Ep
+            e0[0]=uu*Et-np.sin(phr)*Ep
             e0[1]=vv*Et+math.cos(phr)*Ep
             e0[2]=ww*Et
             return e0
+
+def bi_incidentFieldCartesian(uu,vv,ww,cpi,spi,Et,Ep,e0):
+    e0[0]=uu*Et-spi*Ep
+    e0[1]=vv*Et+cpi*Ep
+    e0[2]=ww*Et
+    return e0
 
 def sphericalAngles(u2,v2,w2):
                         th2=math.asin(np.sqrt(u2**2+v2**2)*np.sign(w2))
@@ -191,6 +249,15 @@ def sphericalAngles(u2,v2,w2):
                         if(v2==u2+1e-10==0): #porque precisou disso?
                             phi2=0
                         return th2, phi2
+
+def bi_sphericalAngles(ui2,vi2,wi2):
+    sti2=np.sqrt(ui2**2+vi2**2)*np.sign(wi2)
+    cti2=np.sqrt(1-sti2**2)
+    thi2=math.acos(cti2)
+    phii2=math.atan2(vi2,ui2+1e-10)
+    if(vi2==ui2+1e-10==0): #porque precisou disso?
+        phii2=0
+    return thi2, phii2, np.cos(phii2), np.sin(phii2), sti2, cti2
 
 def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w):
                         
@@ -202,6 +269,16 @@ def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w):
                                 (z[vind[m,1]-1]-z[vind[m,2]-1])*w)
                         Do=2*bk*(x[vind[m,2]-1]*u + y[vind[m,2]-1]*v + z[vind[m,2]-1]*w)
                         return(Dp,Dq,Do)
+
+def bi_phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
+    Dp=bk*((x[vind[m,0]-1]-x[vind[m,2]-1])*(u+ui)+
+            (y[vind[m,0]-1]-y[vind[m,2]-1])*(v + vi)+
+            (z[vind[m,0]-1]-z[vind[m,2]-1])*(w + wi))
+    Dq=bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*(u+ui)+
+            (y[vind[m,1]-1]-y[vind[m,2]-1])*(v + vi)+
+            (z[vind[m,1]-1]-z[vind[m,2]-1])*(w + wi))
+    Do=bk*(x[vind[m,2]-1]*(u+ui) + y[vind[m,2]-1]*(v + vi) + z[vind[m,2]-1]*(w - wi))
+    return(Dp,Dq,Do)
 
 def G(n,w):
                         jw=1j*w
@@ -219,9 +296,9 @@ def reflectionCoefficients(Rs, th2, m):
                             para=-math.cos(th2)/(2*Rs[m]+math.cos(th2))
                         return perp, para
 
-def incidentFieldSphericalCoordinates(th2,e2,phi2):
-                        Et2=e2[0]*math.cos(th2)*math.cos(phi2)+e2[1]*math.cos(th2)*math.sin(phi2)-e2[2]*math.sin(th2)
-                        Ep2=-e2[0]*math.sin(phi2)+e2[1]*math.cos(phi2)
+def incidentFieldSphericalCoordinates(cpi2, cti2, sti2,spi2,e2):
+                        Et2=e2[0]*cti2*cpi2+e2[1]*cti2*spi2-e2[2]*sti2
+                        Ep2=-e2[0]*spi2+e2[1]*cpi2
                         return Et2, Ep2
 
 def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model):
