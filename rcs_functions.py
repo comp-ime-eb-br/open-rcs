@@ -296,7 +296,7 @@ def reflectionCoefficients(Rs, th2, m):
                             para=-math.cos(th2)/(2*Rs[m]+math.cos(th2))
                         return perp, para
 
-def incidentFieldSphericalCoordinates(cpi2, cti2, sti2,spi2,e2,phi2):
+def incidentFieldSphericalCoordinates(cpi2, cti2, sti2,spi2,e2):
                         Et2=e2[0]*cti2*cpi2+e2[1]*cti2*spi2-e2[2]*sti2
                         Ep2=-e2[0]*spi2+e2[1]*cpi2
                         return Et2, Ep2
