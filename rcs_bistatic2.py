@@ -7,7 +7,7 @@ from rcs_functions import *
 
 # open input data file and gather parameters
 # input_model="BOX"
-input_data_file = "input_data_file.dat"
+input_data_file = "input_data_file_bistatic.dat"
 params = open(input_data_file, 'r')
 param_list = []
 for line in params:
@@ -15,7 +15,7 @@ for line in params:
     if not line.startswith("#"):
         if line.isnumeric(): param_list.append(int(line))
         else: param_list.append(line)
-input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
+input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, thetai, fii = param_list
 params.close()
 
 # 1: radar frequency
@@ -55,7 +55,7 @@ ax.set_xlim(xmin, xmax)
 ax.set_ylim(ymin, ymax)
 ax.set_zlim(zmin, zmax)
 # pattern loop
-Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
+Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri = bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad,fii,thetai)
 # get edge vectors and normals from edge cross products
 A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
 phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it,np)
@@ -78,16 +78,23 @@ for i1 in range(ip):
         sumdp=0
         for m in range(ntria): # test to see if front face is illuminated
             ndotk=np.dot(N[m,:],np.transpose(R))
+            nidotk=np.dot(N[m,:],np.transpose(Ri))
             if iflag==0:
-                if (ilum[m]==1 and ndotk>=1e-5) or ilum[m]==0:
+                if (ilum[m]==1 and nidotk>=0) or ilum[m]==0 or iflag==1:
                     # local direction cosine
-                    u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0, m)
+                    ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0, m)
+
 
                     # find spherical angles in local coordinates
-                    th2, phi2 = sphericalAngles(u2,v2,w2)
+                    thi2, fii2, cpi2, spi2 = bi_sphericalAngles(ui2,vi2,wi2)
 
-                    # phase at the three vertices of triangle m; monostatic RCS needs "2"
-                    Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w)
+                    #Transform observation quantities
+                    u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0, m)
+
+                    th2, phi2, cp2, sp2 = bi_sphericalAngles(u2,v2,w2)
+
+                    # phase at the three vertices of triangle m; biestatic RCS needs "2"
+                    Dp,Dq,Do = bi_phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
                     # incident field in local cartesian coordinates (stored in e2)
                     e1=np.dot(T1,np.transpose(np.conj(e0)))
                     e2=np.dot(T2,e1)

@@ -166,6 +166,57 @@ def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
     
     return Area, alpha, beta, N, d, ip, it 
 
+def bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad, fii,thetai):
+    # Calcula os valores das funções trigonométricas
+    cpi = np.cos(fii* np.pi / 180.0)
+    spi = np.sin(fii* np.pi / 180.0)
+    sti = np.sin(thetai* np.pi / 180.0)
+    cti = np.cos(thetai* np.pi / 180.0)
+
+    # Calcula os valores dos vetores
+    ui = sti * cpi
+    vi = sti * spi
+    wi = cti
+    D0i = np.array([ui, vi, wi])
+
+    uui = cti * cpi
+    vvi = cti * spi
+    wwi = -sti
+    Ri = -np.array([ui, vi, wi])
+
+    def calculate_ip():
+        if delp == 0:
+            return int((pstop - pstart)) + 1
+        else:
+            return int((pstop - pstart) / delp) + 1
+    
+    def calculate_it():
+        if delt == 0:
+            return int((tstop - tstart)) + 1
+        else:
+            return int((tstop - tstart) / delt) + 1
+    
+    def calculate_phr0():
+        if pstart == pstop:
+            return pstart * rad
+    
+    def calculate_thr0():
+        if tstart == tstop:
+            return tstart * rad
+    
+    ip = calculate_ip()
+    it = calculate_it()
+    phr0 = calculate_phr0()
+    thr0 = calculate_thr0()
+    
+    Area = np.empty(ntria, np.double)
+    alpha = np.empty(ntria, np.double)
+    beta = np.empty(ntria, np.double)
+    N = np.empty([ntria, 3], np.double)
+    d = np.empty([ntria, 3], np.double)
+    
+    return Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri
+
 def globalAngles(U,V,W,thr,phr,i1,i2):
             u=math.sin(thr)*math.cos(phr)
             v=math.sin(thr)*math.sin(phr)
@@ -192,6 +243,13 @@ def sphericalAngles(u2,v2,w2):
                             phi2=0
                         return th2, phi2
 
+def bi_sphericalAngles(u2,v2,w2):
+    th2=math.asin(np.sqrt(u2**2+v2**2)*np.sign(w2))
+    phi2=math.atan2(v2,u2+1e-10)
+    if(v2==u2+1e-10==0): #porque precisou disso?
+        phi2=0
+    return th2, phi2, np.cos(phi2), np.sin(phi2)
+
 def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w):
                         
                         Dp=2*bk*((x[vind[m,0]-1]-x[vind[m,2]-1])*u+
@@ -202,6 +260,16 @@ def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w):
                                 (z[vind[m,1]-1]-z[vind[m,2]-1])*w)
                         Do=2*bk*(x[vind[m,2]-1]*u + y[vind[m,2]-1]*v + z[vind[m,2]-1]*w)
                         return(Dp,Dq,Do)
+
+def bi_phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
+    Dp=bk*((x[vind[m,0]-1]-x[vind[m,2]-1])*(u+ui)+
+            (y[vind[m,0]-1]-y[vind[m,2]-1])*(v + vi)+
+            (z[vind[m,0]-1]-z[vind[m,2]-1])*(w + wi))
+    Dq=bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*(u+ui)+
+            (y[vind[m,1]-1]-y[vind[m,2]-1])*(v + vi)+
+            (z[vind[m,1]-1]-z[vind[m,2]-1])*(w + wi))
+    Do=bk*(x[vind[m,2]-1]*(u+ui) + y[vind[m,2]-1]*(v + vi) + z[vind[m,2]-1]*(w + wi))
+    return(Dp,Dq,Do)
 
 def G(n,w):
                         jw=1j*w
