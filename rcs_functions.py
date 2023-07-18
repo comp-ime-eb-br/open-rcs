@@ -253,7 +253,7 @@ def sphericalAngles(u2,v2,w2):
 def bi_sphericalAngles(ui2,vi2,wi2):
     sti2=np.sqrt(ui2**2+vi2**2)*np.sign(wi2)
     cti2=np.sqrt(1-sti2**2)
-    thi2=math.asin(np.sqrt(ui2**2+vi2**2)*np.sign(wi2))
+    thi2=math.acos(cti2)
     phii2=math.atan2(vi2,ui2+1e-10)
     if(vi2==ui2+1e-10==0): #porque precisou disso?
         phii2=0
@@ -277,7 +277,7 @@ def bi_phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
     Dq=bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*(u+ui)+
             (y[vind[m,1]-1]-y[vind[m,2]-1])*(v + vi)+
             (z[vind[m,1]-1]-z[vind[m,2]-1])*(w + wi))
-    Do=bk*(x[vind[m,2]-1]*(u+ui) + y[vind[m,2]-1]*(v + vi) + z[vind[m,2]-1]*(w + wi))
+    Do=bk*(x[vind[m,2]-1]*(u+ui) + y[vind[m,2]-1]*(v + vi) + z[vind[m,2]-1]*(w - wi))
     return(Dp,Dq,Do)
 
 def G(n,w):
