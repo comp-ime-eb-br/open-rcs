@@ -59,6 +59,9 @@ Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri = b
 # get edge vectors and normals from edge cross products
 A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
 phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it,np)
+
+e0 = bi_incidentFieldCartesian(uui,vvi,wwi,cpi,spi,Et,Ep,e0)
+
 for i1 in range(ip):
     for i2 in range(it):
         phi[i1,i2]=pstart+(i1)*delp
@@ -70,7 +73,6 @@ for i1 in range(ip):
         # spherical coordinate system radial unit vector
         R=np.array([u,v,w])
         # incident field in global cartesian coordinates
-        e0  = incidentFieldCartesian(uu,vv,ww,e0,Et,phr,Ep)
         # begin loop over triangles
         sumt=0
         sump=0
@@ -82,17 +84,15 @@ for i1 in range(ip):
             if iflag==0:
                 if (ilum[m]==1 and nidotk>=0) or ilum[m]==0 or iflag==1:
                     # local direction cosine
-                    ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0, m)
-
+                    ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i, m)
 
                     # find spherical angles in local coordinates
-                    thi2, fii2, cpi2, spi2 = bi_sphericalAngles(ui2,vi2,wi2)
+                    thi2, fii2, cpi2, spi2, sti2, cti2 = bi_sphericalAngles(ui2,vi2,wi2)
 
                     #Transform observation quantities
                     u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0, m)
 
-                    th2, phi2, cp2, sp2 = bi_sphericalAngles(u2,v2,w2)
-
+                    th2, phi2, cp2, sp2, st2, ct2 = bi_sphericalAngles(u2,v2,w2)
                     # phase at the three vertices of triangle m; biestatic RCS needs "2"
                     Dp,Dq,Do = bi_phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
                     # incident field in local cartesian coordinates (stored in e2)
@@ -100,14 +100,14 @@ for i1 in range(ip):
                     e2=np.dot(T2,e1)
 
                     # incident field in local spherical coordinates
-                    Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
+                    Et2, Ep2 = incidentFieldSphericalCoordinates(cpi2, cti2, sti2, spi2, e2,phi2)
 
                     # reflection coefficients (Rs is normalized to eta0)
                     perp, para = reflectionCoefficients(Rs, th2, m)
 
                     # surface current components in local Cartesian coordinates
-                    Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp);   # math.cos(th2) removed
-                    Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp);   # math.cos(th2) removed
+                    Jx2=(-Et2*cpi2*para+Ep2*spi2*perp);   # math.cos(th2) removed
+                    Jy2=(-Et2*spi2*para-Ep2*cpi2*perp);   # math.cos(th2) removed
 
                     # area integral for general case
                     DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
