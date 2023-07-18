@@ -131,7 +131,7 @@ def diretionCosines(alpha, beta, D0i, m):
                     [0,                 1, 0],
                     [math.sin(beta[m]), 0, math.cos(beta[m])]])
     # Calcula D1i
-    D1i = np.dot(T1, D0i.T)
+    D1i = np.dot(T1, np.transpose(D0i))
 
     # Calcula D2i
     D2i = np.dot(T2, D1i)
