@@ -96,11 +96,11 @@ for i1 in range(ip):
                     # phase at the three vertices of triangle m; biestatic RCS needs "2"
                     Dp,Dq,Do = bi_phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
                     # incident field in local cartesian coordinates (stored in e2)
-                    e1=np.dot(T1,np.transpose(np.conj(e0)))
+                    e1=np.dot(T1,np.transpose(e0))
                     e2=np.dot(T2,e1)
 
                     # incident field in local spherical coordinates
-                    Et2, Ep2 = incidentFieldSphericalCoordinates(cpi2, cti2, sti2, spi2, e2,phi2)
+                    Et2, Ep2 = incidentFieldSphericalCoordinates(cpi2, cti2, sti2, spi2, e2)
 
                     # reflection coefficients (Rs is normalized to eta0)
                     perp, para = reflectionCoefficients(Rs, th2, m)
