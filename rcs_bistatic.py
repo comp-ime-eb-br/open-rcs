@@ -240,7 +240,7 @@ def sphericalAngles_monostatic(u2,v2,w2):
                         phi2=math.atan2(v2,u2+1e-10)
                         if(v2==u2+1e-10==0): #porque precisou disso?
                             phi2=0
-                        return th2, phi2
+                        return th2, phi2, np.cos(phi2), np.sin(phi2)
 
 
 def phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
@@ -566,12 +566,12 @@ for i1 in range(ip):
                 ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i, m)
 
                 # find spherical angles in local coordinates
-                thi2, phii2, cpi2, spi2 = sphericalAngles_bistatic(ui2,vi2,wi2)
+                thi2, phii2, cpi2, spi2 = sphericalAngles_monostatic(ui2,vi2,wi2)
 
                 #Transform observation quantities
                 u2, v2, w2, T1, T2 = diretionCosines(alpha, beta, D0, m)
 
-                th2, phi2 = sphericalAngles_monostatic(u2,v2,w2)
+                th2, phi2, cp2, sp2 = sphericalAngles_monostatic(u2,v2,w2)
 
                 # phase at the three vertices of triangle m; biestatic RCS needs "2"
                 Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi)
