@@ -6,7 +6,7 @@ from datetime import datetime
 from rcs_functions import *
 
 # open input data file and gather parameters
-# input_model="BOX"
+# input_model="PLATE"
 input_data_file = "input_data_file_bistatic.dat"
 params = open(input_data_file, 'r')
 param_list = []
