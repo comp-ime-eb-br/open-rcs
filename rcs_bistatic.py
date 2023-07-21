@@ -100,7 +100,7 @@ for i1 in range(ip):
                     e2=np.dot(T2,e1)
 
                     # incident field in local spherical coordinates
-                    Et2, Ep2 = incidentFieldSphericalCoordinates(cpi2, cti2, sti2, spi2, e2)
+                    Et2, Ep2 = bi_incidentFieldSphericalCoordinates(cpi2, cti2, sti2, spi2, e2)
 
                     # reflection coefficients (Rs is normalized to eta0)
                     perp, para = reflectionCoefficients(Rs, th2, m)
