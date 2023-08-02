@@ -7,7 +7,7 @@ from rcs_functions import *
 
 # open input data file and gather parameters
 # input_model="BOX"
-input_data_file = "input_data_file.dat"
+input_data_file = "input_data_file_monostatic.dat"
 params = open(input_data_file, 'r')
 param_list = []
 for line in params:
