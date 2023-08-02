@@ -34,6 +34,13 @@ The reflection directions are defined using simple spherical coordinates from th
 ### Initial setup
 
 1. Clone the repository.
+
+   
+    *You can do it by running:*
+
+    ```
+    git clone https://github.com/comp-ime-eb-br/open-rcs
+    ```
 2. Install Python 3.8 and libraries
 
     *If you are using pip you can do it by running:*
@@ -44,25 +51,46 @@ The reflection directions are defined using simple spherical coordinates from th
     pip install matplotlib
     ```
 
-### Simulation
+### Monostatic Simulation
 
 1. The input parameters should be added to the *input-data-file.dat* file, in the following model:
 
-<img src='img/inputs.png' width='300'>
+<img src='img/inputs_monostatic.png' width='300'>
 
 3. After setting up the input parameters, run the code:
 
     ```
-    python3 rcs-monostatic.py
+    python3 rcs_monostatic.py
     ```
 
-4. The following plot will show the triangle model and the input data read by the software:
+4. The plot will show the triangle model and the input data read by the software:
 
-<img src='img/triangle_model.png' width='500'>
+<img src='img/box_triangle_model.png' width='500'>
 
 6. Finally, the RCS signature will be plotted:
 
 <img src='img/BOX-theta-cut.png' width='500'>
+
+
+### Bistatic Simulation
+
+1. The input parameters should be added to the *input_data_file_bistatic.dat* file, in the following model:
+
+<img src='img/inputs_bistatic.png' width='300'>
+
+3. After setting up the input parameters, run the code:
+
+    ```
+    python3 rcs_bistatic.py
+    ```
+
+4. The plot will show the triangle model and the input data read by the software:
+
+<img src='img/vtail_bistatic_triangle.png' width='500'>
+
+6. Finally, the RCS signature will be plotted:
+
+<img src='img/vtail_bistatic_plot.png' width='500'>
 
 ## FAQ
 
