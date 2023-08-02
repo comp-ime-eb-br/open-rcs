@@ -19,7 +19,7 @@ Radar cross section (RCS) is a measure that shows how much a radar can detect an
 
 Since the invention of radar in World War II, its use has been a crucial factor in the success or failure of military campaigns. Concurrent with the development of radar detection capabilities, techniques to reduce the electromagnetic signature or RCS of important military platforms, such as aircraft, vessels, and armored vehicles, has proven to be an essential line of investment  to ensure the success of such operations.
 
-Despite the fundamentals related to RCS being mastered since the time of the development of the first rada, defining the electromagnetic signature of a target is still a highly complex task. Analytical calculation is only possible for simple geometry targets. For real objects, we can only determine the RCS through experimental measurement or through computational numerical simulation; each method has its advantages and disadvantages. One of the great advantages of the computational simulation of the RCS is that the real target is not always available, or it is still in the design phase. When the objective is to reduce the RCS, it is practically unfeasible to make several changes in the target geometry or RAM application with many different configurations, that is why RCS simulation is a valued technique for studying military projects.
+Despite the fundamentals related to RCS being mastered since the time of the development of the first radar, defining the electromagnetic signature of a target is still a highly complex task. Analytical calculation is only possible for simple geometry targets. For real objects, we can only determine the RCS through experimental measurement or through computational numerical simulation; each method has its advantages and disadvantages. One of the great advantages of the computational simulation of the RCS is that the real target is not always available, or it is still in the design phase. When the objective is to reduce the RCS, it is practically unfeasible to make several changes in the target geometry or RAM application with many different configurations, that is why RCS simulation is a valued technique for studying military projects.
 
 ## Software Information
 
@@ -57,17 +57,17 @@ The reflection directions are defined using simple spherical coordinates from th
 
 <img src='img/inputs_monostatic.png' width='300'>
 
-3. After setting up the input parameters, run the code:
+2. After setting up the input parameters, run the code:
 
     ```
     python3 rcs_monostatic.py
     ```
 
-4. The plot will show the triangle model and the input data read by the software:
+3. The plot will show the triangle model and the input data read by the software:
 
 <img src='img/box_triangle_model.png' width='500'>
 
-6. Finally, the RCS signature will be plotted:
+4. Finally, the RCS signature will be plotted:
 
 <img src='img/BOX-theta-cut.png' width='500'>
 
@@ -78,17 +78,17 @@ The reflection directions are defined using simple spherical coordinates from th
 
 <img src='img/inputs_bistatic.png' width='300'>
 
-3. After setting up the input parameters, run the code:
+2. After setting up the input parameters, run the code:
 
     ```
     python3 rcs_bistatic.py
     ```
 
-4. The plot will show the triangle model and the input data read by the software:
+3. The plot will show the triangle model and the input data read by the software:
 
 <img src='img/vtail_bistatic_triangle.png' width='500'>
 
-6. Finally, the RCS signature will be plotted:
+4. Finally, the RCS signature will be plotted:
 
 <img src='img/vtail_bistatic_plot.png' width='500'>
 
@@ -107,7 +107,7 @@ The software was developed in a Computer and Communications Engineer graduation 
 - 1º Ten Mayara Ribeiro Mendonça (mayara.mendonca@ime.eb.br)
 - 1º Ten Yu Yi Wang Xia (yu.xia@ime.eb.br)
 - Maj Gabriela Moutinho de Souza Dias (gabriela@ime.eb.br)
-- Maj Claudio Augusto Barreto Saunders Filho (saundres@ime.eb.br)
+- Maj Claudio Augusto Barreto Saunders Filho (saunders@ime.eb.br)
 - Cel Clayton Escouper das Chagas (escouper@ime.eb.br)
 
 ## References
