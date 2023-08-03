@@ -1,20 +1,26 @@
-from tkinter.filedialog import askopenfile 
+from tkinter.filedialog import askopenfile
 from customtkinter import ThemeManager
-import tkfontawesome 
-import fontawesome as fa
+from tkinter import messagebox
 import customtkinter
 from PIL import Image
 
+import os
+
+from rcs_monostatic import *
+from rcs_bistatic import *
+
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # window and grid
         self.title("Open RCS")
-        self.geometry(f"{1150}x{600}")
+        self.geometry(f"{1350}x{600}")
         self.grid_columnconfigure((1, 2, 3), weight=1)
         self.grid_rowconfigure((0, 1, 2), weight=1)
 
@@ -39,10 +45,10 @@ class App(customtkinter.CTk):
         # description frame
         self.description = customtkinter.CTkFrame(self, width=140)
         self.description.grid(row=0, column=1, columnspan=1, padx=(20, 0), pady=(20, 0), sticky="nsew")
-        self.label_description = customtkinter.CTkLabel(self.description, text="Informações sobre o Software", font=customtkinter.CTkFont(size=13, weight="bold"))
-        self.label_description.grid(row=0, column=0, padx=(10,0), pady=(10,0), sticky="nsew")
-        self.text = customtkinter.CTkLabel(self.description, text="Texto aqui")
-        self.text.grid(row=1, column=0, padx=(10,0), pady=(10,0), sticky="nsew")
+        # self.label_description = customtkinter.CTkLabel(self.description, text="Informações sobre o Software", font=customtkinter.CTkFont(size=13, weight="bold"))
+        # self.label_description.grid(row=0, column=0, padx=(10,0), pady=(10,0), sticky="nsew")
+        self.text = customtkinter.CTkLabel(self.description, text="\nO software Open-RCS foi desenvolvido para fins acadêmicos e de instrução\ndo CIGE (Centro de Instrução de Guerra Eletrônica). A estimação do valor\nda RCS para as estruturas carregadas no programa é obitdo pelo método da\n Óptica Física e os resultados para os formatos clássicos (caixa, placa\nplana, esfera) foram validados contra o software externo POFacets.")
+        self.text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         
         # tabview
         self.tabview = customtkinter.CTkTabview(self, width=140)
@@ -55,96 +61,169 @@ class App(customtkinter.CTk):
         # monostatic input values
         self.monotext = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="Insira os dados para o cálculo monoestático da RCS estimada")
         self.monotext.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
-        self.monoinput = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="⬆\nUpload Modelo .STL", command=askopenfile, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.monoinput.grid(row=3, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
+        self.monomodel = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="⬆\nUpload Modelo (.stl)", command=askopenfile, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monomodel.grid(row=3, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
         self.monofreq = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Frequência (Hz)")
         self.monofreq.grid(row=1, column=0, padx=5, pady=(5, 5))
-        self.monodist = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Distância (m)")
-        self.monodist.grid(row=1, column=1, padx=5, pady=(5, 5))
-        self.monostdev = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Desvio Padrão (m)")
-        self.monostdev.grid(row=1, column=2, padx=5, pady=(5, 5))
-        self.monopol = customtkinter.CTkOptionMenu(self.tabview.tab("Monoestático"), values=["TM-Z","TE-Z"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.monopol.grid(row=2, column=0, padx=5, pady=(5,5))
-        self.monopol.set("Polarização")
-        self.monostartphi = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Phi Inicial (º)")
-        self.monostartphi.grid(row=2, column=1, padx=5, pady=(5, 5))
-        self.monoendphi = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Phi Final (º)")
-        self.monoendphi.grid(row=3, column=1, padx=5, pady=(5, 5))
-        self.monoincphi = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Phi (º)")
-        self.monoincphi.grid(row=4, column=1, padx=5, pady=(5, 5))
-        self.monostarttheta = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Theta Inicial (º)")
-        self.monostarttheta.grid(row=2, column=2, padx=5, pady=(5, 5))
-        self.monoendtheta = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Theta Final (º)")
-        self.monoendtheta.grid(row=3, column=2, padx=5, pady=(5, 5))
-        self.monoinctheta = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Phi (º)")
-        self.monoinctheta.grid(row=4, column=2, padx=5, pady=(5, 5))
-        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=self.generate_results)
-        self.monoresult.grid(row=5, column=1, padx=5, pady=(75, 5), sticky="nsew")
+        self.monocorr = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Distância (m)")
+        self.monocorr.grid(row=1, column=1, padx=5, pady=(5, 5))
+        self.monodelstd = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Desvio Padrão (m)")
+        self.monodelstd.grid(row=1, column=2, padx=5, pady=(5, 5))
+        self.monoipol = customtkinter.CTkOptionMenu(self.tabview.tab("Monoestático"), values=["TM-Z","TE-Z"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monoipol.grid(row=2, column=0, padx=5, pady=(5,5))
+        self.monoipol.set("Polarização")
+        self.monopstart = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Phi Inicial (º)")
+        self.monopstart.grid(row=2, column=1, padx=5, pady=(5, 5))
+        self.monopstop = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Phi Final (º)")
+        self.monopstop.grid(row=3, column=1, padx=5, pady=(5, 5))
+        self.monodelp = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Phi (º)")
+        self.monodelp.grid(row=4, column=1, padx=5, pady=(5, 5))
+        self.monotstart = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Theta Inicial (º)")
+        self.monotstart.grid(row=2, column=2, padx=5, pady=(5, 5))
+        self.monotstop = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Theta Final (º)")
+        self.monotstop.grid(row=3, column=2, padx=5, pady=(5, 5))
+        self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Phi (º)")
+        self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
+        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=self.generate_monoresults_event)
+        self.monoresult.grid(row=5, column=1, padx=5, pady=(75, 0), sticky="nsew")
+        self.monoerror = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="", font=customtkinter.CTkFont(size=10, weight="bold"))
+        self.monoerror.grid(row=6, column=1, padx=5, pady=0, sticky="ew")
 
         # bistatic input values
         self.bitext = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="Insira os dados para o cálculo biestático da RCS estimada")
         self.bitext.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
-        self.biinput = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="⬆\nUpload Modelo .STL", command=askopenfile, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.biinput.grid(row=3, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
+        self.bimodel = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="⬆\nUpload Modelo (.stl)", command=askopenfile, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.bimodel.grid(row=3, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
         self.bifreq = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Frequência (Hz)")
         self.bifreq.grid(row=1, column=0, padx=5, pady=(5, 5))
-        self.bidist = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Distância (m)")
-        self.bidist.grid(row=1, column=1, padx=5, pady=(5, 5))
-        self.bistdev = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Desvio Padrão (m)")
-        self.bistdev.grid(row=1, column=2, padx=5, pady=(5, 5))
-        self.bipol = customtkinter.CTkOptionMenu(self.tabview.tab("Biestático"), dynamic_resizing=False, values=["TM-Z","TE-Z"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.bipol.grid(row=2, column=0, padx=5, pady=(5,5))
-        self.bipol.set("Polarização")
+        self.bicorr = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Distância (m)")
+        self.bicorr.grid(row=1, column=1, padx=5, pady=(5, 5))
+        self.bidelstd = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Desvio Padrão (m)")
+        self.bidelstd.grid(row=1, column=2, padx=5, pady=(5, 5))
+        self.biipol = customtkinter.CTkOptionMenu(self.tabview.tab("Biestático"), dynamic_resizing=False, values=["TM-Z","TE-Z"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.biipol.grid(row=2, column=0, padx=5, pady=(5,5))
+        self.biipol.set("Polarização")
         self.biphi = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Incidente (º)")
         self.biphi.grid(row=2, column=1, padx=5, pady=(5, 5))
         self.bitheta = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Incidente (º)")
         self.bitheta.grid(row=2, column=2, padx=5, pady=(5, 5))
-        self.bistartphi = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Inicial (º)")
-        self.bistartphi.grid(row=3, column=1, padx=5, pady=(5, 5))
-        self.biendphi = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Final (º)")
-        self.biendphi.grid(row=4, column=1, padx=5, pady=(5, 5))
-        self.biincphi = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Phi (º)")
-        self.biincphi.grid(row=5, column=1, padx=5, pady=(5, 5))
-        self.bistarttheta = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Inicial (º)")
-        self.bistarttheta.grid(row=3, column=2, padx=5, pady=(5, 5))
-        self.biendtheta = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Final (º)")
-        self.biendtheta.grid(row=4, column=2, padx=5, pady=(5, 5))
-        self.biinctheta = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Phi (º)")
-        self.biinctheta.grid(row=5, column=2, padx=5, pady=(5, 5))
-        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados")
-        self.biresult.grid(row=6, column=1, padx=5, pady=(40, 5), sticky="nsew")
+        self.bipstart = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Inicial (º)")
+        self.bipstart.grid(row=3, column=1, padx=5, pady=(5, 5))
+        self.bipstop = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Final (º)")
+        self.bipstop.grid(row=4, column=1, padx=5, pady=(5, 5))
+        self.bidelp = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Phi (º)")
+        self.bidelp.grid(row=5, column=1, padx=5, pady=(5, 5))
+        self.bitstart = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Inicial (º)")
+        self.bitstart.grid(row=3, column=2, padx=5, pady=(5, 5))
+        self.bitstop = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Final (º)")
+        self.bitstop.grid(row=4, column=2, padx=5, pady=(5, 5))
+        self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Phi (º)")
+        self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
+        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=self.generate_biresults_event)
+        self.biresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
+        self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
+        self.bierror.grid(row=7, column=1, padx=5, pady=0, sticky="ew")
         
         # results frame
         self.results_frame = customtkinter.CTkFrame(self, width=250)
         self.results_frame.grid(row=0, column=2, rowspan=2, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
         self.label_results = customtkinter.CTkLabel(self.results_frame, text="Resultados", font=customtkinter.CTkFont(size=13, weight="bold"))
-        self.label_results.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="nsw")
+        self.label_results.grid(row=0, column=0, columnspan=3, padx=10, pady=(10,0), sticky="nsw")
         adjustp="files/empty.png"
-        adjust= customtkinter.CTkImage(dark_image=Image.open(adjustp), size=(400,300))
+        adjust= customtkinter.CTkImage(dark_image=Image.open(adjustp), size=(600,300))
         self.adjust = customtkinter.CTkLabel(self.results_frame, image=adjust, text="")
-        self.adjust.grid(row=1, column=0, columnspan=3, padx=(30,30), pady=(10,10))
+        self.adjust.grid(row=1, column=0, columnspan=4, rowspan=4, padx=(30,30), pady=(10,10))
     
-    def generate_results(self):
-        plotpath ="files/RCSSimulator_Monostatic__20230721120855.png"
-        plot= customtkinter.CTkImage(dark_image=Image.open(plotpath), size=(400,300))
+    def generate_monoresults_event(self):
+        try:
+            model= 'VTAIL' # self.monomodel.get()
+            freq = float(self.monofreq.get())
+            corr = float(self.monocorr.get())
+            delstd = float(self.monodelstd.get())
+            pol = self.monoipol.get()
+            if pol == 'TM-Z': ipol=0
+            elif pol == 'TE-Z': ipol=1
+            pstart = float(self.monopstart.get())
+            pstop = float(self.monopstop.get())
+            delp = float(self.monodelp.get())
+            tstart = float(self.monotstart.get())
+            tstop = float(self.monotstop.get())
+            delt = float(self.monodelt.get())
+            
+            self.plotpath, self.figpath, self.filepath = rcs_monostatic(model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt)
+            
+            self.results_window()
+            self.monoerror.configure(text="")
+        except:
+            self.monoerror.configure(text="Entradas Inválidas!")
+            
+    def generate_biresults_event(self):
+        try:
+            model= 'BOX' # self.bimodel.get()
+            freq = float(self.bifreq.get())
+            corr = float(self.bicorr.get())
+            delstd = float(self.bidelstd.get())
+            pol = self.biipol.get()
+            if pol == 'TM-Z': ipol=0
+            elif pol == 'TE-Z': ipol=1
+            phii = float(self.biphi.get())
+            thetai = float(self.bitheta.get())
+            pstart = float(self.bipstart.get())
+            pstop = float(self.bipstop.get())
+            delp = float(self.bidelp.get())
+            tstart = float(self.bitstart.get())
+            tstop = float(self.bitstop.get())
+            delt = float(self.bidelt.get())
+            
+            self.plotpath, self.figpath, self.filepath = rcs_bistatic(model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai)
+            
+            self.results_window()
+            self.bierror.configure(text="")
+        except:
+            self.bierror.configure(text="Entradas Inválidas!")
+
+    def results_window(self):
+        plot= customtkinter.CTkImage(dark_image=Image.open(self.plotpath), size=(300,250))
         self.plot = customtkinter.CTkLabel(self.results_frame, image=plot, text="")
-        self.plot.grid(row=1, column=0, columnspan=3, padx=(30,30), pady=(10,10))
+        self.plot.grid(row=1, column=0, rowspan=2, columnspan=2, padx=(20,5), pady=(10,10))
+        
+        self.figtext = customtkinter.CTkLabel(self.results_frame, text="Modelo Triangular do Alvo Carregado (.stl)")
+        self.figtext.grid(row=1, column=2, columnspan=2, padx=0, pady=0, stick="s")
+        fig= customtkinter.CTkImage(dark_image=Image.open(self.figpath), size=(250,200))
+        self.fig = customtkinter.CTkLabel(self.results_frame, image=fig, text="")
+        self.fig.grid(row=2, column=2, columnspan=2, padx=(5,10), pady=0, stick="n")
         
         self.saveplot = customtkinter.CTkButton(self.results_frame, text="⬇ Download Gráfico")
-        self.saveplot.grid(row=2, column=1, padx=5, pady=(15, 5), sticky="nsew")
-        self.savefile = customtkinter.CTkButton(self.results_frame, text="⬇ Download Arquivo de Dados")
-        self.savefile.grid(row=3, column=1, padx=5, pady=(5, 5), sticky="nsew")
-        self.reset = customtkinter.CTkButton(self.results_frame, text="Reset", command=self.reset_command, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.reset.grid(row=4, column=1, padx=5, pady=(15, 5), sticky="nsew")    
+        self.saveplot.grid(row=3, column=1, columnspan=2, padx=5, pady=(15, 5), sticky="nsew")
+        self.savefile = customtkinter.CTkButton(self.results_frame, text="⬇ Download Modelo Triangular")
+        self.savefile.grid(row=4, column=1, columnspan=2, padx=5, pady=(5, 5), sticky="nsew")
+        self.savefig = customtkinter.CTkButton(self.results_frame, text="⬇ Download Arquivo de Dados")
+        self.savefig.grid(row=5, column=1, columnspan=2, padx=5, pady=(5, 5), sticky="nsew")
+        self.reset = customtkinter.CTkButton(self.results_frame, text="Reset", command=self.reset_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.reset.grid(row=6, column=1, columnspan=2, padx=5, pady=15)  
     
-    def reset_command(self):    
+    def reset_event(self):    
         self.plot.destroy()
         self.saveplot.destroy()
+        os.remove(self.plotpath)
+        
+        self.fig.destroy()
+        self.figtext.destroy()
+        self.savefig.destroy()
+        os.remove(self.figpath)
+        
         self.savefile.destroy()
+        os.remove(self.filepath)
+        
         self.reset.destroy()
         
     def change_appearance_mode_event(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
+        
+    def on_closing(self):
+        if messagebox.askokcancel("Sair", "Deseja sair do programa?"):
+            self.quit()
+
         
 if __name__ == "__main__":
     app = App()
