@@ -118,7 +118,7 @@ for i1 in range(ip):
 Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico(np,Sth,Sph)
 
 # generate result files
-now = generateResultFiles(theta, Sth, phi,Sph, param, ip, Sph)
+now = generateResultFilesBistatic(theta, Sth, phi, Sph, param, ip, Sph)
 
 # final plots
-finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model)
+finalPlotBistatic(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model)

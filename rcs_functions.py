@@ -307,7 +307,7 @@ def bi_incidentFieldSphericalCoordinates(cpi2, cti2, sti2,spi2,e2):
                         return Et2, Ep2
 
 
-def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model):
+def finalPlotMonostatic(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model):
     if ip==1:
         plt.figure(1)
         plt.suptitle("RCS Simulation IR Signature")
@@ -355,11 +355,83 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model):
     plt.savefig("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".png")
     plt.show()
 
-def generateResultFiles(theta, Sth, phi,Sphm, param, ip, Sph):
+def finalPlotBistatic(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model):
+    if ip==1:
+        plt.figure(1)
+        plt.suptitle("RCS Simulation IR Signature")
+        plt.title(f"target: {input_model}   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
+        plt.xlabel("Monostatic Angle, theta (deg)")
+        plt.ylabel("RCS (dBsm)")
+        plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
+        plt.plot(theta[0],Sth[0])
+        plt.plot(theta[0],Sph[0],linestyle="dashed")
+        plt.grid(True)
+        
+    if it==1:
+        plt.figure(1)
+        plt.suptitle("RCS Simulation IR Signature")
+        plt.title(f"target: {input_model}   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
+        plt.xlabel('Monostatic Angle, phi (deg)')
+        plt.ylabel('RCS (dBsm)')
+        plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
+        plt.plot(phi[0],Sth[0])
+        plt.plot(phi[0],Sph[0],linestyle="dashed")
+        plt.grid(True)
+        
+    if ip>1 and it>1:
+        Lh = [-20,0]
+        fig = plt.figure(1,[10,4])
+        fig.suptitle("RCS Simulation IR Signature")
+        
+        ax=fig.add_subplot(1,2,1)
+        cp=ax.contour(U, V, Sth, Lh)
+        ax.set_title('RCS-theta')
+        ax.set_xlabel('U')
+        ax.set_ylabel('V')
+        ax.axis('square')
+        cbar=fig.colorbar(cp)
+        cbar.set_label('RCS (dBsm)')
+        
+        bx=fig.add_subplot(1,2,2)
+        cp=bx.contour(U, V, Sph, Lh)
+        bx.set_title('RCS-phi')
+        bx.set_xlabel('U')
+        bx.set_ylabel('V')
+        bx.axis('square')
+        cbar=fig.colorbar(cp)
+        cbar.set_label('RCS (dBsm)')
+        
+    plt.savefig("./results/"+"RCSSimulator_Bistatic_"+"_"+now+".png")
+    plt.show()
+
+
+def generateResultFilesMonostatic(theta, Sth, phi,Sphm, param, ip, Sph):
     now = datetime.now().strftime("%Y%m%d%H%M%S")
     result_file = open("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".dat", 'w')
 
-    result_file.write("RCS SIMULATOR MONOSTITC "+now+"\n")
+    result_file.write("RCS SIMULATOR MONOSTATIC "+now+"\n")
+    result_file.write("\nSimulation Parameters:\n"+param)
+    result_file.write("\nSimulation Results IR Signature:")
+    result_file.write("\nTheta (deg):\n")
+    for i1 in range(ip):
+        result_file.write(str(theta[i1])+"\n")
+    result_file.write("\nRCS Theta (dBsm):\n")
+    for i1 in range(ip):
+        result_file.write(str(Sth[i1])+"\n")
+    result_file.write("\nPhi (deg):\n")
+    for i1 in range(ip):
+        result_file.write(str(phi[i1])+"\n")
+    result_file.write("\nRCS Phi (dBsm):\n")
+    for i1 in range(ip):
+        result_file.write(str(Sph[i1])+"\n")
+    return now
+
+
+def generateResultFilesBistatic(theta, Sth, phi,Sphm, param, ip, Sph):
+    now = datetime.now().strftime("%Y%m%d%H%M%S")
+    result_file = open("./results/"+"RCSSimulator_Bistatic_"+"_"+now+".dat", 'w')
+
+    result_file.write("RCS SIMULATOR BISTATIC "+now+"\n")
     result_file.write("\nSimulation Parameters:\n"+param)
     result_file.write("\nSimulation Results IR Signature:")
     result_file.write("\nTheta (deg):\n")
