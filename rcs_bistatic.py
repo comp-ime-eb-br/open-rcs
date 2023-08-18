@@ -22,7 +22,7 @@ params.close()
 wave = 3e8 / freq
 # surface roughness of model is approximated by correlation distance and standard deviation (for smooth surface, both are 0)
 # 2: correlation distance 
-corel = corr/wave
+corel = float(corr)/wave
 # 3: standard deviation
 [bk,cfac1,cfac2,rad,Lt,Nt] = getStandardDeviation(delstd,corel,wave)
 # 4: incident wave polarization
@@ -118,7 +118,7 @@ for i1 in range(ip):
 Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico(np,Sth,Sph)
 
 # generate result files
-now = generateResultFiles(theta, Sth, phi,Sph, param, ip, Sph)
+now = generateResultFilesBistatic(theta, Sth, phi, Sph, param, ip, Sph)
 
 # final plots
-finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model)
+finalPlotBistatic(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model)
