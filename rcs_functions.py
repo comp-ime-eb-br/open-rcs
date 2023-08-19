@@ -23,7 +23,7 @@ def getPolarization(incidentPolarization):
         raise ValueError('Invalid input')
 
 def getStandardDeviation(delstd,corel,wave):
-    delsq = delstd ** 2
+    delsq = float(delstd) ** 2
     bk = 2 * np.pi / wave
     cfac1 = np.exp(-4 * bk ** 2 * delsq)
     cfac2 = 4 * np.pi * (bk * corel) ** 2 * delsq
@@ -186,15 +186,15 @@ def bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad, fi
 
     def calculate_ip():
         if delp == 0:
-            return int((pstop - pstart)) + 1
+            return int((pstop - pstart) + 1)
         else:
-            return int((pstop - pstart) / delp) + 1
+            return int((pstop - pstart) / delp + 1)
     
     def calculate_it():
         if delt == 0:
-            return int((tstop - tstart)) + 1
+            return int((tstop - tstart) + 1)
         else:
-            return int((tstop - tstart) / delt) + 1
+            return int((tstop - tstart) / delt + 1)
     
     def calculate_phr0():
         if pstart == pstop:

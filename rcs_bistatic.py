@@ -22,7 +22,7 @@ params.close()
 wave = 3e8 / freq
 # surface roughness of model is approximated by correlation distance and standard deviation (for smooth surface, both are 0)
 # 2: correlation distance 
-corel = corr/wave
+corel = float(corr)/wave
 # 3: standard deviation
 [bk,cfac1,cfac2,rad,Lt,Nt] = getStandardDeviation(delstd,corel,wave)
 # 4: incident wave polarization
