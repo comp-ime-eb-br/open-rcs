@@ -1,11 +1,12 @@
-from tkinter.filedialog import askopenfile
+from tkinter.filedialog import askopenfile, asksaveasfile
 from customtkinter import ThemeManager
 from tkinter import messagebox
-import customtkinter
+import customtkinter, shutil
 from PIL import Image
 
 import os
 
+from stl_module import *
 from rcs_monostatic import *
 from rcs_bistatic import *
 
@@ -61,8 +62,8 @@ class App(customtkinter.CTk):
         # monostatic input values
         self.monotext = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="Insira os dados para o cálculo monoestático da RCS estimada")
         self.monotext.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
-        self.monomodel = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="⬆\nUpload Modelo (.stl)", command=askopenfile, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.monomodel.grid(row=3, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
+        self.monomodel = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="\n⬆\nUpload Modelo (.stl)\n", command=self.upload, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monomodel.grid(row=4, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
         self.monofreq = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Frequência (Hz)")
         self.monofreq.grid(row=1, column=0, padx=5, pady=(5, 5))
         self.monocorr = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Distância (m)")
@@ -72,6 +73,9 @@ class App(customtkinter.CTk):
         self.monoipol = customtkinter.CTkOptionMenu(self.tabview.tab("Monoestático"), values=["TM-Z","TE-Z"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.monoipol.grid(row=2, column=0, padx=5, pady=(5,5))
         self.monoipol.set("Polarização")
+        self.monorest = customtkinter.CTkOptionMenu(self.tabview.tab("Monoestático"), values=["Transparente","Condutor Perfeito"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monorest.grid(row=3, column=0, padx=5, pady=(5,5))
+        self.monorest.set("Resistividade")
         self.monopstart = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Phi Inicial (º)")
         self.monopstart.grid(row=2, column=1, padx=5, pady=(5, 5))
         self.monopstop = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Phi Final (º)")
@@ -85,15 +89,15 @@ class App(customtkinter.CTk):
         self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Phi (º)")
         self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
         self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=self.generate_monoresults_event)
-        self.monoresult.grid(row=5, column=1, padx=5, pady=(75, 0), sticky="nsew")
+        self.monoresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
         self.monoerror = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="", font=customtkinter.CTkFont(size=10, weight="bold"))
-        self.monoerror.grid(row=6, column=1, padx=5, pady=0, sticky="ew")
+        self.monoerror.grid(row=7, column=1, padx=5, pady=0, sticky="ew")
 
         # bistatic input values
         self.bitext = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="Insira os dados para o cálculo biestático da RCS estimada")
         self.bitext.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
-        self.bimodel = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="⬆\nUpload Modelo (.stl)", command=askopenfile, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.bimodel.grid(row=3, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
+        self.bimodel = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="\n⬆\nUpload Modelo (.stl)\n", command=self.upload, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.bimodel.grid(row=4, column=0, rowspan=2, padx=5, pady=(5, 5))
         self.bifreq = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Frequência (Hz)")
         self.bifreq.grid(row=1, column=0, padx=5, pady=(5, 5))
         self.bicorr = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Distância (m)")
@@ -103,6 +107,9 @@ class App(customtkinter.CTk):
         self.biipol = customtkinter.CTkOptionMenu(self.tabview.tab("Biestático"), dynamic_resizing=False, values=["TM-Z","TE-Z"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.biipol.grid(row=2, column=0, padx=5, pady=(5,5))
         self.biipol.set("Polarização")
+        self.birest = customtkinter.CTkOptionMenu(self.tabview.tab("Biestático"), values=["Transparente","Condutor Perfeito"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.birest.grid(row=3, column=0, padx=5, pady=(5,5))
+        self.birest.set("Resistividade")
         self.biphi = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Incidente (º)")
         self.biphi.grid(row=2, column=1, padx=5, pady=(5, 5))
         self.bitheta = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Incidente (º)")
@@ -120,9 +127,9 @@ class App(customtkinter.CTk):
         self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Phi (º)")
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
         self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=self.generate_biresults_event)
-        self.biresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
+        self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")
         self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
-        self.bierror.grid(row=7, column=1, padx=5, pady=0, sticky="ew")
+        self.bierror.grid(row=8, column=1, padx=5, pady=0, sticky="ew")
         
         # results frame
         self.results_frame = customtkinter.CTkFrame(self, width=250)
@@ -136,13 +143,19 @@ class App(customtkinter.CTk):
     
     def generate_monoresults_event(self):
         try:
-            model= 'VTAIL' # self.monomodel.get()
+            self.reset_event()
+        except:
+            print("")
+        try:
             freq = float(self.monofreq.get())
             corr = float(self.monocorr.get())
             delstd = float(self.monodelstd.get())
             pol = self.monoipol.get()
             if pol == 'TM-Z': ipol=0
             elif pol == 'TE-Z': ipol=1
+            rest = self.monorest.get()
+            if rest == 'Condutor Perfeito': rs=0
+            elif rest == 'Transparente': rs=1
             pstart = float(self.monopstart.get())
             pstop = float(self.monopstop.get())
             delp = float(self.monodelp.get())
@@ -150,7 +163,9 @@ class App(customtkinter.CTk):
             tstop = float(self.monotstop.get())
             delt = float(self.monodelt.get())
             
-            self.plotpath, self.figpath, self.filepath = rcs_monostatic(model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt)
+            self.now = datetime.now().strftime("%Y%m%d%H%M%S")
+            
+            self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
             
             self.results_window()
             self.monoerror.configure(text="")
@@ -159,13 +174,15 @@ class App(customtkinter.CTk):
             
     def generate_biresults_event(self):
         try:
-            model= 'BOX' # self.bimodel.get()
             freq = float(self.bifreq.get())
             corr = float(self.bicorr.get())
             delstd = float(self.bidelstd.get())
             pol = self.biipol.get()
             if pol == 'TM-Z': ipol=0
             elif pol == 'TE-Z': ipol=1
+            rest = self.birest.get()
+            if rest == 'Condutor Perfeito': rs=0
+            elif rest == 'Transparente': rs=1
             phii = float(self.biphi.get())
             thetai = float(self.bitheta.get())
             pstart = float(self.bipstart.get())
@@ -175,7 +192,8 @@ class App(customtkinter.CTk):
             tstop = float(self.bitstop.get())
             delt = float(self.bidelt.get())
             
-            self.plotpath, self.figpath, self.filepath = rcs_bistatic(model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai)
+            self.now = datetime.now().strftime("%Y%m%d%H%M%S")
+            self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
             
             self.results_window()
             self.bierror.configure(text="")
@@ -193,15 +211,33 @@ class App(customtkinter.CTk):
         self.fig = customtkinter.CTkLabel(self.results_frame, image=fig, text="")
         self.fig.grid(row=2, column=2, columnspan=2, padx=(5,10), pady=0, stick="n")
         
-        self.saveplot = customtkinter.CTkButton(self.results_frame, text="⬇ Download Gráfico")
+        self.saveplot = customtkinter.CTkButton(self.results_frame, text="⬇ Download Gráfico", command=self.save_plot)
         self.saveplot.grid(row=3, column=1, columnspan=2, padx=5, pady=(15, 5), sticky="nsew")
-        self.savefile = customtkinter.CTkButton(self.results_frame, text="⬇ Download Modelo Triangular")
+        self.savefile = customtkinter.CTkButton(self.results_frame, text="⬇ Download Modelo Triangular", command=self.save_fig)
         self.savefile.grid(row=4, column=1, columnspan=2, padx=5, pady=(5, 5), sticky="nsew")
-        self.savefig = customtkinter.CTkButton(self.results_frame, text="⬇ Download Arquivo de Dados")
+        self.savefig = customtkinter.CTkButton(self.results_frame, text="⬇ Download Arquivo de Dados", command=self.save_file)
         self.savefig.grid(row=5, column=1, columnspan=2, padx=5, pady=(5, 5), sticky="nsew")
         self.reset = customtkinter.CTkButton(self.results_frame, text="Reset", command=self.reset_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.reset.grid(row=6, column=1, columnspan=2, padx=5, pady=15)  
-    
+       
+    def upload(self):
+        file = askopenfile(title="Selecionar um arquivo",
+                  filetypes=[("Arquivos STL", "*.stl")])
+        if file:
+            stl_converter(file.name)
+            self.model = os.path.basename(file.name)
+         
+    def save_plot(self):
+        im= Image.open(self.plotpath)
+        im.save("./results/"+"RCSSimulator"+"_"+self.now+".png")
+        
+    def save_fig(self):
+        im= Image.open(self.figpath)
+        im.save("./results/"+"RCSSimulator"+"_"+self.now+".jpg")
+        
+    def save_file(self):
+        shutil.copy(self.filepath, "./results/"+"RCSSimulator"+"_"+self.now+".dat")
+        
     def reset_event(self):    
         self.plot.destroy()
         self.saveplot.destroy()
@@ -222,6 +258,10 @@ class App(customtkinter.CTk):
         
     def on_closing(self):
         if messagebox.askokcancel("Sair", "Deseja sair do programa?"):
+            try:
+                self.reset_event()
+            except:
+                print("")
             self.quit()
 
         

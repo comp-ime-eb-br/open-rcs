@@ -7,7 +7,7 @@ from rcs_functions import *
 
 INTERFACE = True
 
-def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai):
+def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs):
     # 1: radar frequency
     wave = 3e8 / freq
     # surface roughness of model is approximated by correlation distance and standard deviation (for smooth surface, both are 0)
@@ -21,7 +21,7 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
     
     # processing coordinate data 
     x, y, z, xpts, ypts, zpts, nverts = read_coordinates(input_model)
-    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model)
+    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model, rs)
     vind = create_vind(node1, node2, node3)
     r = calculate_r(x, y, z, nverts)
     # plot font options
@@ -41,7 +41,7 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
     
     # save plots
     now = datetime.now().strftime("%Y%m%d%H%M%S")
-    fig_name = "./results/"+"RCSSimulator"+"_"+now+".jpg"
+    fig_name = "./results/"+"temp"+"_"+now+".jpg"
     extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
     fig.savefig(fig_name, bbox_inches=extent)
     plt.close()

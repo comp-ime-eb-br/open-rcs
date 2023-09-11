@@ -42,7 +42,7 @@ ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
     plt.rc('figure', titlesize=figureTitle)  
 
 def read_coordinates(input_model):
-    fname = "./models/" + input_model + "/coordinates.txt"
+    fname = "./coordinates.txt"
     coordinates = np.loadtxt(fname)
     xpts = coordinates[:, 0]
     ypts = coordinates[:, 1]
@@ -55,8 +55,8 @@ def read_coordinates(input_model):
     nverts = len(xpts)
     return x, y, z, xpts, ypts, zpts, nverts
 
-def read_facets(input_model):
-    fname2 = "./models/" + input_model + "/facets.txt"
+def read_facets(input_model,rs):
+    fname2 = "./facets.txt"
     facets = np.loadtxt(fname2)
     nfc = facets[:, 0]
     node1 = facets[:, 1].astype(int)
@@ -64,7 +64,7 @@ def read_facets(input_model):
     node3 = facets[:, 3].astype(int)
     iflag = 0
     ilum = facets[:, 4]
-    Rs = facets[:, 5]
+    Rs = np.full(facets[:, 4].shape, rs)
     ntria = len(node3)
     return nfc, node1, node2, node3, iflag, ilum, Rs, ntria
 
@@ -351,7 +351,7 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         cbar=fig.colorbar(cp)
         cbar.set_label('RCS (dBsm)')
         
-    plot_name = "./results/"+"RCSSimulator"+"_"+now+".png"
+    plot_name = "./results/"+"temp"+"_"+now+".png"
     plt.savefig(plot_name)
     # plt.show()
     plt.close()
@@ -359,7 +359,7 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
 
 def generateResultFiles(theta, Sth, phi,Sphm, param, ip, Sph):
     now = datetime.now().strftime("%Y%m%d%H%M%S")
-    file_name = "./results/"+"RCSSimulator"+"_"+now+".dat"
+    file_name = "./results/"+"temp"+"_"+now+".dat"
     result_file = open(file_name, 'w')
 
     result_file.write("RCS SIMULATOR RESULTS "+now+"\n")
