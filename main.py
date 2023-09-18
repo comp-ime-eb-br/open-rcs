@@ -1,8 +1,8 @@
+import customtkinter, shutil
 from tkinter.filedialog import askopenfile, asksaveasfile
 from customtkinter import ThemeManager
 from tkinter import messagebox
-import customtkinter, shutil
-from PIL import Image
+from PIL import Image, ImageTk
 
 import os
 
@@ -21,7 +21,10 @@ class App(customtkinter.CTk):
 
         # window and grid
         self.title("Open RCS")
+        self.wm_iconbitmap()
+        self.iconphoto(True, ImageTk.PhotoImage(file="img/logo_openrcs.png"))
         self.geometry(f"{1350}x{600}")
+        self.resizable(False,False)
         self.grid_columnconfigure((1, 2, 3), weight=1)
         self.grid_rowconfigure((0, 1, 2), weight=1)
 
@@ -29,7 +32,7 @@ class App(customtkinter.CTk):
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, rowspan=4, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
-        logopath="files/logo_openrcs.png"
+        logopath="img/logo_openrcs.png"
         logo= customtkinter.CTkImage(dark_image=Image.open(logopath), size=(100,100))
         self.logo = customtkinter.CTkLabel(self.sidebar_frame, image=logo, text="")
         self.logo.grid(row=0, column=0, padx=20, pady=(20,0))
@@ -46,9 +49,7 @@ class App(customtkinter.CTk):
         # description frame
         self.description = customtkinter.CTkFrame(self, width=140)
         self.description.grid(row=0, column=1, columnspan=1, padx=(20, 0), pady=(20, 0), sticky="nsew")
-        # self.label_description = customtkinter.CTkLabel(self.description, text="Informações sobre o Software", font=customtkinter.CTkFont(size=13, weight="bold"))
-        # self.label_description.grid(row=0, column=0, padx=(10,0), pady=(10,0), sticky="nsew")
-        self.text = customtkinter.CTkLabel(self.description, text="\nO software Open-RCS foi desenvolvido para fins acadêmicos e de instrução\ndo CIGE (Centro de Instrução de Guerra Eletrônica). A estimação do valor\nda RCS para as estruturas carregadas no programa é obitdo pelo método da\n Óptica Física e os resultados para os formatos clássicos (caixa, placa\nplana, esfera) foram validados contra o software externo POFacets.")
+        self.text = customtkinter.CTkLabel(self.description, text="\nO software Open-RCS foi desenvolvido para fins acadêmicos e de instrução\ndo CIGE (Centro de Instrução de Guerra Eletrônica). A estimação do valor\nda RCS para as estruturas carregadas no programa é obitdo pelo método da\n Óptica Física e os resultados para os formatos clássicos (cubo, placa\nplana, esfera) foram validados contra o software externo POFacets.")
         self.text.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         
         # tabview
@@ -136,7 +137,7 @@ class App(customtkinter.CTk):
         self.results_frame.grid(row=0, column=2, rowspan=2, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
         self.label_results = customtkinter.CTkLabel(self.results_frame, text="Resultados", font=customtkinter.CTkFont(size=13, weight="bold"))
         self.label_results.grid(row=0, column=0, columnspan=3, padx=10, pady=(10,0), sticky="nsw")
-        adjustp="files/empty.png"
+        adjustp="img/empty.png"
         adjust= customtkinter.CTkImage(dark_image=Image.open(adjustp), size=(600,300))
         self.adjust = customtkinter.CTkLabel(self.results_frame, image=adjust, text="")
         self.adjust.grid(row=1, column=0, columnspan=4, rowspan=4, padx=(30,30), pady=(10,10))
@@ -201,13 +202,15 @@ class App(customtkinter.CTk):
             self.bierror.configure(text="Entradas Inválidas!")
 
     def results_window(self):
-        plot= customtkinter.CTkImage(dark_image=Image.open(self.plotpath), size=(300,250))
+        w,h=Image.open(self.plotpath).size
+        plot= customtkinter.CTkImage(dark_image=Image.open(self.plotpath), size=(350,350*h/w))
         self.plot = customtkinter.CTkLabel(self.results_frame, image=plot, text="")
         self.plot.grid(row=1, column=0, rowspan=2, columnspan=2, padx=(20,5), pady=(10,10))
         
         self.figtext = customtkinter.CTkLabel(self.results_frame, text="Modelo Triangular do Alvo Carregado (.stl)")
         self.figtext.grid(row=1, column=2, columnspan=2, padx=0, pady=0, stick="s")
-        fig= customtkinter.CTkImage(dark_image=Image.open(self.figpath), size=(250,200))
+        w,h=Image.open(self.figpath).size
+        fig= customtkinter.CTkImage(dark_image=Image.open(self.figpath), size=(200,200*h/w))
         self.fig = customtkinter.CTkLabel(self.results_frame, image=fig, text="")
         self.fig.grid(row=2, column=2, columnspan=2, padx=(5,10), pady=0, stick="n")
         

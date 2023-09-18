@@ -82,7 +82,12 @@ def calculate_r(x, y, z, nverts):
         r[i, :] = [x[i], y[i], z[i]]
     return r
 
-def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf):
+def plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc):
+    fig = plt.figure(1)
+    fig.suptitle(f'Triangle Model of Target: {input_model}')
+    ilabv ='n'; ilabf='n' # label vertices and faces
+    ax = fig.add_subplot(1,1,1, projection='3d')
+    
     for i in range(ntria):
         X = [x[vind[i, 0]-1], x[vind[i, 1]-1], x[vind[i, 2]-1], x[vind[i, 0]-1]]
         Y = [y[vind[i, 0]-1], y[vind[i, 1]-1], y[vind[i, 2]-1], y[vind[i, 0]-1]]
@@ -103,7 +108,6 @@ def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node
     # this is to avoid both a max and min of zero in any one dimension
     xmax = dmax; ymax = dmax; zmax = dmax
     xmin = dmin; ymin = dmin; zmin = dmin
-
     
     if ilabv == 'y':
         for i in range(nverts):
@@ -115,7 +119,22 @@ def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node
             yav = (ypts[node1[i]-1] + ypts[node2[i]-1] + ypts[node3[i]-1]) / 3
             zav = (zpts[node1[i]-1] + zpts[node2[i]-1] + zpts[node3[i]-1]) / 3
             ax.text(xav, yav, zav, str(nfc[i]))
-    return xmin, ymin, zmin, xmax, ymax, zmax
+    # return xmin, ymin, zmin, xmax, ymax, zmax
+
+    # plot parameters
+    # param = plotParameters("Monostatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+    ax.set_zlim(zmin, zmax)
+    
+    # save plots
+    now = datetime.now().strftime("%Y%m%d%H%M%S")
+    fig_name = "./results/"+"temp"+"_"+now+".jpg"
+    extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    fig.savefig(fig_name, bbox_inches=extent)
+    plt.close()
+    
+    return fig_name
 
 def diretionCosines(alpha, beta, D0,m):
                         T1=np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
@@ -330,10 +349,10 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         plt.grid(True)
         
     if ip>1 and it>1:
-        fig = plt.figure(1,[10,4])
-        fig.suptitle("RCS Simulation IR Signature")
+        fig = plt.figure(1)
+        fig.suptitle(f"RCS Simulation IR Signature - {mode}")
         
-        ax=fig.add_subplot(1,2,1)
+        ax=fig.add_subplot(2,3,2)
         cp=ax.contour(U, V, Sth)
         ax.set_title('RCS-theta')
         ax.set_xlabel('U')
@@ -342,7 +361,7 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         cbar=fig.colorbar(cp)
         cbar.set_label('RCS (dBsm)')
         
-        bx=fig.add_subplot(1,2,2)
+        bx=fig.add_subplot(2,3,5)
         cp=bx.contour(U, V, Sph)
         bx.set_title('RCS-phi')
         bx.set_xlabel('U')
@@ -350,6 +369,8 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         bx.axis('square')
         cbar=fig.colorbar(cp)
         cbar.set_label('RCS (dBsm)')
+        
+        fig.subplots_adjust(wspace=0)
         
     plot_name = "./results/"+"temp"+"_"+now+".png"
     plt.savefig(plot_name)

@@ -1,7 +1,5 @@
-import math, cmath
+import math
 import numpy as np
-import matplotlib.pyplot as plt
-from datetime import datetime
 
 from rcs_functions import *
 
@@ -10,7 +8,6 @@ INTERFACE = True
 def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs):
     # 1: radar frequency
     wave = 3e8 / freq
-    # surface roughness of model is approximated by correlation distance and standard deviation (for smooth surface, both are 0)
     # 2: correlation distance 
     corel = corr/wave
     # 3: standard deviation
@@ -24,27 +21,6 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
     nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model, rs)
     vind = create_vind(node1, node2, node3)
     r = calculate_r(x, y, z, nverts)
-    # plot font options
-    setFontOption()
-    # plot model before simulation
-    fig = plt.figure(1)
-    fig.suptitle(f'Triangle Model of Target: {input_model}')
-    # plot triangle model
-    ilabv ='n'; ilabf='n' # label vertices and faces
-    ax = fig.add_subplot(1,1,1, projection='3d')
-    [xmin, ymin, zmin, xmax, zmax, ymax] = plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf)
-    # plot parameters info
-    param = plotParameters("Bistatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
-    ax.set_xlim(xmin, xmax)
-    ax.set_ylim(ymin, ymax)
-    ax.set_zlim(zmin, zmax)
-    
-    # save plots
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    fig_name = "./results/"+"temp"+"_"+now+".jpg"
-    extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    fig.savefig(fig_name, bbox_inches=extent)
-    plt.close()
     
     # pattern loop
     Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri = bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad,phii,thetai)
@@ -110,9 +86,10 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
     Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico(np,Sth,Sph)
 
     # generate result files
+    setFontOption()
+    fig_name = plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc)
+    param = plotParameters("Bistatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
     now, file_name = generateResultFiles(theta, Sth, phi,Sph, param, ip, Sph)
-
-    # final plots
     plot_name = finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,"Bistatic")
     
     return plot_name, fig_name, file_name
@@ -120,8 +97,7 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
     
 if not INTERFACE:
     # open input data file and gather parameters
-    # input_model="PLATE"
-    input_data_file = "input_data_file_bistatic.dat"
+    input_data_file = "input_files\\input_data_file_bistatic.dat"
     params = open(input_data_file, 'r')
     param_list = []
     for line in params:
@@ -131,4 +107,4 @@ if not INTERFACE:
             else: param_list.append(line)
     input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
     params.close()
-    rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai)
+    rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, 0) #Rs=0

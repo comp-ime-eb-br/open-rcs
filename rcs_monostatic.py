@@ -1,9 +1,5 @@
-import math, cmath
+import math
 import numpy as np
-import matplotlib.pyplot as plt
-from datetime import datetime
-from PIL import Image
-import io
 
 from rcs_functions import *
 
@@ -12,7 +8,6 @@ INTERFACE = True
 def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, Rs):
     # 1: radar frequency
     wave = 3e8 / freq
-    # surface roughness of model is approximated by correlation distance and standard deviation (for smooth surface, both are 0)
     # 2: correlation distance 
     corel = corr/wave
     # 3: standard deviation
@@ -26,33 +21,13 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
     nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model, Rs)
     vind = create_vind(node1, node2, node3)
     r = calculate_r(x, y, z, nverts)
-    # plot font options
-    setFontOption()
-    # plot model before simulation
-    fig = plt.figure(1)
-    fig.suptitle(f'Triangle Model of Target: {input_model}')
-    # plot triangle model
-    ilabv ='n'; ilabf='n' # label vertices and faces
-    ax = fig.add_subplot(1,1,1, projection='3d')
-    [xmin, ymin, zmin, xmax, zmax, ymax] = plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf)
-    # plot parameters
-    param = plotParameters("Monostatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
-    ax.set_xlim(xmin, xmax)
-    ax.set_ylim(ymin, ymax)
-    ax.set_zlim(zmin, zmax)
-    
-    # save plots
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    fig_name = "./results/"+"temp"+"_"+now+".jpg"
-    extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    fig.savefig(fig_name, bbox_inches=extent)
-    plt.close()
     
     # pattern loop
     Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
     # get edge vectors and normals from edge cross products
     A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
     phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it,np)
+    
     for i1 in range(ip):
         for i2 in range(it):
             phi[i1,i2]=pstart+(i1)*delp
@@ -105,17 +80,18 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
     Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico(np,Sth,Sph)
 
     # generate result files
+    setFontOption()
+    fig_name = plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc)
+    param = plotParameters("Monostatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
     now, file_name = generateResultFiles(theta, Sth, phi,Sph, param, ip, Sph)
-
-    # final plots
     plot_name = finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model, "Monostatic")
     
     return plot_name, fig_name, file_name
 
+
 if not INTERFACE:
     # open input data file and gather parameters
-    # input_model="BOX"
-    input_data_file = "input_data_file_monostatic.dat"
+    input_data_file = "input_files\\input_data_file_monostatic.dat"
     params = open(input_data_file, 'r')
     param_list = []
     for line in params:
@@ -125,4 +101,4 @@ if not INTERFACE:
             else: param_list.append(line)
     input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
     params.close()
-    rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt)
+    rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, 0) #Rs=0
