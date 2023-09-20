@@ -22,7 +22,7 @@ class App(customtkinter.CTk):
         # window and grid
         self.title("Open RCS")
         self.wm_iconbitmap()
-        self.iconphoto(True, ImageTk.PhotoImage(file="img/logo_openrcs.png"))
+        self.iconphoto(True, ImageTk.PhotoImage(file="./img/logo_openrcs.png"))
         self.geometry(f"{1350}x{600}")
         self.resizable(False,False)
         self.grid_columnconfigure((1, 2, 3), weight=1)
@@ -32,7 +32,7 @@ class App(customtkinter.CTk):
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, rowspan=4, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
-        logopath="img/logo_openrcs.png"
+        logopath="./img/logo_openrcs.png"
         logo= customtkinter.CTkImage(dark_image=Image.open(logopath), size=(100,100))
         self.logo = customtkinter.CTkLabel(self.sidebar_frame, image=logo, text="")
         self.logo.grid(row=0, column=0, padx=20, pady=(20,0))
@@ -137,7 +137,7 @@ class App(customtkinter.CTk):
         self.results_frame.grid(row=0, column=2, rowspan=2, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
         self.label_results = customtkinter.CTkLabel(self.results_frame, text="Resultados", font=customtkinter.CTkFont(size=13, weight="bold"))
         self.label_results.grid(row=0, column=0, columnspan=3, padx=10, pady=(10,0), sticky="nsw")
-        adjustp="img/empty.png"
+        adjustp="./img/empty.png"
         adjust= customtkinter.CTkImage(dark_image=Image.open(adjustp), size=(600,300))
         self.adjust = customtkinter.CTkLabel(self.results_frame, image=adjust, text="")
         self.adjust.grid(row=1, column=0, columnspan=4, rowspan=4, padx=(30,30), pady=(10,10))
