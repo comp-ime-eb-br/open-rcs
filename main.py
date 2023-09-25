@@ -175,6 +175,10 @@ class App(customtkinter.CTk):
             
     def generate_biresults_event(self):
         try:
+            self.reset_event()
+        except:
+            print("")
+        try:
             freq = float(self.bifreq.get())
             corr = float(self.bicorr.get())
             delstd = float(self.bidelstd.get())
