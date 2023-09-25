@@ -264,6 +264,7 @@ class App(customtkinter.CTk):
         
     def save_file(self):
         shutil.copy(self.filepath, "./results/"+"RCSSimulator"+"_"+self.now+".dat")
+        self.on_save("./results/"+"RCSSimulator"+"_"+self.now+".dat")
 
     def open_file(self, file_path):
         try:
@@ -306,7 +307,7 @@ class App(customtkinter.CTk):
             self.quit()
 
     def on_save(self, save_path):
-        messagebox.showinfo("File Saved", f"Figure file saved as {save_path}")
+        messagebox.showinfo("Arquivo Salvo", f"Arquivo salvo na pasta results do diretório do OpenRCS")
         
 if __name__ == "__main__":
     app = App()
