@@ -9,7 +9,7 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
     # 1: radar frequency
     wave = 3e8 / freq
     # 2: correlation distance 
-    corel = corr/wave
+    corel = float(corr)/wave
     # 3: standard deviation
     [bk,cfac1,cfac2,rad,Lt,Nt] = getStandardDeviation(delstd,corel,wave)
     # 4: incident wave polarization
