@@ -51,13 +51,13 @@ class App(customtkinter.CTk):
         
         # description frame
         self.description = customtkinter.CTkFrame(self, width=140)
-        self.description.grid(row=0, column=1, columnspan=1, padx=(20, 0), pady=(20,20), sticky="new")
+        self.description.grid(row=0, column=1, columnspan=1, padx=(20, 0), pady=(20,0), sticky="new")
         self.text = customtkinter.CTkLabel(self.description, text="\nO software Open-RCS foi desenvolvido para fins acadêmicos e de instrução\ndo CIGE (Centro de Instrução de Guerra Eletrônica). A estimação do valor\nda RCS para as estruturas carregadas no programa é obitdo pelo método da\n Óptica Física e os resultados para os formatos clássicos (cubo, placa\nplana, esfera) foram validados contra o software externo POFacets.")
-        self.text.grid(row=0, column=0, padx=(10,10), pady=(0,20), sticky="new")
+        self.text.grid(row=0, column=0, padx=(10,10), pady=(10,20), sticky="nsew")
         
         # tabview
         self.tabview = customtkinter.CTkTabview(self, width=140)
-        self.tabview.grid(row=1, column=1, columnspan=1, padx=(20, 0), pady=(20, 0), sticky="nsew")
+        self.tabview.grid(row=1, column=1, columnspan=1, padx=(20, 0), pady=(0, 0), sticky="nsew")
         self.tabview.add("Monoestático")
         self.tabview.add("Biestático")
         self.tabview.tab("Monoestático").grid_columnconfigure((0,1,2), weight=0)
@@ -97,8 +97,10 @@ class App(customtkinter.CTk):
         self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
         self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=self.generate_monoresults_event)
         self.monoresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
+        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=self.generate_monoresultsfile_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monoresultfile.grid(row=7, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.monoerror = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="", font=customtkinter.CTkFont(size=10, weight="bold"))
-        self.monoerror.grid(row=7, column=1, padx=5, pady=0, sticky="ew")
+        self.monoerror.grid(row=8, column=1, padx=5, pady=0, sticky="ew")
 
         # bistatic input values
         self.bitext = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="Insira os dados para o cálculo biestático da RCS estimada")
@@ -135,8 +137,10 @@ class App(customtkinter.CTk):
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
         self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=self.generate_biresults_event)
         self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")
+        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=self.generate_biresultsfile_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.biresultfile.grid(row=8, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
-        self.bierror.grid(row=8, column=1, padx=5, pady=0, sticky="ew")
+        self.bierror.grid(row=9, column=1, padx=5, pady=0, sticky="ew")
         
         # results frame
         self.results_frame = customtkinter.CTkFrame(self, width=250)
@@ -180,6 +184,33 @@ class App(customtkinter.CTk):
         except:
             self.monoerror.configure(text="Entradas Inválidas!")
             
+    def generate_monoresultsfile_event(self):
+        try:
+            self.reset_event()
+        except:
+            print("")
+        try:
+            input_data_file = "input_files\\input_data_file_monostatic.dat"
+            params = open(input_data_file, 'r')
+            param_list = []
+            for line in params:
+                line=line.strip("\n")
+                if not line.startswith("#"):
+                    if line.isnumeric(): param_list.append(int(line))
+                    else: param_list.append(line)
+            input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
+            params.close()
+            
+            stl_converter("stl_models\\"+input_model)
+            self.model = os.path.basename(input_model)           
+            self.now = datetime.now().strftime("%Y%m%d%H%M%S")
+            self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
+            
+            self.results_window()
+            self.monoerror.configure(text="")
+        except:
+            self.monoerror.configure(text="Entradas Inválidas!")
+            
     def generate_biresults_event(self):
         try:
             self.reset_event()
@@ -212,6 +243,33 @@ class App(customtkinter.CTk):
         except:
             self.bierror.configure(text="Entradas Inválidas!")
 
+    def generate_biresultsfile_event(self):
+        try:
+            self.reset_event()
+        except:
+            print("")
+        try:
+            input_data_file = "input_files\\input_data_file_bistatic.dat"
+            params = open(input_data_file, 'r')
+            param_list = []
+            for line in params:
+                line=line.strip("\n")
+                if not line.startswith("#"):
+                    if line.isnumeric(): param_list.append(int(line))
+                    else: param_list.append(line)
+            input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
+            params.close()
+            
+            stl_converter("stl_models\\"+input_model)
+            self.model = os.path.basename(input_model)           
+            self.now = datetime.now().strftime("%Y%m%d%H%M%S")
+            self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
+            
+            self.results_window()
+            self.bierror.configure(text="")
+        except:
+            self.bierror.configure(text="Entradas Inválidas!")
+
     def results_window(self):
         w,h=Image.open(self.plotpath).size
         plot= customtkinter.CTkImage(dark_image=Image.open(self.plotpath), size=(400,400*h/w))
@@ -225,12 +283,12 @@ class App(customtkinter.CTk):
         fig= customtkinter.CTkImage(dark_image=Image.open(self.figpath), size=(400,400*h/w))
         self.fig = customtkinter.CTkLabel(self.results_frame, image=fig, text="")
         self.fig.grid(row=2, column=2, columnspan=1, padx=(5, 10), pady=0, sticky="nsew")
-        self.saveplot = customtkinter.CTkButton(self.results_frame, text="⬇ Download Gráfico", command=self.save_plot)
-        self.saveplot.grid(row=3, column=1, columnspan=2, padx=5, pady=(15, 5), sticky="nsew")
-        self.savefile = customtkinter.CTkButton(self.results_frame, text="⬇ Download Modelo Triangular", command=self.save_fig)
-        self.savefile.grid(row=4, column=1, columnspan=2, padx=5, pady=(5, 5), sticky="nsew")
-        self.savefig = customtkinter.CTkButton(self.results_frame, text="⬇ Download Arquivo de Dados", command=self.save_file)
-        self.savefig.grid(row=5, column=1, columnspan=2, padx=5, pady=(5, 5), sticky="nsew")
+        self.saveplot = customtkinter.CTkButton(self.results_frame, text="⬇ Download Gráfico ", command=self.save_plot, width=300)
+        self.saveplot.grid(row=3, column=1, columnspan=2, padx=5, pady=(25, 5))
+        self.savefile = customtkinter.CTkButton(self.results_frame, text="⬇ Download Modelo Triangular", command=self.save_fig, width=300)
+        self.savefile.grid(row=4, column=1, columnspan=2, padx=5, pady=(5, 5))
+        self.savefig = customtkinter.CTkButton(self.results_frame, text="⬇ Download Arquivo de Dados", command=self.save_file, width=300)
+        self.savefig.grid(row=5, column=1, columnspan=2, padx=5, pady=(5, 5))
         self.reset = customtkinter.CTkButton(self.results_frame, text="Reset", command=self.reset_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.reset.grid(row=6, column=1, columnspan=2, padx=5, pady=15)  
        
