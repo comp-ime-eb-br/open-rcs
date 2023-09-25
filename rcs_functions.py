@@ -22,7 +22,7 @@ def getPolarization(incidentPolarization):
         raise ValueError('Invalid input')
 
 def getStandardDeviation(delstd,corel,wave):
-    delsq = float(delstd) ** 2
+    delsq = delstd ** 2
     bk = 2 * np.pi / wave
     cfac1 = np.exp(-4 * bk ** 2 * delsq)
     cfac2 = 4 * np.pi * (bk * corel) ** 2 * delsq
@@ -153,15 +153,15 @@ def diretionCosines(alpha, beta, D0,m):
 def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
     def calculate_ip():
         if delp == 0:
-            return int((pstop - pstart) + 1)
+            return int((pstop - pstart)) + 1
         else:
-            return int((pstop - pstart) / delp + 1)
+            return int((pstop - pstart) / delp) + 1
     
     def calculate_it():
         if delt == 0:
-            return int((tstop - tstart) + 1)
+            return int((tstop - tstart)) + 1
         else:
-            return int((tstop - tstart) / delt + 1)
+            return int((tstop - tstart) / delt) + 1
     
     def calculate_phr0():
         if pstart == pstop:
@@ -349,15 +349,11 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         plt.grid(True)
         
     if ip>1 and it>1:
-        Lh = [-20,0]
         fig = plt.figure(1)
         fig.suptitle(f"RCS Simulation IR Signature - {mode}")
         
         ax=fig.add_subplot(2,3,2)
-        if(mode=="Monostatic"):
-            cp=ax.contour(U, V, Sph)
-        elif(mode=="Bistatic"):
-            cp=ax.contour(U, V, Sph, Lh)        
+        cp=ax.contour(U, V, Sth)
         ax.set_title('RCS-theta')
         ax.set_xlabel('U')
         ax.set_ylabel('V')
@@ -366,10 +362,7 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         cbar.set_label('RCS (dBsm)')
         
         bx=fig.add_subplot(2,3,5)
-        if(mode=="Monostatic"):
-            cp=bx.contour(U, V, Sph)
-        elif(mode=="Bistatic"):
-            cp=bx.contour(U, V, Sph, Lh)
+        cp=bx.contour(U, V, Sph)
         bx.set_title('RCS-phi')
         bx.set_xlabel('U')
         bx.set_ylabel('V')
