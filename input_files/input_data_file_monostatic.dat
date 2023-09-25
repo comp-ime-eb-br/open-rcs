@@ -1,5 +1,5 @@
-# input model
-PLATE
+# input model (stl_models)
+box.stl
 # 1 radar frequency
 15000000
 # 2 correlation distance in meters
@@ -8,15 +8,17 @@ PLATE
 0
 # 4 incident wave polarization 
 0
-# 5 start phi angle in degrees
+# 5 material resistivity
 0
-# 6 stop phi angle in degrees
+# 6 start phi angle in degrees
+0
+# 7 stop phi angle in degrees
 90
-# 7 phi increment (step) in degrees
+# 8 phi increment (step) in degrees
 2
-# 8 start theta angle in degrees
+# 9 start theta angle in degrees
 0
-# 9 stop theta angle in degrees
+# 10 stop theta angle in degrees
 90
-# 10 theta increment (step) in degrees
+# 11 theta increment (step) in degrees
 2

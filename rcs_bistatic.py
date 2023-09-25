@@ -105,6 +105,6 @@ if not INTERFACE:
         if not line.startswith("#"):
             if line.isnumeric(): param_list.append(int(line))
             else: param_list.append(line)
-    input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
+    input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
     params.close()
-    rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, 0) #Rs=0
+    rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs) 

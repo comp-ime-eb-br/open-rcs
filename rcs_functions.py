@@ -355,9 +355,9 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         
         ax=fig.add_subplot(2,3,2)
         if(mode=="Monostatic"):
-            cp=ax.contour(U, V, Sph)
+            cp=ax.contour(U, V, Sth)
         elif(mode=="Bistatic"):
-            cp=ax.contour(U, V, Sph, Lh)        
+            cp=ax.contour(U, V, Sth, Lh)        
         ax.set_title('RCS-theta')
         ax.set_xlabel('U')
         ax.set_ylabel('V')

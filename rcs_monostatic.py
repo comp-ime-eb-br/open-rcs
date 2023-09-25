@@ -99,6 +99,6 @@ if not INTERFACE:
         if not line.startswith("#"):
             if line.isnumeric(): param_list.append(int(line))
             else: param_list.append(line)
-    input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt = param_list
+    input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
     params.close()
-    rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, 0) #Rs=0
+    rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs) 
