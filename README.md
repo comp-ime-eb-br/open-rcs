@@ -124,4 +124,3 @@ n-source-software/
 8. Jenn, D.: Radar and laser cross section engineering. American Institute of Aeronau-tics and Astronautics, Inc. (2005)
 9. Swords, S. S.: Technical History of the Beginnings of Radar. Institute of Electrical Engineers (1986)
 10. Chatzigeorgiadis, F., Jenn, D.C.: A MATLAB physical-optics RCS prediction code. IEEE Antennas and Propagation Magazine (2004)
-11. GARRIDO ELMO E., J. Grafical User Interface for a Physical Optics Radar Cross Section Prediction Code. 2000. Unpublished

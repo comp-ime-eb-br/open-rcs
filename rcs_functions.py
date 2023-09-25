@@ -7,7 +7,6 @@ SMALL_SIZE = 8
 MEDIUM_SIZE = 10
 BIGGER_SIZE = 12
 
-
 def getPolarization(incidentPolarization):
     if incidentPolarization == 0: # Theta-polarized (TM-z)
         pol_aux = 'TM-z'
@@ -43,7 +42,7 @@ ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
     plt.rc('figure', titlesize=figureTitle)  
 
 def read_coordinates(input_model):
-    fname = "./models/" + input_model + "/coordinates.txt"
+    fname = "./coordinates.txt"
     coordinates = np.loadtxt(fname)
     xpts = coordinates[:, 0]
     ypts = coordinates[:, 1]
@@ -56,8 +55,8 @@ def read_coordinates(input_model):
     nverts = len(xpts)
     return x, y, z, xpts, ypts, zpts, nverts
 
-def read_facets(input_model):
-    fname2 = "./models/" + input_model + "/facets.txt"
+def read_facets(input_model,rs):
+    fname2 = "./facets.txt"
     facets = np.loadtxt(fname2)
     nfc = facets[:, 0]
     node1 = facets[:, 1].astype(int)
@@ -65,7 +64,7 @@ def read_facets(input_model):
     node3 = facets[:, 3].astype(int)
     iflag = 0
     ilum = facets[:, 4]
-    Rs = facets[:, 5]
+    Rs = np.full(facets[:, 4].shape, rs)
     ntria = len(node3)
     return nfc, node1, node2, node3, iflag, ilum, Rs, ntria
 
@@ -83,13 +82,18 @@ def calculate_r(x, y, z, nverts):
         r[i, :] = [x[i], y[i], z[i]]
     return r
 
-def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc, ilabv, ilabf):
+def plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc):
+    fig = plt.figure(1)
+    fig.suptitle(f'Triangle Model of Target: {input_model}')
+    ilabv ='n'; ilabf='n' # label vertices and faces
+    ax = fig.add_subplot(1,1,1, projection='3d')
+    
     for i in range(ntria):
         X = [x[vind[i, 0]-1], x[vind[i, 1]-1], x[vind[i, 2]-1], x[vind[i, 0]-1]]
         Y = [y[vind[i, 0]-1], y[vind[i, 1]-1], y[vind[i, 2]-1], y[vind[i, 0]-1]]
         Z = [z[vind[i, 0]-1], z[vind[i, 1]-1], z[vind[i, 2]-1], z[vind[i, 0]-1]]
         ax.plot(X, Y, Z)
-    ax.set_title(f'Triangle Model of Target:')
+    #ax.set_title(f'Triangle Model of Target:')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
@@ -104,7 +108,6 @@ def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node
     # this is to avoid both a max and min of zero in any one dimension
     xmax = dmax; ymax = dmax; zmax = dmax
     xmin = dmin; ymin = dmin; zmin = dmin
-
     
     if ilabv == 'y':
         for i in range(nverts):
@@ -116,7 +119,22 @@ def plot_triangle_model(ax, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node
             yav = (ypts[node1[i]-1] + ypts[node2[i]-1] + ypts[node3[i]-1]) / 3
             zav = (zpts[node1[i]-1] + zpts[node2[i]-1] + zpts[node3[i]-1]) / 3
             ax.text(xav, yav, zav, str(nfc[i]))
-    return xmin, ymin, zmin, xmax, ymax, zmax
+    # return xmin, ymin, zmin, xmax, ymax, zmax
+
+    # plot parameters
+    # param = plotParameters("Monostatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+    ax.set_zlim(zmin, zmax)
+    
+    # save plots
+    now = datetime.now().strftime("%Y%m%d%H%M%S")
+    fig_name = "./results/"+"temp"+"_"+now+".jpg"
+    extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    fig.savefig(fig_name, bbox_inches=extent)
+    plt.close()
+    
+    return fig_name
 
 def diretionCosines(alpha, beta, D0,m):
                         T1=np.array([[math.cos(alpha[m]),  math.sin(alpha[m]),   0],
@@ -135,15 +153,15 @@ def diretionCosines(alpha, beta, D0,m):
 def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
     def calculate_ip():
         if delp == 0:
-            return int((pstop - pstart)) + 1
+            return int((pstop - pstart) + 1)
         else:
-            return int((pstop - pstart) / delp) + 1
+            return int((pstop - pstart) / delp + 1)
     
     def calculate_it():
         if delt == 0:
-            return int((tstop - tstart)) + 1
+            return int((tstop - tstart) + 1)
         else:
-            return int((tstop - tstart) / delt) + 1
+            return int((tstop - tstart) / delt + 1)
     
     def calculate_phr0():
         if pstart == pstop:
@@ -186,15 +204,15 @@ def bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad, fi
 
     def calculate_ip():
         if delp == 0:
-            return int((pstop - pstart) + 1)
+            return int((pstop - pstart)) + 1
         else:
-            return int((pstop - pstart) / delp + 1)
+            return int((pstop - pstart) / delp) + 1
     
     def calculate_it():
         if delt == 0:
-            return int((tstop - tstart) + 1)
+            return int((tstop - tstart)) + 1
         else:
-            return int((tstop - tstart) / delt + 1)
+            return int((tstop - tstart) / delt) + 1
     
     def calculate_phr0():
         if pstart == pstop:
@@ -307,10 +325,10 @@ def bi_incidentFieldSphericalCoordinates(cpi2, cti2, sti2,spi2,e2):
                         return Et2, Ep2
 
 
-def finalPlotMonostatic(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model):
+def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode):
     if ip==1:
         plt.figure(1)
-        plt.suptitle("RCS Simulation IR Signature")
+        plt.suptitle(f"RCS Simulation IR Signature - {mode}")
         plt.title(f"target: {input_model}   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
         plt.xlabel("Monostatic Angle, theta (deg)")
         plt.ylabel("RCS (dBsm)")
@@ -321,55 +339,7 @@ def finalPlotMonostatic(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_
         
     if it==1:
         plt.figure(1)
-        plt.suptitle("RCS Simulation IR Signature")
-        plt.title(f"target: {input_model}   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
-        plt.xlabel('Monostatic Angle, phi (deg)')
-        plt.ylabel('RCS (dBsm)')
-        plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
-        plt.plot(phi[0],Sth[0])
-        plt.plot(phi[0],Sph[0],linestyle="dashed")
-        plt.grid(True)
-        
-    if ip>1 and it>1:
-        fig = plt.figure(1,[10,4])
-        fig.suptitle("RCS Simulation IR Signature")
-        
-        ax=fig.add_subplot(1,2,1)
-        cp=ax.contour(U, V, Sth)
-        ax.set_title('RCS-theta')
-        ax.set_xlabel('U')
-        ax.set_ylabel('V')
-        ax.axis('square')
-        cbar=fig.colorbar(cp)
-        cbar.set_label('RCS (dBsm)')
-        
-        bx=fig.add_subplot(1,2,2)
-        cp=bx.contour(U, V, Sph)
-        bx.set_title('RCS-phi')
-        bx.set_xlabel('U')
-        bx.set_ylabel('V')
-        bx.axis('square')
-        cbar=fig.colorbar(cp)
-        cbar.set_label('RCS (dBsm)')
-        
-    plt.savefig("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".png")
-    plt.show()
-
-def finalPlotBistatic(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_model):
-    if ip==1:
-        plt.figure(1)
-        plt.suptitle("RCS Simulation IR Signature")
-        plt.title(f"target: {input_model}   solid: theta     dashed: phi     phi= {phi[0][0]}    wave (m): {wave}")
-        plt.xlabel("Monostatic Angle, theta (deg)")
-        plt.ylabel("RCS (dBsm)")
-        plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
-        plt.plot(theta[0],Sth[0])
-        plt.plot(theta[0],Sph[0],linestyle="dashed")
-        plt.grid(True)
-        
-    if it==1:
-        plt.figure(1)
-        plt.suptitle("RCS Simulation IR Signature")
+        plt.suptitle(f"RCS Simulation IR Signature - {mode}")
         plt.title(f"target: {input_model}   solid: theta     dashed: phi     theta= {theta[0][0]}    wave (m): {wave}")
         plt.xlabel('Monostatic Angle, phi (deg)')
         plt.ylabel('RCS (dBsm)')
@@ -380,11 +350,14 @@ def finalPlotBistatic(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_mo
         
     if ip>1 and it>1:
         Lh = [-20,0]
-        fig = plt.figure(1,[10,4])
-        fig.suptitle("RCS Simulation IR Signature")
+        fig = plt.figure(1)
+        fig.suptitle(f"RCS Simulation IR Signature - {mode}")
         
-        ax=fig.add_subplot(1,2,1)
-        cp=ax.contour(U, V, Sth, Lh)
+        ax=fig.add_subplot(2,3,2)
+        if(mode=="Monostatic"):
+            cp=ax.contour(U, V, Sph)
+        elif(mode=="Bistatic"):
+            cp=ax.contour(U, V, Sph, Lh)        
         ax.set_title('RCS-theta')
         ax.set_xlabel('U')
         ax.set_ylabel('V')
@@ -392,8 +365,11 @@ def finalPlotBistatic(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_mo
         cbar=fig.colorbar(cp)
         cbar.set_label('RCS (dBsm)')
         
-        bx=fig.add_subplot(1,2,2)
-        cp=bx.contour(U, V, Sph, Lh)
+        bx=fig.add_subplot(2,3,5)
+        if(mode=="Monostatic"):
+            cp=bx.contour(U, V, Sph)
+        elif(mode=="Bistatic"):
+            cp=bx.contour(U, V, Sph, Lh)
         bx.set_title('RCS-phi')
         bx.set_xlabel('U')
         bx.set_ylabel('V')
@@ -401,15 +377,20 @@ def finalPlotBistatic(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now, input_mo
         cbar=fig.colorbar(cp)
         cbar.set_label('RCS (dBsm)')
         
-    plt.savefig("./results/"+"RCSSimulator_Bistatic_"+"_"+now+".png")
-    plt.show()
+        fig.subplots_adjust(wspace=0)
+        
+    plot_name = "./results/"+"temp"+"_"+now+".png"
+    plt.savefig(plot_name)
+    # plt.show()
+    plt.close()
+    return plot_name
 
-
-def generateResultFilesMonostatic(theta, Sth, phi,Sphm, param, ip, Sph):
+def generateResultFiles(theta, Sth, phi,Sphm, param, ip, Sph):
     now = datetime.now().strftime("%Y%m%d%H%M%S")
-    result_file = open("./results/"+"RCSSimulator_Monostatic_"+"_"+now+".dat", 'w')
+    file_name = "./results/"+"temp"+"_"+now+".dat"
+    result_file = open(file_name, 'w')
 
-    result_file.write("RCS SIMULATOR MONOSTATIC "+now+"\n")
+    result_file.write("RCS SIMULATOR RESULTS "+now+"\n")
     result_file.write("\nSimulation Parameters:\n"+param)
     result_file.write("\nSimulation Results IR Signature:")
     result_file.write("\nTheta (deg):\n")
@@ -424,29 +405,7 @@ def generateResultFilesMonostatic(theta, Sth, phi,Sphm, param, ip, Sph):
     result_file.write("\nRCS Phi (dBsm):\n")
     for i1 in range(ip):
         result_file.write(str(Sph[i1])+"\n")
-    return now
-
-
-def generateResultFilesBistatic(theta, Sth, phi,Sphm, param, ip, Sph):
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    result_file = open("./results/"+"RCSSimulator_Bistatic_"+"_"+now+".dat", 'w')
-
-    result_file.write("RCS SIMULATOR BISTATIC "+now+"\n")
-    result_file.write("\nSimulation Parameters:\n"+param)
-    result_file.write("\nSimulation Results IR Signature:")
-    result_file.write("\nTheta (deg):\n")
-    for i1 in range(ip):
-        result_file.write(str(theta[i1])+"\n")
-    result_file.write("\nRCS Theta (dBsm):\n")
-    for i1 in range(ip):
-        result_file.write(str(Sth[i1])+"\n")
-    result_file.write("\nPhi (deg):\n")
-    for i1 in range(ip):
-        result_file.write(str(phi[i1])+"\n")
-    result_file.write("\nRCS Phi (dBsm):\n")
-    for i1 in range(ip):
-        result_file.write(str(Sph[i1])+"\n")
-    return now
+    return now, file_name
         
 def areaIntegral(Dq, Dp,Do):
                         DD=Dq-Dp
@@ -491,23 +450,19 @@ def calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq, m, expDp):
                         # end of special cases test
                         return Ic
 
-def plotParameters(fig,freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt):
-    bx = fig.add_subplot(1,2,2,projection='3d')
-    bx.set_axis_off()
-    bx.set_title(f'Simulation Parameters:') 
-    param = f'Radar Frequency (GHz): {freq/1e9}\n\
+def plotParameters(mode,freq,wave,corr,delstd,pol,ntria,pstart,pstop,delp,tstart,tstop,delt):
+    param = f'    Mode: {mode}\n\
+    Radar Frequency (GHz): {freq/1e9}\n\
     Wavelength (m): {wave}\n\
     Correlation distance (m): {corr}\n\
     Standard Deviation (m): {delstd}\n\
     Incident wave polarization: {pol}\n\
-    Number of model faces: {ntria}\n\
     Start phi angle (degrees): {pstart}\n\
     Stop phi angle (degrees): {pstop}\n\
     Phi increment step (degrees): {delp}\n\
     Start theta angle (degrees): {tstart}\n\
     Stop theta angle (degrees): {tstop}\n\
     Phi increment step (degrees): {delt}\n'
-    bx.text(0, 0, 0, param)
     return param
 
 def calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp,m,Jx2, T1, T2):

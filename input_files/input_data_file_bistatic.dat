@@ -1,26 +1,26 @@
 # input model
-SPHERE
+VTAIL
 # 1 radar frequency
 15000000
 # 2 correlation distance in meters
-1
+0
 # 3 standard deviation in meters
-1
+0
 # 4 incident wave polarization 
 0
 # 5 start phi angle in degrees
-10
+0
 # 6 stop phi angle in degrees
-90
+0
 # 7 phi increment (step) in degrees
-3
+0
 # 8 start theta angle in degrees
-10
+0
 # 9 stop theta angle in degrees
-90
+360
 # 10 theta increment (step) in degrees
-3
+2
 # 11 theta incidence in degrees
-25
+30
 # 12 phi incidence in degrees
-25
+0
