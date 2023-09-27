@@ -1,14 +1,17 @@
 # Open RCS: an open-source platform for calculating Radar Cross Section from 3D targets
 
-The software Open RCS is inspired by POFACETS with an open source plataform and is being developed incrementally, validating the outputs generated from the same inputs, but with different types of CAD models, from the simplest to the most complex. The software will use both Physical Optics (PO) and Geometrical Optics (GO) techniques for RCS measurement and it will be divided into monostatic and bistatic modules. 
+The software Open RCS is inspired by POFACETS with an open source plataform and is being developed incrementally, validating the outputs generated from the same inputs, but with different types of CAD models, from the simplest to the most complex. The software will use both Physical Optics (PO) and Geometrical Optics (GO) techniques for RCS measurement and it will be divided into monostatic and bistatic modules.
 
 ## In this README:
 
 - [Theoretical Foundation](#theoretical-foundation)
 - [Software Information](#software-information)
 - [Usage](#usage)
+
   - [Initial setup](#initial-setup)
-  - [Simulation](#simulation)
+  - [Monostatic Simulation](#monostatic-simulation)
+  - [Bistatic Simulation](#bistatic-simulation)
+
 - [FAQ](#faq)
 - [Author Info](#author-info)
 - [References](#references)
@@ -17,7 +20,7 @@ The software Open RCS is inspired by POFACETS with an open source plataform and 
 
 Radar cross section (RCS) is a measure that shows how much a radar can detect an object. If this measurement is large, it is more easily detectable by radar. Many factors can affect this measurement, such as: the size of the target related to the wavelength, the kind of material that covers the target, the frequency of the radar, the angle of incidence, the geometry of the target, among others.
 
-Since the invention of radar in World War II, its use has been a crucial factor in the success or failure of military campaigns. Concurrent with the development of radar detection capabilities, techniques to reduce the electromagnetic signature or RCS of important military platforms, such as aircraft, vessels, and armored vehicles, has proven to be an essential line of investment  to ensure the success of such operations.
+Since the invention of radar in World War II, its use has been a crucial factor in the success or failure of military campaigns. Concurrent with the development of radar detection capabilities, techniques to reduce the electromagnetic signature or RCS of important military platforms, such as aircraft, vessels, and armored vehicles, has proven to be an essential line of investment to ensure the success of such operations.
 
 Despite the fundamentals related to RCS being mastered since the time of the development of the first radar, defining the electromagnetic signature of a target is still a highly complex task. Analytical calculation is only possible for simple geometry targets. For real objects, we can only determine the RCS through experimental measurement or through computational numerical simulation; each method has its advantages and disadvantages. One of the great advantages of the computational simulation of the RCS is that the real target is not always available, or it is still in the design phase. When the objective is to reduce the RCS, it is practically unfeasible to make several changes in the target geometry or RAM application with many different configurations, that is why RCS simulation is a valued technique for studying military projects.
 
@@ -35,62 +38,58 @@ The reflection directions are defined using simple spherical coordinates from th
 
 1. Clone the repository.
 
-   
-    *You can do it by running:*
+   _You can do it by running:_
 
-    ```
-    git clone https://github.com/comp-ime-eb-br/open-rcs
-    ```
-2. Install Python 3.8 and libraries
+   ```
+   git clone https://github.com/comp-ime-eb-br/open-rcs
+   ```
 
-    *If you are using pip you can do it by running:*
+2. Install Python 3.11.1+ and libraries
 
-    ```
-    pip install python3
-    pip install numpy
-    pip install matplotlib
-    ```
+   _If you are using pip you can do it by running:_
+
+   ```
+   pip install python3
+   pip install -r requirements.txt
+   ```
+
+3. In order to start the application run the main.py file
+
+   ```
+   python main.py
+   ```
 
 ### Monostatic Simulation
 
-1. The input parameters should be added to the *input-data-file.dat* file, in the following model:
+1. Input the simulation parameters.
 
-<img src='img/inputs_monostatic.png' width='300'>
+2. Select the STL file
 
-2. After setting up the input parameters, run the code:
+3. Press the generate results ("Gerar Resultados") button.
 
-    ```
-    python3 rcs_monostatic.py
-    ```
+  <img src='img/openrcs_monostatic.png' width='900'>
 
-3. The plot will show the triangle model and the input data read by the software:
+Alternatively, you can run the RCS simulation with the .dat file and press the generate results from input file ("Gerar Resultados do Input File") button.
 
-<img src='img/box_triangle_model.png' width='500'>
+The input parameters should be added to the input_files/input_data_file_monostatic.dat file, in the following model:
 
-4. Finally, the RCS signature will be plotted:
-
-<img src='img/BOX-theta-cut.png' width='500'>
-
+  <img src='img/inputs_monostatic.png' width='300'>
 
 ### Bistatic Simulation
 
-1. The input parameters should be added to the *input_data_file_bistatic.dat* file, in the following model:
+1. Input the simulation parameters.
 
-<img src='img/inputs_bistatic.png' width='300'>
+2. Select the STL file
 
-2. After setting up the input parameters, run the code:
+3. Press the generate results ("Gerar Resultados") button.
 
-    ```
-    python3 rcs_bistatic.py
-    ```
+  <img src='img/openrcs_bistatic.png' width='900'>
 
-3. The plot will show the triangle model and the input data read by the software:
+Alternatively, you can run the RCS simulation with the .dat file and press the generate results from input file ("Gerar Resultados do Input File") button.
 
-<img src='img/vtail_bistatic_triangle.png' width='500'>
+The input parameters should be added to the input_files/input_data_file_bistatic.dat file, in the following model:
 
-4. Finally, the RCS signature will be plotted:
-
-<img src='img/vtail_bistatic_plot.png' width='500'>
+  <img src='img/inputs_bistatic.png' width='300'>
 
 ## FAQ
 
@@ -114,9 +113,9 @@ The software was developed in a Computer and Communications Engineer graduation 
 
 1. Open Source Initiative (n.d.). Open Source Initiative. https://opensource.org/
 2. Battery Open Source Software Index (n.d.). Battery Open Source Software Index (BOSS). https://www.battery.com/blog/boss-index-tracking-explosive-growth-ope
-n-source-software/
+   n-source-software/
 3. Guo, P.: Python is now the most popular introductory teaching language at top U.S. Universities. https://cacm.acm.org/blogs/blog-cacm/176450-python-is-now
--the-most-popular-introductory-teaching-language-at-top-us-universities/fulltext (2014)
+   -the-most-popular-introductory-teaching-language-at-top-us-universities/fulltext (2014)
 4. McCann, J.: The meteoric rise of open source and why investors should care. Forbes. https://www.forbes.com/sites/forbestechcouncil/2017/09/22/the-meteoric-rise-of-open-source-and-why-investors-should-care (2017)
 5. Knott, E. F., Shaeffer, J.F., Tuley, M.T.: Radar Cross Section. Artech House (1993)
 6. Ruck, G.: Radar Cross Section Handbook: Volume 1. Springer US. (1970)
