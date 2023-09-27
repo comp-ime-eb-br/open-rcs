@@ -46,6 +46,8 @@ The reflection directions are defined using simple spherical coordinates from th
 
 2. Install Python 3.11.1+ and libraries
 
+   You can do it by running the .exe available on the Python official website: [Windows](https://www.python.org/downloads/windows/) | [MacOS](https://www.python.org/downloads/macos/) | [Others](https://www.python.org/download/other/)
+
    _If you are using pip you can do it by running:_
 
    ```
@@ -53,7 +55,7 @@ The reflection directions are defined using simple spherical coordinates from th
    pip install -r requirements.txt
    ```
 
-3. In order to start the application run the main.py file
+4. In order to start the application run the main.py file
 
    ```
    python main.py
