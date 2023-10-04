@@ -52,7 +52,7 @@ class App(customtkinter.CTk):
         # description frame
         self.description = customtkinter.CTkFrame(self, width=140)
         self.description.grid(row=0, column=1, columnspan=1, padx=(20, 0), pady=(20,0), sticky="new")
-        self.text = customtkinter.CTkLabel(self.description, text="\nO software Open-RCS foi desenvolvido para fins acadêmicos e de instrução\ndo CIGE (Centro de Instrução de Guerra Eletrônica). A estimação do valor\nda RCS para as estruturas carregadas no programa é obitdo pelo método da\n Óptica Física e os resultados para os formatos clássicos (cubo, placa\nplana, esfera) foram validados contra o software externo POFacets.")
+        self.text = customtkinter.CTkLabel(self.description, text="\nO software Open-RCS foi desenvolvido para fins acadêmicos e de instrução\n referentes a diversos cenários de Guerra Eletrônica. A estimação do valor\nda RCS para as estruturas carregadas no programa é obitdo pelo método da\n Óptica Física e os resultados para os formatos clássicos (cubo, placa\nplana, esfera) foram validados contra o software externo POFacets.")
         self.text.grid(row=0, column=0, padx=(10,10), pady=(10,20), sticky="nsew")
         
         # tabview
