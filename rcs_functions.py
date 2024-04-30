@@ -2,6 +2,7 @@ import math, cmath
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+from icecream import ic
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10

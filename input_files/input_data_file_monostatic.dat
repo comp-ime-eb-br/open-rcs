@@ -1,5 +1,5 @@
 # input model (stl_models)
-box.stl
+plate.stl
 # 1 radar frequency
 15000000
 # 2 correlation distance in meters

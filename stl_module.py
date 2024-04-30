@@ -46,5 +46,5 @@ def stl_converter(file_path):
     # print(facets)
 
     # Salvar arquivos como .txt
-    np.savetxt("coordinates.txt", coordinates, fmt="%d", delimiter=" ")
+    np.savetxt("coordinates.txt", coordinates, fmt="%f", delimiter=" ")
     np.savetxt("facets.txt", facets, fmt="%d", delimiter=" ")
