@@ -160,16 +160,16 @@ class App(customtkinter.CTk):
         self.cancel = customtkinter.CTkButton(self.results_frame, text="Cancelar Carregamento", command=self.end_generate_attempt,fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
 
     def generate_results(self,function):
+        try:
+            self.reset_event()
+        except:
+            print("")
         self.thread = thread_with_trace(target=function)
         self.thread.start()
         self.result_tab_loading()
 
     def generate_monoresults_event(self):
         generate_images = False
-        try:
-            self.reset_event()
-        except:
-            print("")
         try:
             freq = float(self.monofreq.get())
             corr = float(self.monocorr.get())
@@ -205,10 +205,6 @@ class App(customtkinter.CTk):
     def generate_monoresultsfile_event(self):
         generate_images = False
         try:
-            self.reset_event()
-        except:
-            print("")
-        try:
             input_data_file = "./input_files/input_data_file_monostatic.dat"
             params = open(input_data_file, 'r')
             param_list = []
@@ -240,10 +236,6 @@ class App(customtkinter.CTk):
         
     def generate_biresults_event(self):
         generate_images = False
-        try:
-            self.reset_event()
-        except:
-            print("")
         try:
             freq = float(self.bifreq.get())
             corr = float(self.bicorr.get())
@@ -280,10 +272,6 @@ class App(customtkinter.CTk):
 
     def generate_biresultsfile_event(self):
         generate_images = False
-        try:
-            self.reset_event()
-        except:
-            print("")
         try:
             input_data_file = "./input_files/input_data_file_bistatic.dat"
             params = open(input_data_file, 'r')
