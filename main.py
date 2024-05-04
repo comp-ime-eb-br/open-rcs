@@ -1,8 +1,11 @@
+import threading
+import time
 import customtkinter, shutil
 from tkinter.filedialog import askopenfile, asksaveasfile
 from customtkinter import ThemeManager
 from tkinter import messagebox
 from PIL import Image, ImageTk
+import tkinter as tk
 
 import os
 import platform
@@ -10,6 +13,8 @@ import platform
 from stl_module import *
 from rcs_monostatic import *
 from rcs_bistatic import *
+from thread_trace import thread_with_trace
+from gif import ImageLabel
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -95,9 +100,9 @@ class App(customtkinter.CTk):
         self.monotstop.grid(row=3, column=2, padx=5, pady=(5, 5))
         self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Phi (º)")
         self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
-        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=self.generate_monoresults_event)
+        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_results(self.generate_monoresults_event))
         self.monoresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=self.generate_monoresultsfile_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=lambda:self.generate_results(self.generate_monoresultsfile_event), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.monoresultfile.grid(row=7, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.monoerror = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.monoerror.grid(row=8, column=1, padx=5, pady=0, sticky="ew")
@@ -135,9 +140,9 @@ class App(customtkinter.CTk):
         self.bitstop.grid(row=4, column=2, padx=5, pady=(5, 5))
         self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Phi (º)")
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
-        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=self.generate_biresults_event)
+        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_results(self.generate_biresults_event))
         self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=self.generate_biresultsfile_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_results(self.generate_biresults_event), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.biresultfile.grid(row=8, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
         self.bierror.grid(row=9, column=1, padx=5, pady=0, sticky="ew")
@@ -152,12 +157,19 @@ class App(customtkinter.CTk):
         adjust= customtkinter.CTkImage(dark_image=Image.open(adjustp), size=(600,300))
         self.adjust = customtkinter.CTkLabel(self.results_frame, image=adjust, text="")
         self.adjust.grid(row=1, column=0, columnspan=4, rowspan=4, padx=(30,30), pady=(10,10))
-    
-    def generate_monoresults_event(self):
+        self.cancel = customtkinter.CTkButton(self.results_frame, text="Cancelar Carregamento", command=self.end_generate_attempt,fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+
+    def generate_results(self,function):
         try:
             self.reset_event()
         except:
             print("")
+        self.thread = thread_with_trace(target=function)
+        self.thread.start()
+        self.result_tab_loading()
+
+    def generate_monoresults_event(self):
+        generate_images = False
         try:
             freq = float(self.monofreq.get())
             corr = float(self.monocorr.get())
@@ -178,18 +190,20 @@ class App(customtkinter.CTk):
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
             
             self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
-            
-            self.results_window()
-            self.monoerror.configure(text="")
+            generate_images = True
+
         except Exception as e:
             print(f"An error occurred: {str(e)}")
             self.monoerror.configure(text="Entradas Inválidas!")
-            
+
+        self.restore_result_tab()
+
+        if generate_images:
+            self.results_window()
+            self.monoerror.configure(text="")
+        
     def generate_monoresultsfile_event(self):
-        try:
-            self.reset_event()
-        except:
-            print("")
+        generate_images = False
         try:
             input_data_file = "./input_files/input_data_file_monostatic.dat"
             params = open(input_data_file, 'r')
@@ -206,18 +220,22 @@ class App(customtkinter.CTk):
             self.model = os.path.basename(input_model)           
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
             self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
-            
-            self.results_window()
-            self.monoerror.configure(text="")
+            generate_images = True
+
         except Exception as e:
             print(f"An error occurred: {str(e)}")
             self.monoerror.configure(text="Entradas Inválidas!")
-            
+        
+        #fim da thread sempre limpa a tela
+        self.restore_result_tab()
+        
+        #caso tenham gerado com sucesso, vai colocar as imagens em resultados
+        if generate_images:
+            self.results_window()
+            self.monoerror.configure(text="")
+        
     def generate_biresults_event(self):
-        try:
-            self.reset_event()
-        except:
-            print("")
+        generate_images = False
         try:
             freq = float(self.bifreq.get())
             corr = float(self.bicorr.get())
@@ -239,18 +257,21 @@ class App(customtkinter.CTk):
             
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
             self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
-            
-            self.results_window()
-            self.bierror.configure(text="")
+            generate_images = True
         except Exception as e:
             print(f"An error occurred: {str(e)}")
             self.bierror.configure(text="Entradas Inválidas!")
 
+        #fim da thread sempre limpa a tela
+        self.restore_result_tab()
+        
+        #caso tenham gerado com sucesso, vai colocar as imagens em resultados
+        if generate_images:
+            self.results_window()
+            self.bierror.configure(text="")
+
     def generate_biresultsfile_event(self):
-        try:
-            self.reset_event()
-        except:
-            print("")
+        generate_images = False
         try:
             input_data_file = "./input_files/input_data_file_bistatic.dat"
             params = open(input_data_file, 'r')
@@ -268,11 +289,18 @@ class App(customtkinter.CTk):
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
             self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
             
-            self.results_window()
-            self.bierror.configure(text="")
+            generate_images = True
         except Exception as e:
             print(f"An error occurred: {str(e)}")
             self.bierror.configure(text="Entradas Inválidas!")
+            
+            #fim da thread sempre limpa a tela
+        self.restore_result_tab()
+        
+        #caso tenham gerado com sucesso, vai colocar as imagens em resultados
+        if generate_images:
+            self.results_window()
+            self.bierror.configure(text="")
 
     def results_window(self):
         w,h=Image.open(self.plotpath).size
@@ -317,16 +345,16 @@ class App(customtkinter.CTk):
     def save_plot(self):
         im= Image.open(self.plotpath)
         im.save("./results/"+"RCSSimulator"+"_"+self.now+".png")
-        self.on_save("./results/"+"RCSSimulator"+"_"+self.now+".png")
+        self.on_save()
         
     def save_fig(self):
         im= Image.open(self.figpath)
         im.save("./results/"+"RCSSimulator"+"_"+self.now+".jpg")
-        self.on_save("./results/"+"RCSSimulator"+"_"+self.now+".jpg")
+        self.on_save()
         
     def save_file(self):
         shutil.copy(self.filepath, "./results/"+"RCSSimulator"+"_"+self.now+".dat")
-        self.on_save("./results/"+"RCSSimulator"+"_"+self.now+".dat")
+        self.on_save()
 
     def open_file(self, file_path):
         try:
@@ -356,19 +384,54 @@ class App(customtkinter.CTk):
         os.remove(self.filepath)
         
         self.reset.destroy()
-        
+
+    def restore_result_tab(self):
+        self.cancel.grid_forget()
+        self.gif.destroy()
+        self.active_buttons()
+
     def change_appearance_mode_event(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
+
+    def end_generate_attempt(self):
+        self.restore_result_tab()
+        if self.thread.isAlive():
+            self.thread.kill()
         
+    def loading_gif(self):
+        self.gif = ImageLabel(self.results_frame)
+        self.gif.grid(row=4, column=1, padx=5, pady=(25, 5))
+        self.gif.load('img/load.gif')
+
+    def active_buttons(self):
+        self.monoresult.configure(state=tk.ACTIVE)
+        self.monoresultfile.configure(state=tk.ACTIVE)
+        self.biresult.configure(state=tk.ACTIVE)
+        self.biresultfile.configure(state=tk.ACTIVE)
+
+    def disable_buttons(self):
+        self.monoresult.configure(state=tk.DISABLED)
+        self.monoresultfile.configure(state=tk.DISABLED)
+        self.biresult.configure(state=tk.DISABLED)
+        self.biresultfile.configure(state=tk.DISABLED)
+
+    def result_tab_loading(self):
+        self.disable_buttons()
+        self.cancel.grid(row=5, column=1, padx=5, pady=(40, 0), sticky="nsew")
+        self.loading_gif()
+
     def on_closing(self):
         if messagebox.askokcancel("Sair", "Deseja sair do programa?"):
             try:
                 self.reset_event()
+                if self.thread.isAlive():
+                    self.thread.kill()
+                    self.thread.join()
             except:
                 print("")
             self.quit()
 
-    def on_save(self, save_path):
+    def on_save(self):
         messagebox.showinfo("Arquivo Salvo", f"Arquivo salvo na pasta results do diretório do OpenRCS")
         
 if __name__ == "__main__":

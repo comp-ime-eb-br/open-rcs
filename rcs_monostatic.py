@@ -83,7 +83,7 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
                         # ic(Et2, Ep2)
                         # reflection coefficients (Rs is normalized to eta0)
                         perp, para = reflectionCoefficients(Rs, th2, m)
-
+                        
                         # surface current components in local Cartesian coordinates
                         Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp);   # math.cos(th2) removed
                         Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp);   # math.cos(th2) removed
