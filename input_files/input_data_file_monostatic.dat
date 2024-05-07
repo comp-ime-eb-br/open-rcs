@@ -1,7 +1,7 @@
 # input model (stl_models)
-planePofacets.stl
+box.stl
 # 1 radar frequency
-15000000
+300000000
 # 2 correlation distance in meters
 0
 # 3 standard deviation in meters
