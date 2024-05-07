@@ -541,9 +541,8 @@ switch answer
       % Converter para o formato desejado
       formatoDesejado = 'yyyymmddHHMMSS';
       dataHoraFormatada = datestr(dataHoraAtual, formatoDesejado);
-      filename = [dataHoraFormatada,'_',filename];
+      filename = [dataHoraFormatada,'M_',filename];
       fullFileName = fullfile(pathname, filename);
       save(fullFileName, 'theta', 'phi', 'freq', 'Sth', 'Sph', 'Reth', 'Ieth', 'Reph', 'Ieph', '-ASCII'); 
-      
-         
+          
 end

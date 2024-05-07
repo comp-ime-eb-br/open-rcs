@@ -115,7 +115,7 @@ function displaymodel_Callback(hObject, eventdata, handles)
 global coord nvert modelname
 global ntria facet scale
 
-%open('showmodel.fig');  
+open('showmodel.fig');  
 PlotModel;
 
 
@@ -340,10 +340,10 @@ if filename~=0
 switch a,
     case 'Yes'
    
-%open('MsgComputing.fig');
-%txt = ['Checking Vertices of ',modelname,' model . . .'];         
-%set(findobj(gcf,'Tag','Msg'),'String',txt); 
-%pause(0.1);   
+open('MsgComputing.fig');
+txt = ['Checking Vertices of ',modelname,' model . . .'];         
+set(findobj(gcf,'Tag','Msg'),'String',txt); 
+pause(0.1);   
 
 % Perform checks on model
 %check vertices
@@ -373,7 +373,7 @@ if valid==0
     for i = 1: ntria	 
       	if facet(i,1) == facet(i,2) | facet(i,1) == facet(i,3) ...
                		 | facet(i,2) == facet(i,3)
-            %close(gcf); %close Msgcomputing
+            close(gcf); %close Msgcomputing
             txt=['Duplicate nodes for the facet number ',num2str(i)];
             errordlg(txt,'Node Status', 'error');
             valid = 1;                 
@@ -386,7 +386,7 @@ if valid==0
      for i = 1:(ntria-1)	 
         for j = (i+1): ntria
                if facet(i,:) == facet(j,:)
-                %close(gcf); %close Msgcomputing   
+                close(gcf); %close Msgcomputing   
                 txt=['Duplicate set of nodes for facets ',num2str(i),' and ',num2str(j)];
                	errordlg(txt,'Node Status', 'error');
                   valid = 1;
@@ -401,7 +401,7 @@ if valid==0
 end %if 
 
 if valid == 0
-       %set(findobj(hobj,'Tag','displaymodel'),'Enable','on');
+       set(findobj(hobj,'Tag','displaymodel'),'Enable','on');
        close(gcf); %close Msgcomputing
        open('showmodel.fig');
        PlotModel;

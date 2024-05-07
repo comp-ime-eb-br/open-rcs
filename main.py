@@ -76,7 +76,7 @@ class App(customtkinter.CTk):
         self.monomodel.grid(row=4, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
         self.monomodel.bind("<Enter>", self.on_button_enter)
         self.monomodel.bind("<Leave>", self.on_button_leave)
-        self.monofreq = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Frequência (Hz)")
+        self.monofreq = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Frequência (GHz)")
         self.monofreq.grid(row=1, column=0, padx=5, pady=(5, 5))
         self.monocorr = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Distância (m)")
         self.monocorr.grid(row=1, column=1, padx=5, pady=(5, 5))
@@ -98,7 +98,7 @@ class App(customtkinter.CTk):
         self.monotstart.grid(row=2, column=2, padx=5, pady=(5, 5))
         self.monotstop = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Theta Final (º)")
         self.monotstop.grid(row=3, column=2, padx=5, pady=(5, 5))
-        self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Phi (º)")
+        self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Theta (º)")
         self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
         self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_results(self.generate_monoresults_event))
         self.monoresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
@@ -112,7 +112,7 @@ class App(customtkinter.CTk):
         self.bitext.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
         self.bimodel = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="\n⬆\nUpload Modelo (.stl)\n", command=self.upload, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.bimodel.grid(row=4, column=0, rowspan=2, padx=5, pady=(5, 5))
-        self.bifreq = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Frequência (Hz)")
+        self.bifreq = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Frequência (GHz)")
         self.bifreq.grid(row=1, column=0, padx=5, pady=(5, 5))
         self.bicorr = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Distância (m)")
         self.bicorr.grid(row=1, column=1, padx=5, pady=(5, 5))
@@ -171,7 +171,7 @@ class App(customtkinter.CTk):
     def generate_monoresults_event(self):
         generate_images = False
         try:
-            freq = float(self.monofreq.get())
+            freq = float(self.monofreq.get())*10e9
             corr = float(self.monocorr.get())
             delstd = float(self.monodelstd.get())
             pol = self.monoipol.get()
@@ -237,7 +237,7 @@ class App(customtkinter.CTk):
     def generate_biresults_event(self):
         generate_images = False
         try:
-            freq = float(self.bifreq.get())
+            freq = float(self.bifreq.get())*10e9
             corr = float(self.bicorr.get())
             delstd = float(self.bidelstd.get())
             pol = self.biipol.get()
