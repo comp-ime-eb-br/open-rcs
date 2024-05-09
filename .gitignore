@@ -1,4 +1,2 @@
-__pycache__/
-results/*.jpg
-results/*.dat
-results/POfacets/
+__pycache__/*
+results/*
