@@ -4,7 +4,7 @@ import subprocess
 matlab_executable = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
 
 # Caminho completo para o script do MATLAB
-matlab_script = 'matlabScript'
+matlab_script = 'matlab_script'
 
 # Combinando tudo em um comando para o subprocesso
 command = [matlab_executable, '-r', f'"{matlab_script}"']

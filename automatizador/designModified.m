@@ -19,7 +19,6 @@ if nargin > 0  % Check if there are input arguments
         filename = varargin{3};
         
         % Load the file
-        disp(['Opening file: ' fullfile(directory, filename)]);
         OpenFile(directory, filename)
         
         % Perform any necessary operations with the loaded data

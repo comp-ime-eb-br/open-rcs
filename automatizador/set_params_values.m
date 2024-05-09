@@ -377,5 +377,3 @@ end
  
   o_iang = temp;
 % end getiAngle  
-   
-   
