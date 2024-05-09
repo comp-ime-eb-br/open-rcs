@@ -54,7 +54,14 @@ ntria=size(facet,1);
       usesymmetry= get(findobj(h_mono,'Tag','usesymmetry'),'Value');
       useground=get(findobj(h_mono,'Tag','groundplane'),'Value');
          
-      
+      if i_pol == 0
+         Et = 1;
+         Ep = 0;
+      else
+         Et = 0;
+         Ep = 1;
+      end
+
        %if ground plane is used, create symmetric model
       if useground==1
           %save initial data

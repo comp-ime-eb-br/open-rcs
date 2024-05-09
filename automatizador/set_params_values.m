@@ -66,15 +66,6 @@ end
       Nt = getNTerms('5');
       set(h_Nt,'String',num2str(Nt)); 
       
-      val = str2num(i_pol_str)+1;
-      if val == 1
-         Et = 1;
-         Ep = 0;
-      else
-         Et = 0;
-         Ep = 1;
-      end
-      
       h_freq = findobj(gcf,'Tag','Freq');
       freq = getFreq(freq_str);
       set(h_freq,'String',num2str(freq));     

@@ -1,5 +1,5 @@
 function matlab_script()
-    addpath('../pofacets4.5');
+    addpath('./pofacets4.5');
     pofacets
     method = 'monostatic'; %monostatic or bistatic
     fig = openfig([method,'.fig']);
@@ -7,6 +7,10 @@ function matlab_script()
     %colocar quantas vezes quiser
     generate_rcs_data(fig,method);
     generate_rcs_data(fig,method);
+
+    %fechar janelas
+    close(gcf)
+    close(gcf)
 end
 
 function generate_rcs_data(fig,method)
@@ -15,7 +19,7 @@ function generate_rcs_data(fig,method)
     modelname = params{1};
 
     %load model
-    designModified('OpenFile','../pofacets4.5/CAD Library Pofacets/',[modelname,'.mat']);
+    designModified('OpenFile','./pofacets4.5/CAD Library Pofacets/',[modelname,'.mat']);
     waitfor(@() is_design_loaded());
     close(gcf);
 
