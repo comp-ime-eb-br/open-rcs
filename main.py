@@ -171,7 +171,7 @@ class App(customtkinter.CTk):
     def generate_monoresults_event(self):
         generate_images = False
         try:
-            freq = float(self.monofreq.get())*10e9
+            freq = float(self.monofreq.get())*1e9
             corr = float(self.monocorr.get())
             delstd = float(self.monodelstd.get())
             pol = self.monoipol.get()
@@ -219,7 +219,7 @@ class App(customtkinter.CTk):
             stl_converter("./stl_models/"+input_model)
             self.model = os.path.basename(input_model)           
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
+            self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, float(freq)*1e9, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
             generate_images = True
 
         except Exception as e:
@@ -237,7 +237,7 @@ class App(customtkinter.CTk):
     def generate_biresults_event(self):
         generate_images = False
         try:
-            freq = float(self.bifreq.get())*10e9
+            freq = float(self.bifreq.get())*1e9
             corr = float(self.bicorr.get())
             delstd = float(self.bidelstd.get())
             pol = self.biipol.get()
@@ -287,7 +287,7 @@ class App(customtkinter.CTk):
             stl_converter("./stl_models/"+input_model)
             self.model = os.path.basename(input_model)           
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
+            self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, float(freq)*1e9, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
             
             generate_images = True
         except Exception as e:
