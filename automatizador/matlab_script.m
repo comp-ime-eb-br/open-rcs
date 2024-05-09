@@ -1,8 +1,8 @@
 function matlab_script()
     addpath('../pofacets4.5');
     pofacets
-    method = 'monostatic' %monostatic or bistatic
-    fig = openfig([method,'.fig'])
+    method = 'monostatic'; %monostatic or bistatic
+    fig = openfig([method,'.fig']);
 
     %colocar quantas vezes quiser
     generate_rcs_data(fig,method);

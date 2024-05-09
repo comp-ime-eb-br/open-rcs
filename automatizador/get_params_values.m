@@ -29,9 +29,9 @@ function params = get_params_values(method,figure,path)
 
     % Feche o arquivo
     fclose(fid);
-    
+
     model = param_list{1};
     model_split = strsplit(model, '.');
-    param_list{1} = model_split{1}
+    param_list{1} = model_split{1};
     params = param_list;
 end
