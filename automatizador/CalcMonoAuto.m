@@ -539,17 +539,12 @@ switch answer
           save([pathname,filename],'theta','phi','freq','Sth','Sph','Reth','Ieth','Reph','Ieph','-ASCII');
       end 
   case 'Auto'
-      Reth=real(Ethscat);
-      Ieth=imag(Ethscat);
-      Reph=real(Ephscat);
-      Ieph=imag(Ephscat);
       dataHoraAtual = datetime('now');
-
       % Converter para o formato desejado
       formatoDesejado = 'yyyymmddHHMMSS';
       dataHoraFormatada = datestr(dataHoraAtual, formatoDesejado);
       filename = [dataHoraFormatada,'M_',filename];
       fullFileName = fullfile(pathname, filename);
-      save(fullFileName, 'theta', 'phi', 'freq', 'Sth', 'Sph', 'Reth', 'Ieth', 'Reph', 'Ieph', '-ASCII'); 
+      save(fullFileName, 'theta', 'phi', 'freq', 'Sth', 'Sph', 'Ethscat','Ephscat'); 
           
 end
