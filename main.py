@@ -138,7 +138,7 @@ class App(customtkinter.CTk):
         self.bitstart.grid(row=3, column=2, padx=5, pady=(5, 5))
         self.bitstop = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Final (º)")
         self.bitstop.grid(row=4, column=2, padx=5, pady=(5, 5))
-        self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Phi (º)")
+        self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Theta (º)")
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
         self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_results(self.generate_biresults_event))
         self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")

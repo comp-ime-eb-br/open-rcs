@@ -6,7 +6,8 @@ from rcs_functions import *
 INTERFACE = True
 
 def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs):
-    # 1: radar frequency
+    # 1: radar frequency in MHz
+    freq = freq*10**6
     wave = 3e8 / freq
     # 2: correlation distance 
     corel = float(corr)/wave

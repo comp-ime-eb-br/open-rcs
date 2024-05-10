@@ -7,7 +7,8 @@ from rcs_functions import *
 INTERFACE = True
 
 def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, Rs):
-    # 1: radar frequency
+    # 1: radar frequency in MHz
+    freq = freq*10**6
     wave = 3e8 / freq
     ic(wave)
     # 2: correlation distance 
