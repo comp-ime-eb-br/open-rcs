@@ -54,7 +54,7 @@ class OutputValidation:
             case "mat":
                 res: dict = loadmat(_path)
                 vetor = res[key]
-                print(vetor[0].tolist())
+                #print(vetor[0].tolist())
                 return vetor[0].tolist()
             
             case "dat":
@@ -64,14 +64,12 @@ class OutputValidation:
                         RCS_start_index = content.index("RCS Theta (dBsm):\n") + 1
                         RCS_end_index = content.index("Phi (deg):\n")
                         rcs_str = " ".join(content[RCS_start_index:RCS_end_index]).strip("[]").split()
-                        rcs_str[-1] = rcs_str[-1].replace(']','')
-                        print(rcs_str)
                     elif key == 'Sph':
                         RCS_start_index = content.index("RCS Phi (dBsm):\n") + 1
-                        rcs_str = content[RCS_start_index].split()
-
+                        rcs_str = " ".join(content[RCS_start_index:]).strip("[]").split()
+                    
+                    rcs_str[-1] = rcs_str[-1].replace(']','')    
                     rcs_float = [float(value) for value in rcs_str]
-                    #print(rcs_float)
                     return rcs_float
 
     # def clean_pofacets(self) -> list[float]:
@@ -106,4 +104,4 @@ if __name__ == "__main__":
     PATH_ACONE = "./results/POfacets/acone.mat"
     PATH_BLACK = "./results/RCSSimulator_20240513102546.dat"
     val = OutputValidation(PATH_ACONE)
-    print("Testing method\n", val.mse(key="Sth", path=PATH_BLACK))
+    print("Testing method\n", val.mse(key="Sph", path=PATH_BLACK))

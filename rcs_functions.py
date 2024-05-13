@@ -386,7 +386,7 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
     plt.close()
     return plot_name
 
-def generateResultFiles(theta, Sth, phi,Sphm, param, ip, Sph):
+def generateResultFiles(theta, Sth, phi,Sph, param, ip):
     now = datetime.now().strftime("%Y%m%d%H%M%S")
     file_name = "./results/"+"temp"+"_"+now+".dat"
     result_file = open(file_name, 'w')
@@ -503,7 +503,7 @@ def parametrosGrafico(Sth,Sph):
     Lmin=Lmax-60
     Sth[:,:]=np.maximum(Sth[:,:],Lmin)
     Sph[:,:]=np.maximum(Sph[:,:],Lmin)
-    return Smax,Lmax, Lmin,Sth, Sph
+    return Smax,Lmax, Lmin
 
 def productVector(ntria,N,r,d,Area,alpha,beta,vind):
     for i in range(ntria):
