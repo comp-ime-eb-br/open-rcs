@@ -335,7 +335,7 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         plt.ylabel("RCS (dBsm)")
         plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
         plt.plot(theta[0],Sth[0])
-        plt.plot(theta[0],Sph[0],linestyle="dashed")
+        plt.plot(theta[0],Sph[0],linewidth=4,linestyle="dashed")
         plt.grid(True)
         
     if it==1:
@@ -345,8 +345,8 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         plt.xlabel('Monostatic Angle, phi (deg)')
         plt.ylabel('RCS (dBsm)')
         plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
-        plt.plot(phi[0],Sth[0])
-        plt.plot(phi[0],Sph[0],linestyle="dashed")
+        plt.plot(phi,Sth)
+        plt.plot(phi,Sph,linewidth=4,linestyle="dashed")
         plt.grid(True)
         
     if ip>1 and it>1:
@@ -497,7 +497,7 @@ def calculateSth_Sph(cfac1,sumt,sump,sumdt,wave,Sth,Sph,i1, i2, sumdp):
             Sph[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sump)**2+np.sqrt(1-cfac1**2)*sumdp)/wave**2+1e-10)
             return Sth, Sph
 
-def parametrosGrafico(np,Sth,Sph):
+def parametrosGrafico(Sth,Sph):
     Smax=max(np.max(Sth),np.max(Sph))
     Lmax=(np.floor(Smax/5)+1)*5
     Lmin=Lmax-60
@@ -524,7 +524,7 @@ def productVector(ntria,N,r,d,Area,alpha,beta,vind):
             alpha[i]=0
     return A,B,C,N,d,ss,Area, Nn, N, beta,alpha
 
-def otherVectorComponents(ip,it,np):
+def otherVectorComponents(ip,it):
     phi = np.zeros([ip, it], np.double)
     theta = np.zeros([ip, it], np.double)
     U = np.zeros([ip, it], np.double)
