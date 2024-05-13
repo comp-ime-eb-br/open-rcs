@@ -76,7 +76,7 @@ class App(customtkinter.CTk):
         self.monomodel.grid(row=4, column=0, rowspan=2, padx=5, pady=(5, 5),sticky="ns")
         self.monomodel.bind("<Enter>", self.on_button_enter)
         self.monomodel.bind("<Leave>", self.on_button_leave)
-        self.monofreq = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Frequência (MHz)")
+        self.monofreq = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Frequência (GHz)")
         self.monofreq.grid(row=1, column=0, padx=5, pady=(5, 5))
         self.monocorr = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Distância (m)")
         self.monocorr.grid(row=1, column=1, padx=5, pady=(5, 5))
@@ -112,7 +112,7 @@ class App(customtkinter.CTk):
         self.bitext.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
         self.bimodel = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="\n⬆\nUpload Modelo (.stl)\n", command=self.upload, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.bimodel.grid(row=4, column=0, rowspan=2, padx=5, pady=(5, 5))
-        self.bifreq = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Frequência (MHz)")
+        self.bifreq = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Frequência (GHz)")
         self.bifreq.grid(row=1, column=0, padx=5, pady=(5, 5))
         self.bicorr = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Distância (m)")
         self.bicorr.grid(row=1, column=1, padx=5, pady=(5, 5))
@@ -171,7 +171,7 @@ class App(customtkinter.CTk):
     def generate_monoresults_event(self):
         generate_images = False
         try:
-            freq = float(self.monofreq.get())
+            freq = float(self.monofreq.get())*1e9
             corr = float(self.monocorr.get())
             delstd = float(self.monodelstd.get())
             pol = self.monoipol.get()
@@ -219,7 +219,7 @@ class App(customtkinter.CTk):
             stl_converter("./stl_models/"+input_model)
             self.model = os.path.basename(input_model)           
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
+            self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, float(freq)*1e9, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
             generate_images = True
 
         except Exception as e:
@@ -237,7 +237,7 @@ class App(customtkinter.CTk):
     def generate_biresults_event(self):
         generate_images = False
         try:
-            freq = float(self.bifreq.get())
+            freq = float(self.bifreq.get())*1e9
             corr = float(self.bicorr.get())
             delstd = float(self.bidelstd.get())
             pol = self.biipol.get()
@@ -287,7 +287,7 @@ class App(customtkinter.CTk):
             stl_converter("./stl_models/"+input_model)
             self.model = os.path.basename(input_model)           
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
+            self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, float(freq)*1e9, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
             
             generate_images = True
         except Exception as e:

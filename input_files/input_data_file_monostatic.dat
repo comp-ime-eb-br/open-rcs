@@ -1,7 +1,7 @@
 # input model (stl_models)
-sphere.stl
-# 1 radar frequency in MHz
-150
+box.stl
+# 1 radar frequency(GHz)
+0.3
 # 2 correlation distance in meters
 0
 # 3 standard deviation in meters

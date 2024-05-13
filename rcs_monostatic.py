@@ -115,7 +115,7 @@ if not INTERFACE:
     for line in params:
         line=line.strip("\n")
         if not line.startswith("#"):
-            if line.isnumeric(): param_list.append(int(line))
+            if line.isnumeric(): param_list.append(float(line))
             else: param_list.append(line)
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
     params.close()
