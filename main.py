@@ -142,7 +142,7 @@ class App(customtkinter.CTk):
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
         self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_results(self.generate_biresults_event))
         self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_results(self.generate_biresults_event), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_results(self.generate_biresultsfile_event), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.biresultfile.grid(row=8, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
         self.bierror.grid(row=9, column=1, padx=5, pady=0, sticky="ew")

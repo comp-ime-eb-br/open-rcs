@@ -1,5 +1,5 @@
 # input model (stl_models)
-box.stl
+aconePofacets.stl
 # 1 radar frequency(GHz)
 0.3
 # 2 correlation distance in meters

@@ -3,11 +3,7 @@ import numpy as np
 
 from rcs_functions import *
 
-INTERFACE = True
-
 def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs):
-    # 1: radar frequency in MHz
-    freq = freq*10**6
     wave = 3e8 / freq
     # 2: correlation distance 
     corel = float(corr)/wave
@@ -83,22 +79,24 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
 
                         Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq, m, expDp)
                         sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp, m, Jx2, T1, T2)
-            Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave, Sth, Sph, i1, i2, sumdp) 
-    Smax,Lmax, Lmin,Sth, Sph = parametrosGrafico(Sth,Sph)
+            Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave, Sth, Sph, i1, i2, sumdp)
+            Sth_grafico = Sth.copy() 
+            Sph_grafico = Sph.copy()
+    Smax,Lmax, Lmin = parametrosGrafico(Sth_grafico,Sph_grafico)
 
     # generate result files
     setFontOption()
     fig_name = plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc)
     param = plotParameters("Bistatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
-    now, file_name = generateResultFiles(theta, Sth, phi,Sph, param, ip, Sph)
-    plot_name = finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,"Bistatic")
+    now, file_name = generateResultFiles(theta, Sth, phi,Sph, param, ip)
+    plot_name = finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth_grafico,Sph_grafico,U,V,now,input_model,"Bistatic")
     
     return plot_name, fig_name, file_name
 
     
-if not INTERFACE:
+if __name__ == '__main__':
     # open input data file and gather parameters
-    input_data_file = "input_files\\input_data_file_bistatic.dat"
+    input_data_file = "input_files/input_data_file_bistatic.dat"
     params = open(input_data_file, 'r')
     param_list = []
     for line in params:
