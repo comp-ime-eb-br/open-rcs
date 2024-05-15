@@ -454,11 +454,6 @@ switch answer
           save([pathname,filename],'itheta','iphi','theta','phi','freq','Sth','Sph','Ethscat','Ephscat','-ASCII');
       end  
   case 'Auto'
-      dataHoraAtual = datetime('now');
-      % Converter para o formato desejado
-      formatoDesejado = 'yyyymmddHHMMSS';
-      dataHoraFormatada = datestr(dataHoraAtual, formatoDesejado);
-      filename = [dataHoraFormatada,'B_',filename];
       fullFileName = fullfile(pathname, filename);
       save(fullFileName,'itheta','iphi','theta','phi','freq','Sth','Sph','Ethscat','Ephscat','-ASCII');   
          

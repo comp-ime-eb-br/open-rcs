@@ -60,16 +60,28 @@ class OutputValidation:
             case "dat":
                 with open(_path, "r") as file:
                     content = file.readlines()
+                    rcs_float = []
+                    lista = []
                     if key == 'Sth':
                         RCS_start_index = content.index("RCS Theta (dBsm):\n") + 1
                         RCS_end_index = content.index("Phi (deg):\n")
-                        rcs_str = " ".join(content[RCS_start_index:RCS_end_index]).strip("[]").split()
+                        lista = content[RCS_start_index:RCS_end_index-1]
                     elif key == 'Sph':
                         RCS_start_index = content.index("RCS Phi (dBsm):\n") + 1
-                        rcs_str = " ".join(content[RCS_start_index:]).strip("[]").split()
-                    
-                    rcs_str[-1] = rcs_str[-1].replace(']','')    
-                    rcs_float = [float(value) for value in rcs_str]
+                        lista = content[RCS_start_index:]
+
+                    for line in lista:
+                        value = ''
+                        for x in line:
+                            if x ==' ' or x == ']' or x == '\n':
+                                if value != '':
+                                    rcs_float.append(float(value))
+                                value =''
+
+                            elif x != '[' and x != ']':
+                                value+=x
+
+                    #print(rcs_float)
                     return rcs_float
 
     # def clean_pofacets(self) -> list[float]:

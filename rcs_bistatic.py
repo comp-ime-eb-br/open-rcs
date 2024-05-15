@@ -4,7 +4,8 @@ import numpy as np
 from rcs_functions import *
 
 def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs):
-    wave = 3e8 / freq
+    freq = freq*1e9
+    wave = 3e8/freq
     # 2: correlation distance 
     corel = float(corr)/wave
     # 3: standard deviation
@@ -14,8 +15,8 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
     Co=1  # wave amplitude at all vertices
     
     # processing coordinate data 
-    x, y, z, xpts, ypts, zpts, nverts = read_coordinates(input_model)
-    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model, rs)
+    x, y, z, xpts, ypts, zpts, nverts = read_coordinates()
+    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(rs)
     vind = create_vind(node1, node2, node3)
     r = calculate_r(x, y, z, nverts)
     
@@ -106,4 +107,4 @@ if __name__ == '__main__':
             else: param_list.append(line)
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
     params.close()
-    rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs) 
+    rcs_bistatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs) 

@@ -42,7 +42,7 @@ ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
     plt.rc('legend', fontsize=legendSize)    # legend fontsize
     plt.rc('figure', titlesize=figureTitle)  
 
-def read_coordinates(input_model):
+def read_coordinates():
     fname = "./coordinates.txt"
     coordinates = np.loadtxt(fname)
     xpts = coordinates[:, 0]
@@ -56,7 +56,7 @@ def read_coordinates(input_model):
     nverts = len(xpts)
     return x, y, z, xpts, ypts, zpts, nverts
 
-def read_facets(input_model,rs):
+def read_facets(rs):
     fname2 = "./facets.txt"
     facets = np.loadtxt(fname2)
     nfc = facets[:, 0]

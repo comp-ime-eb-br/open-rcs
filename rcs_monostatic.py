@@ -5,7 +5,9 @@ import numpy as np
 from rcs_functions import *
 
 def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, Rs):
-    wave = 3e8 / freq
+    freq = freq*1e9
+
+    wave = 3e8/freq
     
     # 2: correlation distance 
     corel = float(corr)/wave
@@ -16,12 +18,12 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
     # 4: incident wave polarization
     [pol,Et,Ep] = getPolarization(ipol)
     
-    Co=1  # wave amplitude at all vertices
+    Co=1  # wave amplitude at all verticesFRe
     
     # processing coordinate data 
-    x, y, z, xpts, ypts, zpts, nverts = read_coordinates(input_model)
+    x, y, z, xpts, ypts, zpts, nverts = read_coordinates()
     
-    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(input_model, Rs)
+    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(Rs)
     
     vind = create_vind(node1, node2, node3)
     
@@ -106,4 +108,4 @@ if __name__ == '__main__':
             else: param_list.append(line)
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
     params.close()
-    rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs) 
+    rcs_monostatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs) 
