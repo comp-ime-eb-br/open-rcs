@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 from rcs_monostatic import rcs_monostatic
 from rcs_bistatic import rcs_bistatic
+from stl_module import stl_converter
 from output_validation import OutputValidation
 
 def generate_open_rcs_files(method):
@@ -20,10 +21,12 @@ def generate_open_rcs_files(method):
     input_model =''
     if method == 'monostatic':
         input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
+        stl_converter("./stl_models/"+input_model)
         print(input_model)
         plot_name, fig_name, file_name = rcs_monostatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs) 
     else:
         input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
+        stl_converter("./stl_models/"+input_model)
         plot_name, fig_name, file_name = rcs_bistatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs)    
     
     params.close()
@@ -72,7 +75,7 @@ def generate_datum(method):
 
 #open_rcs_file = "/results/temp_20240515173451.dat"
 #pofacets_file = "./results/POfacets/acone_20240515173452.mat"
-open_rcs_file,pofacets_file = generate_datum('monostatic')
+open_rcs_file,pofacets_file = generate_datum('bistatic')
 
 print('>>> Calculando erro médio quadrático <<<\n')
 val = OutputValidation('.'+open_rcs_file)

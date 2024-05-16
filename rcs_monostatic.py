@@ -3,6 +3,7 @@ import numpy as np
 # from icecream import *
 
 from rcs_functions import *
+from stl_module import stl_converter
 
 def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, Rs):
     freq = freq*1e9
@@ -108,4 +109,5 @@ if __name__ == '__main__':
             else: param_list.append(line)
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
     params.close()
+    stl_converter("./stl_models/"+input_model)
     rcs_monostatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs) 

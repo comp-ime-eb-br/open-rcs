@@ -455,7 +455,7 @@ switch answer
       end  
   case 'Auto'
       fullFileName = fullfile(pathname, filename);
-      save(fullFileName,'itheta','iphi','theta','phi','freq','Sth','Sph','Ethscat','Ephscat','-ASCII');   
+      save(fullFileName,'itheta','iphi','theta','phi','freq','Sth','Sph','Ethscat','Ephscat');   
          
 end
 

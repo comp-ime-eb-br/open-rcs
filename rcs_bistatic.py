@@ -2,6 +2,7 @@ import math
 import numpy as np
 
 from rcs_functions import *
+from stl_module import stl_converter
 
 def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs):
     freq = freq*1e9
@@ -107,4 +108,5 @@ if __name__ == '__main__':
             else: param_list.append(line)
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
     params.close()
+    stl_converter("./stl_models/"+input_model)
     rcs_bistatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs) 
