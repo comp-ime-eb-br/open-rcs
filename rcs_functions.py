@@ -335,7 +335,7 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         plt.ylabel("RCS (dBsm)")
         plt.axis([np.min(theta),np.max(theta),Lmin,Lmax])
         plt.plot(theta[0],Sth[0])
-        plt.plot(theta[0],Sph[0],linewidth=4,linestyle="dashed")
+        plt.plot(theta[0],Sph[0],linewidth=2,linestyle="dashed")
         plt.grid(True)
         
     if it==1:

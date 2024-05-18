@@ -55,7 +55,13 @@ class OutputValidation:
                 res: dict = loadmat(_path)
                 vetor = res[key]
                 #print(vetor[0].tolist())
-                return vetor[0].tolist()
+                listaLinear = []
+                for lista in vetor:
+                    for r in lista:
+                        listaLinear.append(r)
+                #print(listaLinear)
+                #print('\n')
+                return listaLinear
             
             case "dat":
                 with open(_path, "r") as file:
@@ -113,7 +119,8 @@ class OutputValidation:
 
 
 if __name__ == "__main__":
-    PATH_ACONE = "./results/POfacets/acone.mat"
-    PATH_BLACK = "./results/RCSSimulator_20240513102546.dat"
+    PATH_ACONE = "./results/POfacets/box_20240518154512.mat"
+    PATH_BLACK = "./results/temp_20240518154512.dat"
     val = OutputValidation(PATH_ACONE)
-    print("Testing method\n", val.mse(key="Sph", path=PATH_BLACK))
+    print("Testing method Theta \n", val.mse(key="Sth", path=PATH_BLACK))
+    #print("Testing method Phi\n", val.mse(key="Sph", path=PATH_BLACK))
