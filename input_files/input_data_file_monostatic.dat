@@ -1,7 +1,7 @@
 # input model (stl_models)
-box.stl
+F16.stl
 # 1 radar frequency(GHz)
-0.3
+1.5
 # 2 correlation distance in meters
 0
 # 3 standard deviation in meters
@@ -9,7 +9,7 @@ box.stl
 # 4 incident wave polarization 
 0
 # 5 material resistivity
-1
+0
 # 6 start phi angle in degrees
 0
 # 7 stop phi angle in degrees

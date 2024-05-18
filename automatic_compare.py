@@ -75,9 +75,9 @@ def generate_datum(method):
 
 #open_rcs_file = "/results/temp_20240515173451.dat"
 #pofacets_file = "./results/POfacets/acone_20240515173452.mat"
-open_rcs_file,pofacets_file = generate_datum('bistatic')
-
+open_rcs_file,pofacets_file = generate_datum('monostatic')
+open_rcs_file = '.'+open_rcs_file 
 print('>>> Calculando erro médio quadrático <<<\n')
-val = OutputValidation('.'+open_rcs_file)
-print("Testing method Sth\n", val.mse(key="Sth", path=pofacets_file))
-print("Testing method Sph\n", val.mse(key="Sph", path=pofacets_file))
+val = OutputValidation(pofacets_file)
+print("Testing method Sth\n", val.mse(key="Sth", path=open_rcs_file))
+print("Testing method Sph\n", val.mse(key="Sph", path=open_rcs_file))

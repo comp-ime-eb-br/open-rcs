@@ -346,7 +346,7 @@ def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode)
         plt.ylabel('RCS (dBsm)')
         plt.axis([np.min(phi), np.max(phi), Lmin, Lmax])
         plt.plot(phi,Sth)
-        plt.plot(phi,Sph,linewidth=4,linestyle="dashed")
+        plt.plot(phi,Sph,linewidth=2,linestyle="dashed")
         plt.grid(True)
         
     if ip>1 and it>1:
@@ -500,7 +500,7 @@ def calculateSth_Sph(cfac1,sumt,sump,sumdt,wave,Sth,Sph,i1, i2, sumdp):
 def parametrosGrafico(Sth,Sph):
     Smax=max(np.max(Sth),np.max(Sph))
     Lmax=(np.floor(Smax/5)+1)*5
-    Lmin=Lmax-60
+    Lmin = min(np.min(Sth),np.min(Sph))
     Sth[:,:]=np.maximum(Sth[:,:],Lmin)
     Sph[:,:]=np.maximum(Sph[:,:],Lmin)
     return Smax,Lmax, Lmin
