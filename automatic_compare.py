@@ -26,6 +26,7 @@ def generate_open_rcs_files(method):
         plot_name, fig_name, file_name = rcs_monostatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs) 
     else:
         input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
+        print(input_model)
         #stl_converter("./stl_models/"+input_model)
         plot_name, fig_name, file_name = rcs_bistatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs)    
     
@@ -53,7 +54,7 @@ def wait_file_creation(path):
 def generate_pofacets_file(method,input_model):
     print('>>> Executando Pofacets <<<\n')
     # Caminho para o executável do MATLAB 
-    matlab_executable = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
+    matlab_executable = "C:\\Program Files\\MATLAB\\R2021b\\bin\\matlab.exe"
     command = [matlab_executable, '-r', f"matlab_script"]
     start_time = update_automator_input(method)
 
@@ -75,7 +76,8 @@ def generate_datum(method):
 
 #open_rcs_file = "/results/temp_20240515173451.dat"
 #pofacets_file = "./results/POfacets/acone_20240515173452.mat"
-open_rcs_file,pofacets_file = generate_datum('monostatic')
+# open_rcs_file,pofacets_file = generate_datum('monostatic')
+open_rcs_file,pofacets_file = generate_datum('bistatic')
 open_rcs_file = '.'+open_rcs_file 
 print('>>> Calculando erro médio quadrático <<<\n')
 val = OutputValidation(pofacets_file)
