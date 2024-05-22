@@ -68,6 +68,7 @@ def generate_datum(method):
     print('>>>>>>>>>>>>> Iniciando comparação de modelos <<<<<<<<<<<<<\n')
     print('>>> Executando Open-RCS <<<\n')
     open_rcs_file, input_model = generate_open_rcs_files(method)
+    wait_file_creation(open_rcs_file)
     print('Concluido.\n')
     pofacets_file = generate_pofacets_file(method,input_model)
     wait_file_creation(pofacets_file)
