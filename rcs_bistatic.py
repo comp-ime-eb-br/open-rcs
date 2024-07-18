@@ -24,7 +24,7 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
     # pattern loop
     Area, alpha, beta, N, d, ip, it ,cpi,spi,sti,cti,ui,vi,wi,D0i,uui,vvi,wwi,Ri = bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad,phii,thetai)
     # get edge vectors and normals from edge cross products
-    A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
+    N,d,Area, beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
     phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it)
 
     e0 = bi_incidentFieldCartesian(uui,vvi,wwi,cpi,spi,Et,Ep,e0)
@@ -81,10 +81,10 @@ def rcs_bistatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tst
 
                         Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq, m, expDp)
                         sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp, m, Jx2, T1, T2)
-            Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave, Sth, Sph, i1, i2, sumdp)
-            Sth_grafico = Sth.copy() 
-            Sph_grafico = Sph.copy()
-    Smax,Lmax, Lmin = parametrosGrafico(Sth_grafico,Sph_grafico)
+            calculateSth_Sph(cfac1,sumt,sump,sumdt,wave, Sth, Sph, i1, i2, sumdp)
+    Sth_grafico = Sth.copy() 
+    Sph_grafico = Sph.copy()
+    Lmax, Lmin = parametrosGrafico(Sth_grafico,Sph_grafico)
 
     # generate result files
     setFontOption()

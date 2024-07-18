@@ -33,7 +33,7 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
     # pattern loop
     Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
     # get edge vectors and normals from edge cross products
-    A,B,C,N,d,ss,Area, Nn, N, beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
+    N,d,Area,beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
     phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it)
     
     for i1 in range(ip):
@@ -65,27 +65,34 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
 
                         # phase at the three vertices of triangle m; monostatic RCS needs "2"
                         Dp,Dq,Do = phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w)
+                        
                         # incident field in local cartesian coordinates (stored in e2)
                         e1=np.dot(T1,np.transpose(np.conj(e0)))
                         e2=np.dot(T2,e1)
 
                         # incident field in local spherical coordinates
                         Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
+
                         # reflection coefficients (Rs is normalized to eta0)
                         perp, para = reflectionCoefficients(Rs, th2, m)
                         
                         # surface current components in local Cartesian coordinates
-                        Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp);   # math.cos(th2) removed
-                        Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp);   # math.cos(th2) removed
+                        Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp*math.cos(th2));   # math.cos(th2) removed
+                        Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp*math.cos(th2));   # math.cos(th2) removed
+                        
                         # area integral for general case
                         DD, expDo, expDp, expDq = areaIntegral(Dq, Dp,Do)
 
                         Ic = calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq, m, expDp)
                         sumt,sump,sumdp,sumdt = calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,sumdt,sumdp, m, Jx2, T1, T2)
-            Sth, Sph = calculateSth_Sph(cfac1,sumt,sump,sumdt,wave, Sth, Sph, i1, i2, sumdp) 
-            Sth_grafico = Sth.copy() 
-            Sph_grafico = Sph.copy()
-    Smax,Lmax, Lmin = parametrosGrafico(Sth_grafico,Sph_grafico)
+            
+            # Define values for sth and sph for i1 and i2            
+            calculateSth_Sph(cfac1,sumt,sump,sumdt,wave, Sth, Sph, i1, i2, sumdp) 
+            
+    #Get maximum and minimum values on graphic
+    Sth_grafico = Sth.copy() 
+    Sph_grafico = Sph.copy()
+    Lmax, Lmin = parametrosGrafico(Sth_grafico,Sph_grafico)
 
     # generate result files
     setFontOption()

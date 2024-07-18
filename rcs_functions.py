@@ -28,7 +28,7 @@ def getStandardDeviation(delstd,corel,wave):
     cfac1 = np.exp(-4 * bk ** 2 * delsq)
     cfac2 = 4 * np.pi * (bk * corel) ** 2 * delsq
     rad = np.pi / 180
-    Lt = 0.05  # taylor series region
+    Lt = 1e-5  # taylor series region
     Nt = 5 # number of terms in Taylor series
     return[bk,cfac1,cfac2,rad,Lt,Nt]
 
@@ -49,9 +49,9 @@ def read_coordinates():
     ypts = coordinates[:, 1]
     zpts = coordinates[:, 2]
 
-    x = xpts
-    y = ypts
-    z = zpts
+    x = xpts.copy()
+    y = ypts.copy()
+    z = zpts.copy()
 
     nverts = len(xpts)
     return x, y, z, xpts, ypts, zpts, nverts
@@ -164,18 +164,8 @@ def calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad):
         else:
             return int((tstop - tstart) / delt + 1)
     
-    def calculate_phr0():
-        if pstart == pstop:
-            return pstart * rad
-    
-    def calculate_thr0():
-        if tstart == tstop:
-            return tstart * rad
-    
     ip = calculate_ip()
     it = calculate_it()
-    phr0 = calculate_phr0()
-    thr0 = calculate_thr0()
     
     Area = np.empty(ntria, np.double)
     alpha = np.empty(ntria, np.double)
@@ -419,14 +409,14 @@ def calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq, m, expDp):
                         # special case 1
                         if abs(Dp)<Lt and abs(Dq)>=Lt:
                             specialcase=1
-                            sic=0
+                            sic=0.0
                             for n in range(Nt+1):
                                 sic=sic+(1j*Dp)**n/math.factorial(n)*(-Co/(n+1)+expDq*(Co*G(n,-Dq)))
                             Ic=sic*2*Area[m]*expDo/(1j*Dq)
                         # special case 2
                         elif abs(Dp)<Lt and abs(Dq)<Lt:
                             specialcase=2
-                            sic=0
+                            sic=0.0
                             for n in range(Nt+1):
                                 for nn in range(Nt):
                                     sic=sic+(1j*Dp)**n*(1j*Dq)**nn/math.factorial(nn+n+2)*Co
@@ -441,7 +431,7 @@ def calculate_Ic(Dp,Dq,Do,N, Nt,Area, expDo,Co,Lt,DD,expDq, m, expDp):
                         # special case 4
                         elif abs(Dp)>=Lt and abs(Dq)>=Lt and abs(DD)<Lt:
                             specialcase=4
-                            sic=0
+                            sic=0.0
                             for n in range(Nt+1):
                                 sic=sic+(1j*DD)**n/math.factorial(n)*(-Co*G(n,Dq)+expDq*Co/(n+1))
                             Ic=sic*2*Area[m]*expDo/(1j*Dq)
@@ -495,7 +485,6 @@ def calculaCampos(Area, cfac2, corel, th2, wave,Jy2,Ic,uu,vv,ww,phr,sumt,sump,su
 def calculateSth_Sph(cfac1,sumt,sump,sumdt,wave,Sth,Sph,i1, i2, sumdp):          
             Sth[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sumt)**2+np.sqrt(1-cfac1**2)*sumdt)/wave**2+1e-10)
             Sph[i1,i2]=10*np.log10(4*np.pi*cfac1*(np.abs(sump)**2+np.sqrt(1-cfac1**2)*sumdp)/wave**2+1e-10)
-            return Sth, Sph
 
 def parametrosGrafico(Sth,Sph):
     Smax=max(np.max(Sth),np.max(Sph))
@@ -503,7 +492,7 @@ def parametrosGrafico(Sth,Sph):
     Lmin = min(np.min(Sth),np.min(Sph))
     Sth[:,:]=np.maximum(Sth[:,:],Lmin)
     Sph[:,:]=np.maximum(Sph[:,:],Lmin)
-    return Smax,Lmax, Lmin
+    return Lmax, Lmin
 
 def productVector(ntria,N,r,d,Area,alpha,beta,vind):
     for i in range(ntria):
@@ -517,12 +506,13 @@ def productVector(ntria,N,r,d,Area,alpha,beta,vind):
         ss = .5*sum(d[i, :])
         Area[i] = np.sqrt(ss*(ss-d[i, 0])*(ss-d[i, 1])*(ss-d[i, 2]))
         Nn = np.linalg.norm(N[i, :]) # unit normals
-        N[i, :] = N[i, :]/Nn
+        if Nn != 0:
+            N[i, :] = N[i, :]/Nn
         beta[i] = math.acos(N[i, 2])  # 0<beta<180, -180<phi<180
         alpha[i] = math.atan2(N[i, 1], N[i, 0])
-        if(N[i, 1]==N[i, 0]==0): #porque precisou disso?
+        if(N[i, 1]==N[i, 0]==0): #defined convention for vector (0,0)
             alpha[i]=0
-    return A,B,C,N,d,ss,Area, Nn, N, beta,alpha
+    return N,d,Area,beta,alpha
 
 def otherVectorComponents(ip,it):
     phi = np.zeros([ip, it], np.double)

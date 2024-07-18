@@ -365,8 +365,8 @@ ntria=size(facet,1);
     % dynamic range initially set to 60 for axis only
     Lmin = Lmax - 60;
     % true dynamic range is 120 for linearplots
-   	Sth(:,:) = max(Sth(:,:),Lmax-120);
-    Sph(:,:) = max(Sph(:,:),Lmax-120);
+   	%Sth(:,:) = max(Sth(:,:),Lmax-120);
+    %Sph(:,:) = max(Sph(:,:),Lmax-120);
     RCSth=Sth;
     RCSph=Sph;
     thetadeg=theta;

@@ -119,8 +119,8 @@ class OutputValidation:
 
 
 if __name__ == "__main__":
-    PATH_ACONE = "./results/POfacets/box_20240518154512.mat"
-    PATH_BLACK = "./results/temp_20240518154512.dat"
-    val = OutputValidation(PATH_ACONE)
-    print("Testing method Theta \n", val.mse(key="Sth", path=PATH_BLACK))
-    #print("Testing method Phi\n", val.mse(key="Sph", path=PATH_BLACK))
+    PATH_POFACETS = "./results/POfacets/resultadoF16.mat"
+    PATH_OPENRCS = "./results/temp_20240709111347.dat"
+    val = OutputValidation(PATH_POFACETS)
+    print("Testing method Theta \n", val.mse(key="Sth", path=PATH_OPENRCS))
+    print("Testing method Phi\n", val.mse(key="Sph", path=PATH_OPENRCS))
