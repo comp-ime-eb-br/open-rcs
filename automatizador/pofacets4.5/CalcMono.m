@@ -55,7 +55,7 @@ ntria=size(facet,1);
       delp   = str2num(get(findobj(h_mono,'Tag','Delp'),'String')); 
       Lt     = str2num(get(findobj(h_mono,'Tag','LRegion'),'String')); 
       Nt     = str2num(get(findobj(h_mono,'Tag','NTerms'),'String')); 
-      i_pol  = get(findobj(h_mono,'Tag','IncPolar'),'Value');           
+      i_pol  = get(findobj(h_mono,'Tag','IncPolar'),'Value');          
       freq	 = str2num(get(findobj(h_mono,'Tag','Freq'),'String')); 
       show3D = get(findobj(h_mono,'Tag','ModelandRCS'),'Value');
       showpolar = get(findobj(h_mono,'Tag','PolarPlot'),'Value');
@@ -293,9 +293,9 @@ ntria=size(facet,1);
                        [Ets Etd Eps Epd]=facetRCS(thr,phr,thr,phr,N(m,:),ilum(m),iflag,alpha(m),beta(m),Rs(m),Area(m),x,y,z,vind(m,:),Einc,Nt,Lt,cfac2,corel,wave,0,0,0,rsmethod,RCpar,RCperp);
                        %Sum over all triangles to get the total field
                        sumt = sumt + Ets;
-   	    			   sump = sump + Eps
+   	    			   sump = sump + Eps;
                        sumdt = sumdt + abs(Etd);
-                       sumdp = sumdp + abs(Epd)
+                       sumdp = sumdp + abs(Epd);
 
                    end 
                     
