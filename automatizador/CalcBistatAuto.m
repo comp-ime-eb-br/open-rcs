@@ -46,7 +46,7 @@ global Ethscat Ephscat
       delp   = str2num(get(findobj(h_bistat,'Tag','Delp'),'String')); 
       Lt     = str2num(get(findobj(h_bistat,'Tag','LRegion'),'String')); 
       Nt     = str2num(get(findobj(h_bistat,'Tag','NTerms'),'String'));       
-      i_pol  = get(findobj(h_bistat,'Tag','IncPolar'),'Value');          
+      i_pol  = str2num(get(findobj(h_bistat,'Tag','IncPolar'),'String'));          
       freq	 = str2num(get(findobj(h_bistat,'Tag','Freq'),'String')); 
       wave   = C/(freq * 10^9);     
       bk     = 2*pi/wave;
