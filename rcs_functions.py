@@ -286,7 +286,7 @@ def bi_phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
     Dq=bk*((x[vind[m,1]-1]-x[vind[m,2]-1])*(u+ui)+
             (y[vind[m,1]-1]-y[vind[m,2]-1])*(v + vi)+
             (z[vind[m,1]-1]-z[vind[m,2]-1])*(w + wi))
-    Do=bk*(x[vind[m,2]-1]*(u+ui) + y[vind[m,2]-1]*(v + vi) + z[vind[m,2]-1]*(w - wi))
+    Do=bk*(x[vind[m,2]-1]*(u+ui) + y[vind[m,2]-1]*(v + vi) + z[vind[m,2]-1]*(w + wi))
     return(Dp,Dq,Do)
 
 def G(n,w):
