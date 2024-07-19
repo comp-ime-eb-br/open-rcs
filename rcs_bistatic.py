@@ -87,7 +87,7 @@ def rcs_bistatic(
                 ndotk = np.dot(N[m, :], np.transpose(R))
                 nidotk = np.dot(N[m, :], np.transpose(Ri))
                 if iflag == 0:
-                    if (ilum[m] == 1 and nidotk >= 0) or ilum[m] == 0 or iflag == 1:
+                    if ((ilum[m] == 1 and nidotk >= 0) or ilum[m] == 0) or iflag == 1:
                         # local direction cosine
                         ui2, vi2, wi2, T1, T2 = diretionCosines(alpha, beta, D0i, m)
 

@@ -191,7 +191,7 @@ def bi_calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad, fi
     uui = cti * cpi
     vvi = cti * spi
     wwi = -sti
-    Ri = -np.array([ui, vi, wi])
+    Ri = np.array([ui, vi, wi])
 
     def calculate_ip():
         if delp == 0:
