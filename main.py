@@ -169,7 +169,7 @@ class App(customtkinter.CTk):
         self.result_tab_loading()
 
     def generate_monoresults_event(self):
-        generate_images = False
+        generate_images = False            
         try:
             freq = float(self.monofreq.get())
             corr = float(self.monocorr.get())
@@ -186,6 +186,11 @@ class App(customtkinter.CTk):
             tstart = float(self.monotstart.get())
             tstop = float(self.monotstop.get())
             delt = float(self.monodelt.get())
+            wave = 3e8/(freq*1e9)
+
+            if delstd > 0.1*wave:
+                messagebox.showerror("Desvio", "Desvio Padrão elevado")
+                raise ValueError("Desvio padrão elevado")
             
             self.now = datetime.now().strftime("%Y%m%d%H%M%S")
             
