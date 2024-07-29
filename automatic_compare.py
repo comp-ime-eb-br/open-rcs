@@ -13,7 +13,7 @@ def update_automator_input(method):
     formato_desejado = '%Y%m%d%H%M%S'
     data_hora_formatada = data_hora_atual.strftime(formato_desejado)
 
-    with open('./automatizador/automator_input.txt', 'w') as arquivo:
+    with open('automator_input.txt', 'w') as arquivo:
         arquivo.write(method+'\n')
         arquivo.write(data_hora_formatada)
     
@@ -26,7 +26,6 @@ def wait_file_creation(path):
         isCreate = os.path.exists(path)
 
 def generate_open_rcs_files(method):
-    # open input data file and gather parameters
     input_data_file = f"./input_files/input_data_file_{method}.dat"
     params = open(input_data_file, 'r')
     param_list = []
@@ -52,26 +51,32 @@ def generate_open_rcs_files(method):
     input_model = input_model.split('.')[0]
     return file_name, input_model
 
-def generate_pofacets_file(method,input_model):
+def generate_pofacets_file(method,input_model,matlabExecutablePath):
     print('>>> Executando Pofacets <<<\n')
-    matlab_executable = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
-    command = [matlab_executable, '-r', f"matlab_script"]
+    command = [matlabExecutablePath, '-r', f"automatic_simulation_script"]
+    os.chdir('./automator')
+    subprocess.run(command)
+
     start_time = update_automator_input(method)
 
-    os.chdir('./automatizador')
-    subprocess.run(command)
     pofacets_file = '../results/POfacets/'+input_model+'_'+start_time+'.mat'
+
     return pofacets_file
 
-def generate_datum(method):
+def generate_datum(method, matlabExecutablePath):
     print('>>>>>>>>>>>>> Iniciando comparação de modelos <<<<<<<<<<<<<\n')
     print('>>> Executando Open-RCS <<<\n')
+
     open_rcs_file, input_model = generate_open_rcs_files(method)
     wait_file_creation(open_rcs_file)
+
     print('Concluido.\n')
-    pofacets_file = generate_pofacets_file(method,input_model)
+
+    pofacets_file = generate_pofacets_file(method,input_model,matlabExecutablePath)
     wait_file_creation(pofacets_file)
+
     print('Concluido.\n')
+
     return open_rcs_file,pofacets_file
 
 if __name__ == '__main__':
@@ -79,8 +84,11 @@ if __name__ == '__main__':
     method = params[1]
     if method != 'monostatic' and method != 'bistatic':
         print('método não válido')
-    else:    
-        open_rcs_file,pofacets_file = generate_datum(method)
+    else:  
+        #>>>>>>>> Change your executable matlab path <<<<<<<<<<
+        matlabExecutablePath = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
+        #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        open_rcs_file, pofacets_file = generate_datum(method, matlabExecutablePath)
         open_rcs_file = '.'+open_rcs_file 
         print('>>> Calculando erro médio quadrático <<<\n')
         val = OutputValidation(pofacets_file)
