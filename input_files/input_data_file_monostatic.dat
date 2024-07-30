@@ -1,7 +1,7 @@
 # input model (stl_models)
 acone.stl
 # 1 radar frequency(GHz)
-0.3
+15
 # 2 correlation distance in meters
 0
 # 3 standard deviation in meters
@@ -13,12 +13,12 @@ acone.stl
 # 6 start phi angle in degrees
 0
 # 7 stop phi angle in degrees
-10
+0
 # 8 phi increment (step) in degrees
-2
+0
 # 9 start theta angle in degrees
 0
 # 10 stop theta angle in degrees
-30
+360
 # 11 theta increment (step) in degrees
 2
