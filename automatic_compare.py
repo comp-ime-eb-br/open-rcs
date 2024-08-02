@@ -9,13 +9,14 @@ from stl_module import stl_converter
 from output_validation import OutputValidation
 
 MATLAB_EXECUTABLE_PATH = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
+AUTOMATOR_INPUT = 'automator_input.txt'
 
 def update_automator_input(method):
     data_hora_atual = datetime.now()
     formato_desejado = '%Y%m%d%H%M%S'
     data_hora_formatada = data_hora_atual.strftime(formato_desejado)
 
-    with open('automator_input.txt', 'w') as arquivo:
+    with open(AUTOMATOR_INPUT, 'w') as arquivo:
         arquivo.write(method+'\n')
         arquivo.write(data_hora_formatada)
     
@@ -27,7 +28,7 @@ def wait_file_creation(path):
         time.sleep(2)
         isCreate = os.path.exists(path)
 
-def generate_open_rcs_files(method):
+def getSimulationParams():
     input_data_file = f"./input_files/input_data_file_{method}.dat"
     params = open(input_data_file, 'r')
     param_list = []
@@ -36,20 +37,25 @@ def generate_open_rcs_files(method):
         if not line.startswith("#"):
             if line.isnumeric(): param_list.append(float(line))
             else: param_list.append(line)
-    file_name =''
-    input_model =''
+    params.close()
+    return param_list
+
+def calculate_rcs_openrcs(method):
+    param_list = getSimulationParams()
+    input_model = param_list[0]
+
+    stl_converter("./stl_models/"+input_model)
+    print(input_model)
+
     if method == 'monostatic':
         input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
-        stl_converter("./stl_models/"+input_model)
-        print(input_model)
-        plot_name, fig_name, file_name = rcs_monostatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs) 
+        return rcs_monostatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
     else:
         input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
-        print(input_model)
-        stl_converter("./stl_models/"+input_model)
-        plot_name, fig_name, file_name = rcs_bistatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs)    
-    
-    params.close()
+        return rcs_bistatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs) 
+
+def generate_open_rcs_files(method):
+    input_model, plot_name, fig_name, file_name = calculate_rcs_openrcs(method)  
     input_model = input_model.split('.')[0]
     return file_name, input_model
 

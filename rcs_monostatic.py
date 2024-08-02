@@ -101,7 +101,7 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
     now, file_name = generateResultFiles(theta, Sth, phi,Sph, param, ip)
     plot_name = finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth_grafico,Sph_grafico,U,V,now, input_model, "Monostatic")
     
-    return plot_name, fig_name, file_name
+    return input_model, plot_name, fig_name, file_name
 
 
 if __name__ == '__main__':

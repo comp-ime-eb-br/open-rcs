@@ -205,7 +205,7 @@ def rcs_bistatic(
         "Bistatic",
     )
 
-    return plot_name, fig_name, file_name
+    return input_model, plot_name, fig_name, file_name
 
 
 if __name__ == "__main__":
