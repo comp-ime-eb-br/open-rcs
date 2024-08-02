@@ -8,6 +8,8 @@ from rcs_bistatic import rcs_bistatic
 from stl_module import stl_converter
 from output_validation import OutputValidation
 
+MATLAB_EXECUTABLE_PATH = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
+
 def update_automator_input(method):
     data_hora_atual = datetime.now()
     formato_desejado = '%Y%m%d%H%M%S'
@@ -85,12 +87,10 @@ if __name__ == '__main__':
     if method != 'monostatic' and method != 'bistatic':
         print('método não válido')
     else:  
-        #>>>>>>>> Change your executable matlab path <<<<<<<<<<
-        matlabExecutablePath = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
-        #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        open_rcs_file, pofacets_file = generate_datum(method, matlabExecutablePath)
+        open_rcs_file, pofacets_file = generate_datum(method, MATLAB_EXECUTABLE_PATH)
         open_rcs_file = '.'+open_rcs_file 
+
         print('>>> Calculando erro médio quadrático <<<\n')
-        val = OutputValidation(pofacets_file)
-        print("Testing method Sth\n", val.mse(key="Sth", path=open_rcs_file))
-        print("Testing method Sph\n", val.mse(key="Sph", path=open_rcs_file))
+        compare = OutputValidation(pofacets_file, open_rcs_file)
+        print("Testing method Sth\n", compare.mse_relative("Sth"))
+        print("Testing method Sph\n", compare.mse_relative("Sph"))

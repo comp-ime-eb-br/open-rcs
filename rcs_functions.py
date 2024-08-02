@@ -126,7 +126,6 @@ def plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, nt
     # param = plotParameters("Monostatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
-    ax.set_zlim(zmin, zmax)
     
     # save plots
     now = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -490,8 +489,8 @@ def parametrosGrafico(Sth,Sph):
     Smax=max(np.max(Sth),np.max(Sph))
     Lmax=(np.floor(Smax/5)+1)*5
     Lmin = min(np.min(Sth),np.min(Sph))
-    Sth[:,:]=np.maximum(Sth[:,:],Lmin)
-    Sph[:,:]=np.maximum(Sph[:,:],Lmin)
+    #Sth[:,:]=np.maximum(Sth[:,:],Lmin)
+    #Sph[:,:]=np.maximum(Sph[:,:],Lmin)
     return Lmax, Lmin
 
 def productVector(ntria,N,r,d,Area,alpha,beta,vind):
