@@ -5,23 +5,9 @@ from rcs_functions import *
 from stl_module import stl_converter
 
 
-def rcs_bistatic(
-    input_model,
-    freq,
-    corr,
-    delstd,
-    ipol,
-    pstart,
-    pstop,
-    delp,
-    tstart,
-    tstop,
-    delt,
-    phii,
-    thetai,
-    rs,
-):
-    freq = freq * 1e9
+def rcs_bistatic(params_entrys):
+    input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = params_entrys
+    freq = float(freq) * 1e9
     wave = 3e8 / freq
     # 2: correlation distance
     corel = float(corr) / wave
@@ -205,52 +191,10 @@ def rcs_bistatic(
         "Bistatic",
     )
 
-    return input_model, plot_name, fig_name, file_name
+    return plot_name, fig_name, file_name
 
 
 if __name__ == "__main__":
-    # open input data file and gather parameters
-    input_data_file = "input_files/input_data_file_bistatic.dat"
-    params = open(input_data_file, "r")
-    param_list = []
-    for line in params:
-        line = line.strip("\n")
-        if not line.startswith("#"):
-            if line.isnumeric():
-                param_list.append(int(line))
-            else:
-                param_list.append(line)
-    (
-        input_model,
-        freq,
-        corr,
-        delstd,
-        ipol,
-        rs,
-        pstart,
-        pstop,
-        delp,
-        tstart,
-        tstop,
-        delt,
-        thetai,
-        phii,
-    ) = param_list
-    params.close()
-    stl_converter("./stl_models/" + input_model)
-    rcs_bistatic(
-        input_model,
-        float(freq),
-        corr,
-        delstd,
-        ipol,
-        pstart,
-        pstop,
-        delp,
-        tstart,
-        tstop,
-        delt,
-        phii,
-        thetai,
-        rs,
-    )
+    input_model, param_list = getParamsFromFile('bistatic')
+    stl_converter("./stl_models/"+input_model)
+    rcs_bistatic(param_list)

@@ -6,10 +6,12 @@ from sklearn.metrics import mean_squared_error
 
 INVALID_TYPE = "None"
 
-class OutputValidation:
-    def __init__(self, trueFilePath, predictFilePath):
+class CorrectOutput:
+    def __init__(self, trueFilePath):
         self.trueFilePath = trueFilePath
-        self.predictFilePath = predictFilePath
+
+    def setPredictOutputFile(self, path_to_predict_file):
+        self.predictFilePath = path_to_predict_file
 
     def extension_validation(self, path):
         fileType = path[::-1].split(".", 1)[0][::-1]
@@ -87,7 +89,7 @@ class OutputValidation:
         except TypeError as e:
             print(f"Error: {e}")
 
-    def mse_relative(self, key: Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]):
+    def calculeRelativeMSEBetweenOutputsForColumn(self, key: Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]):
         try:
             trueValues, predictValues = self.getSequenceValues(key)
             relative_erro = 0.0
@@ -101,6 +103,7 @@ class OutputValidation:
 if __name__ == "__main__":
     PATH_POFACETS = "./results/POfacets/acone_20240802092618.mat"
     PATH_OPENRCS = "./results/temp_20240802092618.dat"
-    compare = OutputValidation(PATH_POFACETS, PATH_OPENRCS)
-    print("Testing method Theta \n", compare.mseBetweenResultsFiles("Sth"))
-    print("Testing method Phi\n", compare.mseBetweenResultsFiles("Sph"))
+    pofacetOutput = CorrectOutput(PATH_POFACETS)
+    pofacetOutput.setPredictOutputFile(PATH_OPENRCS)
+    print("Testing method Sth\n", pofacetOutput.calculeRelativeMSEBetweenOutputsForColumn("Sth"))
+    print("Testing method Sph\n", pofacetOutput.calculeRelativeMSEBetweenOutputsForColumn("Sph"))

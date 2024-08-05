@@ -3,13 +3,15 @@ import sys
 import os
 import time
 from datetime import datetime
+from output_validation import CorrectOutput
 from rcs_monostatic import rcs_monostatic
 from rcs_bistatic import rcs_bistatic
 from stl_module import stl_converter
-from output_validation import OutputValidation
+from rcs_functions import getParamsFromFile
 
 MATLAB_EXECUTABLE_PATH = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
 AUTOMATOR_INPUT = 'automator_input.txt'
+input_model = ''
 
 def update_automator_input(method):
     data_hora_atual = datetime.now()
@@ -28,62 +30,46 @@ def wait_file_creation(path):
         time.sleep(2)
         isCreate = os.path.exists(path)
 
-def getSimulationParams():
-    input_data_file = f"./input_files/input_data_file_{method}.dat"
-    params = open(input_data_file, 'r')
-    param_list = []
-    for line in params:
-        line=line.strip("\n")
-        if not line.startswith("#"):
-            if line.isnumeric(): param_list.append(float(line))
-            else: param_list.append(line)
-    params.close()
-    return param_list
+def run_rcs_simulation(method):
+    global input_model
+    input_model, param_list = getParamsFromFile(method)
 
-def calculate_rcs_openrcs(method):
-    param_list = getSimulationParams()
-    input_model = param_list[0]
+    stl_converter("./stl_models/"+ input_model)
 
-    stl_converter("./stl_models/"+input_model)
-    print(input_model)
-
-    if method == 'monostatic':
-        input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
-        return rcs_monostatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
-    else:
-        input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
-        return rcs_bistatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, phii, thetai, rs) 
-
-def generate_open_rcs_files(method):
-    input_model, plot_name, fig_name, file_name = calculate_rcs_openrcs(method)  
     input_model = input_model.split('.')[0]
-    return file_name, input_model
+    
+    if method == 'monostatic': return rcs_monostatic(param_list)
+    elif method == 'bistatic': return rcs_bistatic(param_list)
+    
+    
+def generate_open_rcs_files(method):
+    plot_name, fig_name, file_name = run_rcs_simulation(method) 
+    wait_file_creation(file_name)
+    print('Concluido.\n')
 
-def generate_pofacets_file(method,input_model,matlabExecutablePath):
+    return file_name
+
+def generate_pofacets_file(method):
+    global input_model
     print('>>> Executando Pofacets <<<\n')
-    command = [matlabExecutablePath, '-r', f"automatic_simulation_script"]
+    command = [MATLAB_EXECUTABLE_PATH, '-r', f"automatic_simulation_script"]
     os.chdir('./automator')
     subprocess.run(command)
 
     start_time = update_automator_input(method)
-
     pofacets_file = '../results/POfacets/'+input_model+'_'+start_time+'.mat'
-
+    wait_file_creation(pofacets_file)
+    print('Concluido.\n')
     return pofacets_file
 
-def generate_datum(method, matlabExecutablePath):
+def generate_datum(method):
     print('>>>>>>>>>>>>> Iniciando comparação de modelos <<<<<<<<<<<<<\n')
     print('>>> Executando Open-RCS <<<\n')
 
-    open_rcs_file, input_model = generate_open_rcs_files(method)
-    wait_file_creation(open_rcs_file)
-
-    print('Concluido.\n')
-
-    pofacets_file = generate_pofacets_file(method,input_model,matlabExecutablePath)
-    wait_file_creation(pofacets_file)
-
-    print('Concluido.\n')
+    open_rcs_file = generate_open_rcs_files(method)
+    
+    pofacets_file = generate_pofacets_file(method)
+    
 
     return open_rcs_file,pofacets_file
 
@@ -93,10 +79,11 @@ if __name__ == '__main__':
     if method != 'monostatic' and method != 'bistatic':
         print('método não válido')
     else:  
-        open_rcs_file, pofacets_file = generate_datum(method, MATLAB_EXECUTABLE_PATH)
+        open_rcs_file, pofacets_file = generate_datum(method)
         open_rcs_file = '.'+open_rcs_file 
 
         print('>>> Calculando erro médio quadrático <<<\n')
-        compare = OutputValidation(pofacets_file, open_rcs_file)
-        print("Testing method Sth\n", compare.mse_relative("Sth"))
-        print("Testing method Sph\n", compare.mse_relative("Sph"))
+        pofacetOutput = CorrectOutput(pofacets_file)
+        pofacetOutput.setPredictOutputFile(open_rcs_file)
+        print("Testing method Sth\n", pofacetOutput.mseBetweenResultsFiles("Sth"))
+        print("Testing method Sph\n", pofacetOutput.mseBetweenResultsFiles("Sph"))

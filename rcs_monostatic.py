@@ -5,8 +5,10 @@ import numpy as np
 from rcs_functions import *
 from stl_module import stl_converter
 
-def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, Rs):
-    freq = freq*1e9
+def rcs_monostatic(params_entrys):
+    input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt = params_entrys
+
+    freq = float(freq)*1e9
 
     wave = 3e8/freq
     
@@ -101,20 +103,10 @@ def rcs_monostatic(input_model, freq, corr, delstd, ipol, pstart, pstop, delp, t
     now, file_name = generateResultFiles(theta, Sth, phi,Sph, param, ip)
     plot_name = finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth_grafico,Sph_grafico,U,V,now, input_model, "Monostatic")
     
-    return input_model, plot_name, fig_name, file_name
+    return plot_name, fig_name, file_name
 
 
 if __name__ == '__main__':
-    # open input data file and gather parameters
-    input_data_file = "input_files/input_data_file_monostatic.dat"
-    params = open(input_data_file, 'r')
-    param_list = []
-    for line in params:
-        line=line.strip("\n")
-        if not line.startswith("#"):
-            if line.isnumeric(): param_list.append(float(line))
-            else: param_list.append(line)
-    input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
-    params.close()
+    input_model, param_list = getParamsFromFile('monostatic')
     stl_converter("./stl_models/"+input_model)
-    rcs_monostatic(input_model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs) 
+    rcs_monostatic(param_list)

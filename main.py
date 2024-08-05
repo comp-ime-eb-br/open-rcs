@@ -1,5 +1,3 @@
-import threading
-import time
 import customtkinter, shutil
 from tkinter.filedialog import askopenfile, asksaveasfile
 from customtkinter import ThemeManager
@@ -8,13 +6,16 @@ from PIL import Image, ImageTk
 import tkinter as tk
 
 import os
-import platform
 
 from stl_module import *
 from rcs_monostatic import *
 from rcs_bistatic import *
+from rcs_functions import getParamsFromFile
 from thread_trace import thread_with_trace
 from gif import ImageLabel
+
+FREQUENCY = 1
+STANDART_DEVIATION = 3
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -100,9 +101,9 @@ class App(customtkinter.CTk):
         self.monotstop.grid(row=3, column=2, padx=5, pady=(5, 5))
         self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Theta (º)")
         self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
-        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_results(self.generate_monoresults_event))
+        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_results('monostatic','interface'))
         self.monoresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=lambda:self.generate_results(self.generate_monoresultsfile_event), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=lambda:self.generate_results('monostatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.monoresultfile.grid(row=7, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.monoerror = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.monoerror.grid(row=8, column=1, padx=5, pady=0, sticky="ew")
@@ -140,9 +141,9 @@ class App(customtkinter.CTk):
         self.bitstop.grid(row=4, column=2, padx=5, pady=(5, 5))
         self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Theta (º)")
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
-        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_results(self.generate_biresults_event))
+        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_results('bistatic','interface'))
         self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_results(self.generate_biresultsfile_event), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_results('bistatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.biresultfile.grid(row=8, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
         self.bierror.grid(row=9, column=1, padx=5, pady=0, sticky="ew")
@@ -159,153 +160,124 @@ class App(customtkinter.CTk):
         self.adjust.grid(row=1, column=0, columnspan=4, rowspan=4, padx=(30,30), pady=(10,10))
         self.cancel = customtkinter.CTkButton(self.results_frame, text="Cancelar Carregamento", command=self.end_generate_attempt,fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
 
-    def generate_results(self,function):
+    def getParamsFromInterface(self):
+        param_list = []
+        param_list.append(self.model)
+        if self.method == 'monostatic':
+            param_list.append(float(self.monofreq.get()))
+            param_list.append(float(self.monocorr.get()))
+            param_list.append(float(self.monodelstd.get()))
+
+            pol = self.monoipol.get()
+            if pol == 'TM-Z': ipol=0
+            elif pol == 'TE-Z': ipol=1
+            param_list.append(ipol)
+
+            rest = self.monorest.get()
+            if rest == 'Condutor Perfeito': rs=0
+            elif rest == 'Transparente': rs=1
+            param_list.append(rs)
+            param_list.append(float(self.monopstart.get()))
+            param_list.append(float(self.monopstop.get()))
+            param_list.append(float(self.monodelp.get()))
+            param_list.append(float(self.monotstart.get()))
+            param_list.append(float(self.monotstop.get()))
+            param_list.append(float(self.monodelt.get()))
+
+        elif self.method == 'bistatic':
+            param_list.append(float(self.bifreq.get()))
+            param_list.append(float(self.bicorr.get()))
+            param_list.append(float(self.bidelstd.get()))
+        
+            pol = self.biipol.get()
+            if pol == 'TM-Z': ipol=0
+            elif pol == 'TE-Z': ipol=1
+            param_list.append(ipol)
+
+            rest = self.birest.get()
+            if rest == 'Condutor Perfeito': rs=0
+            elif rest == 'Transparente': rs=1
+            param_list.append(rs)
+            param_list.append(float(self.bipstart.get()))
+            param_list.append(float(self.bipstop.get()))
+            param_list.append(float(self.bidelp.get()))
+            param_list.append(float(self.bitstart.get()))
+            param_list.append(float(self.bitstop.get()))
+            param_list.append(float(self.bidelt.get()))
+            param_list.append(float(self.bitheta.get()))
+            param_list.append(float(self.bipstart.get()))
+
+        return param_list 
+
+    def update_param_list(self):
+        if self.inputFont == 'interface':
+            self.param_list = self.getParamsFromInterface()
+        elif self.inputFont == 'inputFile':
+            self.model, self.param_list = getParamsFromFile(self.method)
+
+    def verifyStandartDeviation(self):
+        wave = 3e8/(self.param_list[FREQUENCY]*1e9)
+
+        if self.param_list[STANDART_DEVIATION] > 0.1*wave:
+            messagebox.showerror("Desvio", "Desvio Padrão elevado")
+            raise ValueError("Desvio padrão elevado")
+        
+    def calculate_RCS(self):
+        if self.inputFont == 'inputFile':
+            stl_converter("./stl_models/" + self.model)
+
+        if self.method == 'monostatic': return rcs_monostatic(self.param_list)
+        elif self.method == 'bistatic': return rcs_bistatic(self.param_list)
+    
+    def clean_result_tab_and_include_new_image(self):
+        self.restore_result_tab()
+
+        if self.generate_images:
+            self.results_window()
+            if self.method == 'monostatic': self.monoerror.configure(text="")
+            elif self.method == 'bistatic': self.bierror.configure(text="")
+
+    def initiate_thread_generate_results_event(self):
+        self.thread = thread_with_trace(target=self.generate_results_event)
+        self.thread.start()
+        self.result_tab_loading()
+
+    def generate_results(self,method,inputFont):
         try:
             self.reset_event()
         except:
             print("")
-        self.thread = thread_with_trace(target=function)
-        self.thread.start()
-        self.result_tab_loading()
 
-    def generate_monoresults_event(self):
-        generate_images = False            
+        self.method = method
+        self.inputFont = inputFont
+
+        self.initiate_thread_generate_results_event()
+        
+    def generate_rcs_results(self):
+        self.generate_images = False
+
+        self.update_param_list()
+        
+        self.verifyStandartDeviation()
+
+        self.now = datetime.now().strftime("%Y%m%d%H%M%S")
+        self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
+        self.generate_images = True
+
+    def error_response_message(self,e):
+        print(f"An error occurred: {str(e)}")
+        if self.method[:4] == 'mono': self.monoerror.configure(text="Entradas Inválidas!")
+        elif self.method[:2] == 'bi': self.bierror.configure(text="Entradas Inválidas!")
+
+    def generate_results_event(self):         
         try:
-            freq = float(self.monofreq.get())
-            corr = float(self.monocorr.get())
-            delstd = float(self.monodelstd.get())
-            pol = self.monoipol.get()
-            if pol == 'TM-Z': ipol=0
-            elif pol == 'TE-Z': ipol=1
-            rest = self.monorest.get()
-            if rest == 'Condutor Perfeito': rs=0
-            elif rest == 'Transparente': rs=1
-            pstart = float(self.monopstart.get())
-            pstop = float(self.monopstop.get())
-            delp = float(self.monodelp.get())
-            tstart = float(self.monotstart.get())
-            tstop = float(self.monotstop.get())
-            delt = float(self.monodelt.get())
-            wave = 3e8/(freq*1e9)
-
-            if delstd > 0.1*wave:
-                messagebox.showerror("Desvio", "Desvio Padrão elevado")
-                raise ValueError("Desvio padrão elevado")
-            
-            self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-            
-            self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
-            generate_images = True
+            self.generate_rcs_results()
 
         except Exception as e:
-            print(f"An error occurred: {str(e)}")
-            self.monoerror.configure(text="Entradas Inválidas!")
+            self.error_response_message(e)
 
-        self.restore_result_tab()
-
-        if generate_images:
-            self.results_window()
-            self.monoerror.configure(text="")
-        
-    def generate_monoresultsfile_event(self):
-        generate_images = False
-        try:
-            input_data_file = "./input_files/input_data_file_monostatic.dat"
-            params = open(input_data_file, 'r')
-            param_list = []
-            for line in params:
-                line=line.strip("\n")
-                if not line.startswith("#"):
-                    if line.isnumeric(): param_list.append(int(line))
-                    else: param_list.append(line)
-            input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt = param_list
-            params.close()
-            
-            stl_converter("./stl_models/"+input_model)
-            self.model = os.path.basename(input_model)           
-            self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.plotpath, self.figpath, self.filepath = rcs_monostatic(self.model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt, rs)
-            generate_images = True
-
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
-            self.monoerror.configure(text="Entradas Inválidas!")
-        
-        #fim da thread sempre limpa a tela
-        self.restore_result_tab()
-        
-        #caso tenham gerado com sucesso, vai colocar as imagens em resultados
-        if generate_images:
-            self.results_window()
-            self.monoerror.configure(text="")
-        
-    def generate_biresults_event(self):
-        generate_images = False
-        try:
-            freq = float(self.bifreq.get())
-            corr = float(self.bicorr.get())
-            delstd = float(self.bidelstd.get())
-            pol = self.biipol.get()
-            if pol == 'TM-Z': ipol=0
-            elif pol == 'TE-Z': ipol=1
-            rest = self.birest.get()
-            if rest == 'Condutor Perfeito': rs=0
-            elif rest == 'Transparente': rs=1
-            phii = float(self.biphi.get())
-            thetai = float(self.bitheta.get())
-            pstart = float(self.bipstart.get())
-            pstop = float(self.bipstop.get())
-            delp = float(self.bidelp.get())
-            tstart = float(self.bitstart.get())
-            tstop = float(self.bitstop.get())
-            delt = float(self.bidelt.get())
-            
-            self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, freq, corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
-            generate_images = True
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
-            self.bierror.configure(text="Entradas Inválidas!")
-
-        #fim da thread sempre limpa a tela
-        self.restore_result_tab()
-        
-        #caso tenham gerado com sucesso, vai colocar as imagens em resultados
-        if generate_images:
-            self.results_window()
-            self.bierror.configure(text="")
-
-    def generate_biresultsfile_event(self):
-        generate_images = False
-        try:
-            input_data_file = "./input_files/input_data_file_bistatic.dat"
-            params = open(input_data_file, 'r')
-            param_list = []
-            for line in params:
-                line=line.strip("\n")
-                if not line.startswith("#"):
-                    if line.isnumeric(): param_list.append(int(line))
-                    else: param_list.append(line)
-            input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = param_list
-            params.close()
-            
-            stl_converter("./stl_models/"+input_model)
-            self.model = os.path.basename(input_model)           
-            self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.plotpath, self.figpath, self.filepath = rcs_bistatic(self.model, float(freq), corr, delstd, ipol, pstart, pstop, delp, tstart, tstop, delt,phii,thetai, rs)
-            
-            generate_images = True
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
-            self.bierror.configure(text="Entradas Inválidas!")
-            
-            #fim da thread sempre limpa a tela
-        self.restore_result_tab()
-        
-        #caso tenham gerado com sucesso, vai colocar as imagens em resultados
-        if generate_images:
-            self.results_window()
-            self.bierror.configure(text="")
+        self.clean_result_tab_and_include_new_image()
+   
 
     def results_window(self):
         w,h=Image.open(self.plotpath).size

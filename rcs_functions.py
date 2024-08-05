@@ -2,11 +2,11 @@ import math, cmath
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
-from icecream import ic
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
 BIGGER_SIZE = 12
+INPUT_MODEL = 0
 
 def getPolarization(incidentPolarization):
     if incidentPolarization == 0: # Theta-polarized (TM-z)
@@ -41,6 +41,18 @@ ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
     plt.rc('ytick', labelsize=ytickLabel)    # fontsize of the tick labels
     plt.rc('legend', fontsize=legendSize)    # legend fontsize
     plt.rc('figure', titlesize=figureTitle)  
+
+def getParamsFromFile(method):
+    input_data_file = f"./input_files/input_data_file_{method}.dat"
+    params = open(input_data_file, 'r')
+    param_list = []
+    for line in params:
+        line=line.strip("\n")
+        if not line.startswith("#"):
+            if line.isnumeric(): param_list.append(float(line))
+            else: param_list.append(line)
+    params.close()
+    return param_list[INPUT_MODEL],param_list
 
 def read_coordinates():
     fname = "./coordinates.txt"
@@ -524,3 +536,4 @@ def otherVectorComponents(ip,it):
     Sth = np.zeros([ip,it], np.double)
     Sph = np.zeros([ip,it], np.double)
     return phi, theta, U,V,W,e0, Sth,Sph
+
