@@ -1,9 +1,6 @@
 import math
 import numpy as np
-# from icecream import *
-
 from rcs_functions import *
-from stl_module import stl_converter
 
 def rcs_monostatic(params_entrys):
     input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt = params_entrys
@@ -107,6 +104,5 @@ def rcs_monostatic(params_entrys):
 
 
 if __name__ == '__main__':
-    input_model, param_list = getParamsFromFile('monostatic')
-    stl_converter("./stl_models/"+input_model)
+    param_list = getParamsFromFile('monostatic')
     rcs_monostatic(param_list)

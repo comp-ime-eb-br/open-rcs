@@ -3,10 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
+from stl_module import stl_converter
+
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
 BIGGER_SIZE = 12
 INPUT_MODEL = 0
+FREQUENCY = 1
+STANDART_DEVIATION = 3
 
 def getPolarization(incidentPolarization):
     if incidentPolarization == 0: # Theta-polarized (TM-z)
@@ -52,7 +56,8 @@ def getParamsFromFile(method):
             if line.isnumeric(): param_list.append(float(line))
             else: param_list.append(line)
     params.close()
-    return param_list[INPUT_MODEL],param_list
+    stl_converter("./stl_models/"+ param_list[INPUT_MODEL])
+    return param_list
 
 def read_coordinates():
     fname = "./coordinates.txt"

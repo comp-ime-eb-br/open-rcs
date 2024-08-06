@@ -1,10 +1,9 @@
-from typing import Literal
-
 import numpy as np
+from typing import Literal
 from scipy.io import loadmat
 from sklearn.metrics import mean_squared_error
 
-INVALID_TYPE = "None"
+validKeys = Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]
 
 class CorrectOutput:
     def __init__(self, trueFilePath):
@@ -17,19 +16,19 @@ class CorrectOutput:
         fileType = path[::-1].split(".", 1)[0][::-1]
 
         if fileType != 'mat' and fileType != 'dat':
-            return INVALID_TYPE
+            return None
         else:
             return fileType
 
     def readValues(
             self,
-            key: Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"],
+            key: validKeys,
             path: str | None = None,
         ) -> np.ndarray:
 
             _file_type = self.extension_validation(path)
 
-            if _file_type == INVALID_TYPE:
+            if _file_type == None:
                 print(f"File {path} with invalid format type")
                 return []
 
@@ -81,7 +80,7 @@ class CorrectOutput:
         return trueValues, predictValues
 
 
-    def mseBetweenResultsFiles(self, key: Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]):
+    def calculateMSEBetweenOutputsForColumn(self, key: validKeys):
         try:
             trueValues, predictValues = self.getSequenceValues(key)
             return mean_squared_error(trueValues,predictValues)
@@ -89,7 +88,7 @@ class CorrectOutput:
         except TypeError as e:
             print(f"Error: {e}")
 
-    def calculeRelativeMSEBetweenOutputsForColumn(self, key: Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]):
+    def calculateRelativeMSEBetweenOutputsForColumn(self, key: validKeys):
         try:
             trueValues, predictValues = self.getSequenceValues(key)
             relative_erro = 0.0
@@ -100,10 +99,18 @@ class CorrectOutput:
         except TypeError as e:
             print(f"Error: {e}")
 
+    def printMSEBetweenOutputsForColumn(self, key: validKeys):
+        print(f"Testing column {key}:\n", self.calculateMSEBetweenOutputsForColumn(key))
+
+    def printRelativeMSEBetweenOutputsForColumn(self, key: validKeys):
+        print(f"Testing column {key}:\n", self.calculateRelativeMSEBetweenOutputsForColumn(key))
+
 if __name__ == "__main__":
     PATH_POFACETS = "./results/POfacets/acone_20240802092618.mat"
     PATH_OPENRCS = "./results/temp_20240802092618.dat"
+
     pofacetOutput = CorrectOutput(PATH_POFACETS)
     pofacetOutput.setPredictOutputFile(PATH_OPENRCS)
-    print("Testing method Sth\n", pofacetOutput.calculeRelativeMSEBetweenOutputsForColumn("Sth"))
-    print("Testing method Sph\n", pofacetOutput.calculeRelativeMSEBetweenOutputsForColumn("Sph"))
+
+    pofacetOutput.printMSEBetweenOutputsForColumn("Sth")
+    pofacetOutput.printMSEBetweenOutputsForColumn("Sph")

@@ -1,8 +1,5 @@
-import math
 import numpy as np
-
 from rcs_functions import *
-from stl_module import stl_converter
 
 
 def rcs_bistatic(params_entrys):
@@ -195,6 +192,5 @@ def rcs_bistatic(params_entrys):
 
 
 if __name__ == "__main__":
-    input_model, param_list = getParamsFromFile('bistatic')
-    stl_converter("./stl_models/"+input_model)
+    param_list = getParamsFromFile('bistatic')
     rcs_bistatic(param_list)

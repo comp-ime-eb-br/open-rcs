@@ -1,7 +1,7 @@
 # input model (stl_models)
-F16.stl
+BOX.stl
 # 1 radar frequency(GHz)
-165
+15
 # 2 correlation distance in meters
 0
 # 3 standard deviation in meters

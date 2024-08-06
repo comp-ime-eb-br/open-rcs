@@ -1,24 +1,20 @@
 import customtkinter, shutil
-from tkinter.filedialog import askopenfile, asksaveasfile
+from tkinter.filedialog import askopenfile
 from customtkinter import ThemeManager
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import tkinter as tk
-
 import os
-
 from stl_module import *
 from rcs_monostatic import *
 from rcs_bistatic import *
-from rcs_functions import getParamsFromFile
+from rcs_functions import getParamsFromFile,FREQUENCY,STANDART_DEVIATION
 from thread_trace import thread_with_trace
 from gif import ImageLabel
 
-FREQUENCY = 1
-STANDART_DEVIATION = 3
-
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
+
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
@@ -160,99 +156,33 @@ class App(customtkinter.CTk):
         self.adjust.grid(row=1, column=0, columnspan=4, rowspan=4, padx=(30,30), pady=(10,10))
         self.cancel = customtkinter.CTkButton(self.results_frame, text="Cancelar Carregamento", command=self.end_generate_attempt,fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
 
-    def getParamsFromInterface(self):
-        param_list = []
-        param_list.append(self.model)
-        if self.method == 'monostatic':
-            param_list.append(float(self.monofreq.get()))
-            param_list.append(float(self.monocorr.get()))
-            param_list.append(float(self.monodelstd.get()))
-
-            pol = self.monoipol.get()
-            if pol == 'TM-Z': ipol=0
-            elif pol == 'TE-Z': ipol=1
-            param_list.append(ipol)
-
-            rest = self.monorest.get()
-            if rest == 'Condutor Perfeito': rs=0
-            elif rest == 'Transparente': rs=1
-            param_list.append(rs)
-            param_list.append(float(self.monopstart.get()))
-            param_list.append(float(self.monopstop.get()))
-            param_list.append(float(self.monodelp.get()))
-            param_list.append(float(self.monotstart.get()))
-            param_list.append(float(self.monotstop.get()))
-            param_list.append(float(self.monodelt.get()))
-
-        elif self.method == 'bistatic':
-            param_list.append(float(self.bifreq.get()))
-            param_list.append(float(self.bicorr.get()))
-            param_list.append(float(self.bidelstd.get()))
-        
-            pol = self.biipol.get()
-            if pol == 'TM-Z': ipol=0
-            elif pol == 'TE-Z': ipol=1
-            param_list.append(ipol)
-
-            rest = self.birest.get()
-            if rest == 'Condutor Perfeito': rs=0
-            elif rest == 'Transparente': rs=1
-            param_list.append(rs)
-            param_list.append(float(self.bipstart.get()))
-            param_list.append(float(self.bipstop.get()))
-            param_list.append(float(self.bidelp.get()))
-            param_list.append(float(self.bitstart.get()))
-            param_list.append(float(self.bitstop.get()))
-            param_list.append(float(self.bidelt.get()))
-            param_list.append(float(self.bitheta.get()))
-            param_list.append(float(self.bipstart.get()))
-
-        return param_list 
-
-    def update_param_list(self):
-        if self.inputFont == 'interface':
-            self.param_list = self.getParamsFromInterface()
-        elif self.inputFont == 'inputFile':
-            self.model, self.param_list = getParamsFromFile(self.method)
-
-    def verifyStandartDeviation(self):
-        wave = 3e8/(self.param_list[FREQUENCY]*1e9)
-
-        if self.param_list[STANDART_DEVIATION] > 0.1*wave:
-            messagebox.showerror("Desvio", "Desvio Padrão elevado")
-            raise ValueError("Desvio padrão elevado")
-        
-    def calculate_RCS(self):
-        if self.inputFont == 'inputFile':
-            stl_converter("./stl_models/" + self.model)
-
-        if self.method == 'monostatic': return rcs_monostatic(self.param_list)
-        elif self.method == 'bistatic': return rcs_bistatic(self.param_list)
-    
-    def clean_result_tab_and_include_new_image(self):
-        self.restore_result_tab()
-
-        if self.generate_images:
-            self.results_window()
-            if self.method == 'monostatic': self.monoerror.configure(text="")
-            elif self.method == 'bistatic': self.bierror.configure(text="")
-
-    def initiate_thread_generate_results_event(self):
-        self.thread = thread_with_trace(target=self.generate_results_event)
-        self.thread.start()
-        self.result_tab_loading()
-
     def generate_results(self,method,inputFont):
         try:
             self.reset_event()
         except:
             print("")
 
-        self.method = method
-        self.inputFont = inputFont
+        self.method = method # monostatic or bistatic
+        self.inputFont = inputFont # interface or inputFile
 
-        self.initiate_thread_generate_results_event()
+        self.initiate_thread_generate_results_event() 
+    
+    def initiate_thread_generate_results_event(self):
+        # start thread for generate simulation results
+        self.thread = thread_with_trace(target=self.generate_results_event)
+        self.thread.start()
+        self.result_tab_loading()
+
+    def generate_results_event(self):         
+        try:
+            self.generate_rcs_results()
+
+        except Exception as e:
+            self.error_response_message(e)
         
+        #erase previous data and write new data
+        self.reload_interface()
+
     def generate_rcs_results(self):
         self.generate_images = False
 
@@ -261,23 +191,75 @@ class App(customtkinter.CTk):
         self.verifyStandartDeviation()
 
         self.now = datetime.now().strftime("%Y%m%d%H%M%S")
+        # generate results by executing rcs calculation
         self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
         self.generate_images = True
 
+    def update_param_list(self):
+        if self.inputFont == 'interface':
+            self.param_list = self.getParamsFromInterface()
+        elif self.inputFont == 'inputFile':
+            self.param_list = getParamsFromFile(self.method)
+
+    def getParamsFromInterface(self):
+        def get_common_params(prefix):
+            return [
+                float(getattr(self, f"{prefix}freq").get()),
+                float(getattr(self, f"{prefix}corr").get()),
+                float(getattr(self, f"{prefix}delstd").get()),
+                convert_polarization(getattr(self, f"{prefix}ipol").get()),
+                convert_reisivity(getattr(self, f"{prefix}rest").get()),
+                float(getattr(self, f"{prefix}pstart").get()),
+                float(getattr(self, f"{prefix}pstop").get()),
+                float(getattr(self, f"{prefix}delp").get()),
+                float(getattr(self, f"{prefix}tstart").get()),
+                float(getattr(self, f"{prefix}tstop").get()),
+                float(getattr(self, f"{prefix}delt").get()),
+            ]
+
+        def convert_polarization(pol):
+            if pol == 'TM-Z': return 0
+            elif pol == 'TE-Z': return 1
+
+        def convert_reisivity(rest):
+            if rest == 'Condutor Perfeito': return 0
+            elif rest == 'Transparente': return 1
+
+        param_list = [self.model]
+        
+        if self.method == 'monostatic':
+            param_list.extend(get_common_params('mono'))
+        elif self.method == 'bistatic':
+            param_list.extend(get_common_params('bi'))
+            param_list.append(float(self.bitheta.get()))
+            param_list.append(float(self.bipstart.get()))
+
+        return param_list
+
+    def verifyStandartDeviation(self):
+        wave = 3e8/(self.param_list[FREQUENCY]*1e9)
+
+        if self.param_list[STANDART_DEVIATION] > 0.1*wave:
+            messagebox.showerror("Desvio", "Desvio Padrão elevado")
+            raise ValueError("Desvio padrão elevado")
+
+    def calculate_RCS(self):
+        if self.method == 'monostatic': return rcs_monostatic(self.param_list)
+        elif self.method == 'bistatic': return rcs_bistatic(self.param_list)
+  
     def error_response_message(self,e):
         print(f"An error occurred: {str(e)}")
         if self.method[:4] == 'mono': self.monoerror.configure(text="Entradas Inválidas!")
         elif self.method[:2] == 'bi': self.bierror.configure(text="Entradas Inválidas!")
+        
+    def reload_interface(self):
+        self.restore_result_tab()
 
-    def generate_results_event(self):         
-        try:
-            self.generate_rcs_results()
+        if self.generate_images:
+            self.results_window()
 
-        except Exception as e:
-            self.error_response_message(e)
-
-        self.clean_result_tab_and_include_new_image()
-   
+            if self.method == 'monostatic': self.monoerror.configure(text="")
+            elif self.method == 'bistatic': self.bierror.configure(text="")
 
     def results_window(self):
         w,h=Image.open(self.plotpath).size
