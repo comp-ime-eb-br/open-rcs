@@ -11,6 +11,7 @@ from rcs_bistatic import *
 from rcs_functions import getParamsFromFile,FREQUENCY,STANDART_DEVIATION
 from thread_trace import thread_with_trace
 from gif import ImageLabel
+import warnings
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -19,10 +20,19 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.model = None
-        
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.defineInterfaceComponents()
+        
+        
+    def defineInterfaceComponents(self):
+        self.define_window_and_grid()
+        self.define_sidebars()
+        self.define_description_frame_and_tabview()
+        self.define_monostatic_inputs()
+        self.define_bistatic_inputs()
+        self.define_results_frame()
 
-        # window and grid
+    def define_window_and_grid(self):
         self.title("Open RCS")
         self.wm_iconbitmap()
         self.iconphoto(True, ImageTk.PhotoImage(file="./img/logo_openrcs.png"))
@@ -33,7 +43,7 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure((0, 1, 2), weight=1)
         self.minsize(1350, 600)
 
-        # sidebar
+    def define_sidebars(self):
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, rowspan=4, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
@@ -50,7 +60,8 @@ class App(customtkinter.CTk):
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Light", "Dark", "System"], command=self.change_appearance_mode_event)
         self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(0, 20))
         self.appearance_mode_optionemenu.set("Dark")
-        
+
+    def define_description_frame_and_tabview(self):
         # description frame
         self.description = customtkinter.CTkFrame(self, width=140)
         self.description.grid(row=0, column=1, columnspan=1, padx=(20, 0), pady=(20,0), sticky="new")
@@ -65,7 +76,7 @@ class App(customtkinter.CTk):
         self.tabview.tab("Monoestático").grid_columnconfigure((0,1,2), weight=0)
         self.tabview.tab("Biestático").grid_columnconfigure((0,1,2), weight=0)
 
-        # monostatic input values
+    def define_monostatic_inputs(self):
         self.monomodel_text = "\n⬆\nUpload Modelo (.stl)\n"
         self.monotext = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="Insira os dados para o cálculo monoestático da RCS estimada")
         self.monotext.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
@@ -104,7 +115,7 @@ class App(customtkinter.CTk):
         self.monoerror = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.monoerror.grid(row=8, column=1, padx=5, pady=0, sticky="ew")
 
-        # bistatic input values
+    def define_bistatic_inputs(self):  
         self.bitext = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="Insira os dados para o cálculo biestático da RCS estimada")
         self.bitext.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
         self.bimodel = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="\n⬆\nUpload Modelo (.stl)\n", command=self.upload, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
@@ -143,8 +154,8 @@ class App(customtkinter.CTk):
         self.biresultfile.grid(row=8, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
         self.bierror.grid(row=9, column=1, padx=5, pady=0, sticky="ew")
-        
-        # results frame
+
+    def define_results_frame(self):
         self.results_frame = customtkinter.CTkFrame(self, width=250)
         self.results_frame.grid(row=0, column=2, rowspan=2, columnspan=2, padx=(20, 20), pady=(20, 0), sticky="nsew")
         self.results_frame.grid_columnconfigure((0,1,2), weight=1)
@@ -237,7 +248,7 @@ class App(customtkinter.CTk):
         return param_list
 
     def verifyStandartDeviation(self):
-        wave = 3e8/(self.param_list[FREQUENCY]*1e9)
+        wave = 3e8/(self.param_list[FREQUENCY])
 
         if self.param_list[STANDART_DEVIATION] > 0.1*wave:
             messagebox.showerror("Desvio", "Desvio Padrão elevado")

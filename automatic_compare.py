@@ -92,5 +92,5 @@ if __name__ == '__main__':
         pofacetOutput = CorrectOutput(pofacets_file)
         pofacetOutput.setPredictOutputFile(open_rcs_file)
 
-        pofacetOutput.printMSEBetweenOutputsForColumn("Sth")
-        pofacetOutput.printMSEBetweenOutputsForColumn("Sph")
+        pofacetOutput.printRelativeMSEBetweenOutputsForColumn("Sth")
+        pofacetOutput.printRelativeMSEBetweenOutputsForColumn("Sph")

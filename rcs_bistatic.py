@@ -4,7 +4,6 @@ from rcs_functions import *
 
 def rcs_bistatic(params_entrys):
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = params_entrys
-    freq = float(freq) * 1e9
     wave = 3e8 / freq
     # 2: correlation distance
     corel = float(corr) / wave
@@ -139,6 +138,7 @@ def rcs_bistatic(params_entrys):
 
     # generate result files
     setFontOption()
+    warnings.filterwarnings("ignore")
     fig_name = plot_triangle_model(
         input_model,
         vind,

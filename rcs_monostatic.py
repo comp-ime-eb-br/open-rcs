@@ -4,9 +4,7 @@ from rcs_functions import *
 
 def rcs_monostatic(params_entrys):
     input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt = params_entrys
-
-    freq = float(freq)*1e9
-
+    
     wave = 3e8/freq
     
     # 2: correlation distance 
@@ -95,6 +93,7 @@ def rcs_monostatic(params_entrys):
 
     # generate result files
     setFontOption()
+    warnings.filterwarnings("ignore")
     fig_name = plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, ntria, node1, node2, node3, nfc)
     param = plotParameters("Monostatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
     now, file_name = generateResultFiles(theta, Sth, phi,Sph, param, ip)
