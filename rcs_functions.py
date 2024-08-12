@@ -57,7 +57,8 @@ def getParamsFromFile(method):
             if line.isnumeric(): param_list.append(float(line))
             else: param_list.append(line)
     params.close()
-    param_list[FREQUENCY] = float(param_list[FREQUENCY]) * 10e9
+    
+    param_list[FREQUENCY] = float(param_list[FREQUENCY]) * 1e9
     stl_converter("./stl_models/"+ param_list[INPUT_MODEL])
     return param_list
 

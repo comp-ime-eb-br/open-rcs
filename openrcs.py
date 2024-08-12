@@ -62,13 +62,11 @@ class App(customtkinter.CTk):
         self.appearance_mode_optionemenu.set("Dark")
 
     def define_description_frame_and_tabview(self):
-        # description frame
-        self.description = customtkinter.CTkFrame(self, width=140)
-        self.description.grid(row=0, column=1, columnspan=1, padx=(20, 0), pady=(20,0), sticky="new")
-        self.text = customtkinter.CTkLabel(self.description, text="\nO software Open-RCS foi desenvolvido para fins acadêmicos e de instrução\n referentes a diversos cenários de Guerra Eletrônica. A estimação do valor\nda RCS para as estruturas carregadas no programa é obitdo pelo método da\n Óptica Física e os resultados para os formatos clássicos (cubo, placa\nplana, esfera) foram validados contra o software externo POFacets.")
+        self.descriptionFrame = customtkinter.CTkFrame(self, width=140)
+        self.descriptionFrame.grid(row=0, column=1, columnspan=1, padx=(20, 0), pady=(20,0), sticky="new")
+        self.text = customtkinter.CTkLabel(self.descriptionFrame, text="\nO software Open-RCS foi desenvolvido para fins acadêmicos e de instrução\n referentes a diversos cenários de Guerra Eletrônica. A estimação do valor\nda RCS para as estruturas carregadas no programa é obitdo pelo método da\n Óptica Física e os resultados para os formatos clássicos (cubo, placa\nplana, esfera) foram validados contra o software externo POFacets.")
         self.text.grid(row=0, column=0, padx=(10,10), pady=(10,20), sticky="nsew")
         
-        # tabview
         self.tabview = customtkinter.CTkTabview(self, width=140)
         self.tabview.grid(row=1, column=1, columnspan=1, padx=(20, 0), pady=(0, 0), sticky="nsew")
         self.tabview.add("Monoestático")
@@ -108,9 +106,9 @@ class App(customtkinter.CTk):
         self.monotstop.grid(row=3, column=2, padx=5, pady=(5, 5))
         self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Theta (º)")
         self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
-        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_results('monostatic','interface'))
+        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_and_show_results('monostatic','interface'))
         self.monoresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=lambda:self.generate_results('monostatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=lambda:self.generate_and_show_results('monostatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.monoresultfile.grid(row=7, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.monoerror = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.monoerror.grid(row=8, column=1, padx=5, pady=0, sticky="ew")
@@ -148,9 +146,9 @@ class App(customtkinter.CTk):
         self.bitstop.grid(row=4, column=2, padx=5, pady=(5, 5))
         self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Theta (º)")
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
-        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_results('bistatic','interface'))
+        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_and_show_results('bistatic','interface'))
         self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_results('bistatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_and_show_results('bistatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.biresultfile.grid(row=8, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
         self.bierror.grid(row=9, column=1, padx=5, pady=0, sticky="ew")
@@ -167,7 +165,7 @@ class App(customtkinter.CTk):
         self.adjust.grid(row=1, column=0, columnspan=4, rowspan=4, padx=(30,30), pady=(10,10))
         self.cancel = customtkinter.CTkButton(self.results_frame, text="Cancelar Carregamento", command=self.end_generate_attempt,fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
 
-    def generate_results(self,method,inputFont):
+    def generate_and_show_results(self,method,inputFont):
         try:
             self.reset_event()
         except:
@@ -176,41 +174,38 @@ class App(customtkinter.CTk):
         self.method = method # monostatic or bistatic
         self.inputFont = inputFont # interface or inputFile
 
-        self.initiate_thread_generate_results_event() 
+        self.initiate_thread_generate_and_show_results_event() 
     
-    def initiate_thread_generate_results_event(self):
-        # start thread for generate simulation results
-        self.thread = thread_with_trace(target=self.generate_results_event)
+    def initiate_thread_generate_and_show_results_event(self):
+        self.thread = thread_with_trace(target=self.generate_and_show_results_event)
         self.thread.start()
         self.result_tab_loading()
 
-    def generate_results_event(self):         
+    def generate_and_show_results_event(self):         
         try:
-            self.generate_rcs_results()
+            self.generate_and_show_rcs_results()
 
         except Exception as e:
-            self.error_response_message(e)
-        
-        #erase previous data and write new data
-        self.reload_interface()
+            self.error_message_and_restore_tab(e)
 
-    def generate_rcs_results(self):
-        self.generate_images = False
-
-        self.update_param_list()
+    def generate_and_show_rcs_results(self):
+        self.update_simulation_params_list()
         
         self.verifyStandartDeviation()
 
         self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-        # generate results by executing rcs calculation
+  
         self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
-        self.generate_images = True
 
-    def update_param_list(self):
+        self.restore_result_tab()
+
+        self.show_results_on_interface()
+
+    def update_simulation_params_list(self):
         if self.inputFont == 'interface':
-            self.param_list = self.getParamsFromInterface()
+            self.simulationParamsList = self.getParamsFromInterface()
         elif self.inputFont == 'inputFile':
-            self.param_list = getParamsFromFile(self.method)
+            self.simulationParamsList = getParamsFromFile(self.method)
 
     def getParamsFromInterface(self):
         def get_common_params(prefix):
@@ -236,41 +231,39 @@ class App(customtkinter.CTk):
             if rest == 'Condutor Perfeito': return 0
             elif rest == 'Transparente': return 1
 
-        param_list = [self.model]
+        simulationParamsList = [self.model]
         
         if self.method == 'monostatic':
-            param_list.extend(get_common_params('mono'))
+            simulationParamsList.extend(get_common_params('mono'))
         elif self.method == 'bistatic':
-            param_list.extend(get_common_params('bi'))
-            param_list.append(float(self.bitheta.get()))
-            param_list.append(float(self.bipstart.get()))
+            simulationParamsList.extend(get_common_params('bi'))
+            simulationParamsList.append(float(self.bitheta.get()))
+            simulationParamsList.append(float(self.bipstart.get()))
 
-        return param_list
+        return simulationParamsList
 
     def verifyStandartDeviation(self):
-        wave = 3e8/(self.param_list[FREQUENCY])
+        wave = 3e8/(self.simulationParamsList[FREQUENCY])
 
-        if self.param_list[STANDART_DEVIATION] > 0.1*wave:
+        if self.simulationParamsList[STANDART_DEVIATION] > 0.1*wave:
             messagebox.showerror("Desvio", "Desvio Padrão elevado")
             raise ValueError("Desvio padrão elevado")
 
     def calculate_RCS(self):
-        if self.method == 'monostatic': return rcs_monostatic(self.param_list)
-        elif self.method == 'bistatic': return rcs_bistatic(self.param_list)
+        if self.method == 'monostatic': return rcs_monostatic(self.simulationParamsList)
+        elif self.method == 'bistatic': return rcs_bistatic(self.simulationParamsList)
   
-    def error_response_message(self,e):
+    def error_message_and_restore_tab(self,e):
         print(f"An error occurred: {str(e)}")
+        self.restore_result_tab()
         if self.method[:4] == 'mono': self.monoerror.configure(text="Entradas Inválidas!")
         elif self.method[:2] == 'bi': self.bierror.configure(text="Entradas Inválidas!")
         
-    def reload_interface(self):
-        self.restore_result_tab()
-
-        if self.generate_images:
-            self.results_window()
-
-            if self.method == 'monostatic': self.monoerror.configure(text="")
-            elif self.method == 'bistatic': self.bierror.configure(text="")
+    def show_results_on_interface(self):
+        self.results_window()
+        if self.method == 'monostatic': self.monoerror.configure(text="")
+        elif self.method == 'bistatic': self.bierror.configure(text="")
+            
 
     def results_window(self):
         w,h=Image.open(self.plotpath).size

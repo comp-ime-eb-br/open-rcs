@@ -4,7 +4,6 @@ from rcs_functions import *
 
 def rcs_monostatic(params_entrys):
     input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt = params_entrys
-    
     wave = 3e8/freq
     
     # 2: correlation distance 
