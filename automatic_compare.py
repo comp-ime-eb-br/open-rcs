@@ -80,17 +80,42 @@ def generate_datum(method):
     
     return open_rcs_file,pofacets_file
 
-if __name__ == '__main__':
+class InvalidInput(Exception):
+    def __init__(self,message = "Invalid Input"):
+        self.message = message
+        print(self.message)
+        super().__init__(self.message)
+
+def get_method():
     params = sys.argv
+
+    if len(params) != 2:
+        raise InvalidInput("Erro: invalid number of arguments")
+    else:
+        if params[1] != 'monostatic' and params[1] != 'bistatic':
+            raise InvalidInput(f"Erro: Method '{params[1]}' invalid.")
+        
     method = params[1]
-    if method != 'monostatic' and method != 'bistatic':
-        print('método não válido')
-    else:  
-        open_rcs_file, pofacets_file = generate_datum(method)
+    return method
 
-        print('>>> Calculando erro médio quadrático <<<\n')
-        pofacetOutput = CorrectOutput(pofacets_file)
-        pofacetOutput.setPredictOutputFile(open_rcs_file)
+def automatic_compare():
 
-        pofacetOutput.printMSEBetweenOutputsForColumn("Sth")
-        pofacetOutput.printMSEBetweenOutputsForColumn("Sph")
+    method = get_method()
+
+    open_rcs_file, pofacets_file = generate_datum(method)
+
+    print('>>> Calculando erro médio quadrático <<<\n')
+    pofacetOutput = CorrectOutput(pofacets_file)
+    pofacetOutput.setPredictOutputFile(open_rcs_file)
+
+    pofacetOutput.printMSEBetweenOutputsForColumn("Sth")
+    pofacetOutput.printMSEBetweenOutputsForColumn("Sph")
+
+
+if __name__ == '__main__':
+    try:
+        automatic_compare()
+    except InvalidInput:
+        print('Correct input command: python automatic_compare.py <monostatic|bistatic>')
+    except Exception as e:
+        print(f'error:{e}')
