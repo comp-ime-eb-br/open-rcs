@@ -1,7 +1,7 @@
 # input model (stl_models)
-aconePofacets.stl
+sidewinder.stl
 # 1 radar frequency(GHz)
-0.3
+162.4
 # 2 correlation distance in meters
 0
 # 3 standard deviation in meters
@@ -9,16 +9,16 @@ aconePofacets.stl
 # 4 incident wave polarization 
 0
 # 5 material resistivity
-1
+0
 # 6 start phi angle in degrees
 0
 # 7 stop phi angle in degrees
-0
+360
 # 8 phi increment (step) in degrees
-0
+2
 # 9 start theta angle in degrees
 0
 # 10 stop theta angle in degrees
-360
+0
 # 11 theta increment (step) in degrees
-2
+0

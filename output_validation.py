@@ -1,107 +1,116 @@
-from typing import Literal
-
 import numpy as np
+from typing import Literal
 from scipy.io import loadmat
 from sklearn.metrics import mean_squared_error
 
+validKeys = Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]
 
-class InvalidFileType(Exception): ...
+class CorrectOutput:
+    def __init__(self, trueFilePath):
+        self.trueFilePath = trueFilePath
+
+    def setPredictOutputFile(self, path_to_predict_file):
+        self.predictFilePath = path_to_predict_file
+
+    def extension_validation(self, path):
+        fileType = path[::-1].split(".", 1)[0][::-1]
+
+        if fileType != 'mat' and fileType != 'dat':
+            return None
+        else:
+            return fileType
+
+    def readValues(
+            self,
+            key: validKeys,
+            path: str | None = None,
+        ) -> np.ndarray:
+
+            _file_type = self.extension_validation(path)
+
+            if _file_type == None:
+                print(f"File {path} with invalid format type")
+                return []
+
+            match _file_type:
+                case "mat":
+                    res: dict = loadmat(path)
+                    vetor = res[key]
+                    #print(vetor[0].tolist())
+                    listaLinear = []
+                    for lista in vetor:
+                        for r in lista:
+                            listaLinear.append(r)
+                    #print(listaLinear)
+                    #print('\n')
+                    return listaLinear
+                
+                case "dat":
+                    with open(path, "r") as file:
+                        content = file.readlines()
+                        rcs_float = []
+                        lista = []
+                        if key == 'Sth':
+                            RCS_start_index = content.index("RCS Theta (dBsm):\n") + 1
+                            RCS_end_index = content.index("Phi (deg):\n")
+                            lista = content[RCS_start_index:RCS_end_index-1]
+                        elif key == 'Sph':
+                            RCS_start_index = content.index("RCS Phi (dBsm):\n") + 1
+                            lista = content[RCS_start_index:]
+
+                        for line in lista:
+                            value = ''
+                            for x in line:
+                                if x ==' ' or x == ']' or x == '\n':
+                                    if value != '':
+                                        rcs_float.append(float(value))
+                                    value =''
+
+                                elif x != '[' and x != ']':
+                                    value+=x
+
+                        #print(rcs_float)
+                        return rcs_float
+
+    def getSequenceValues(self, key):
+        trueValues = self.readValues(key,self.trueFilePath)
+        predictValues = self.readValues(key,self.predictFilePath)
+        if len(trueValues) == 0 or len(predictValues) == 0:
+            raise TypeError("Impossible to extract values of one file.")
+        return trueValues, predictValues
 
 
-class OutputValidation:
-    """
-    Recebe os arquivos de output do POFacets e do RCS Simulator e avalia o erro quadratico
-    medio
+    def calculateMSEBetweenOutputsForColumn(self, key: validKeys):
+        try:
+            trueValues, predictValues = self.getSequenceValues(key)
+            return mean_squared_error(trueValues,predictValues)
+        
+        except TypeError as e:
+            print(f"Error: {e}")
 
-    Args:
-        - path (str): path as string where the file is registered
-        - file_type (Literal['mat', 'dat']): file extension type. Defaults to .mat files
-    """
+    def calculateRelativeMSEBetweenOutputsForColumn(self, key: validKeys):
+        try:
+            trueValues, predictValues = self.getSequenceValues(key)
+            relative_erro = 0.0
+            for i in range(0,len(trueValues)):
+                relative_erro += (trueValues[i] - predictValues[i])**2 / (trueValues[i]**2)
+            return relative_erro
+        
+        except TypeError as e:
+            print(f"Error: {e}")
 
-    @classmethod
-    def extension_validation(cls, path: str) -> str:
-        _type = path[::-1].split(".", 1)[0][::-1]
-        assert _type in ["mat", "dat"], InvalidFileType
-        return _type
+    def printMSEBetweenOutputsForColumn(self, key: validKeys):
+        print(f"Testing column {key}:\n", self.calculateMSEBetweenOutputsForColumn(key))
 
-    def __init__(self, path: str) -> None:
-        self._file_type = self.extension_validation(path)
-        self.__path = path
-
-    @property
-    def path(self) -> str:
-        return self.__path
-
-    def read(
-        self,
-        key: Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"],
-        path: str | None = None,
-    ) -> np.ndarray:
-        """
-        Reads the file and returns a parsed numpy array
-
-        Args:
-            - key (Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]):
-                Which metric will be evaluated
-            - path (str | None): Optional path to be used as a diference reference. Defaults to None
-        """
-        _path = path or self.__path
-
-        if path : _file_type = self.extension_validation(path)
-        else: _file_type = self._file_type
-
-        match _file_type:
-            case "mat":
-                res: dict = loadmat(_path)
-                vetor = res[key]
-                #print(vetor[0].tolist())
-                return vetor[0].tolist()
-            
-            case "dat":
-                with open(_path, "r") as file:
-                    content = file.readlines()
-                    if key == 'Sth':
-                        RCS_start_index = content.index("RCS Theta (dBsm):\n") + 1
-                        RCS_end_index = content.index("Phi (deg):\n")
-                        rcs_str = " ".join(content[RCS_start_index:RCS_end_index]).strip("[]").split()
-                    elif key == 'Sph':
-                        RCS_start_index = content.index("RCS Phi (dBsm):\n") + 1
-                        rcs_str = " ".join(content[RCS_start_index:]).strip("[]").split()
-                    
-                    rcs_str[-1] = rcs_str[-1].replace(']','')    
-                    rcs_float = [float(value) for value in rcs_str]
-                    return rcs_float
-
-    # def clean_pofacets(self) -> list[float]:
-    #     # Extrai o vetor RCS do output em forma de texto do POFacets
-    #     with open(self.__path, "r") as file:
-    #         return [map(float, line.split("   ")) for line in file.readlines()]
-
-    def mse(
-        self,
-        key: Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"],
-        series: np.ndarray | None = None,
-        path: str | None = None,
-    ) -> float:
-        """
-        Runs the MSE between the reference series (declared as path) and the values fed
-
-        Args:
-            - key (Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]):
-                Which metric will be evaluated
-            - series (np.ndarray | None): np.array representing the series for comparison
-            - path (str | None): comparison series path
-        """
-        assert not (series and path), "There should be a series or a path, not both"
-        if path:
-            self.extension_validation(path)
-        return mean_squared_error(
-            self.read(key), series if series is not None else self.read(key, path=path)
-        )
-
+    def printRelativeMSEBetweenOutputsForColumn(self, key: validKeys):
+        print(f"Testing column {key}:\n", self.calculateRelativeMSEBetweenOutputsForColumn(key))
 
 if __name__ == "__main__":
-    PATH_ACONE = "./results/POfacets/acone.mat"
-    PATH_BLACK = "./results/RCSSimulator_20240513102546.dat"
-    val = OutputValidation(PATH_ACONE)
-    print("Testing method\n", val.mse(key="Sph", path=PATH_BLACK))
+    PATH_POFACETS = "./results/POfacets/acone_20240802092618.mat"
+    PATH_OPENRCS = "./results/temp_20240802092618.dat"
+
+    pofacetOutput = CorrectOutput(PATH_POFACETS)
+    pofacetOutput.setPredictOutputFile(PATH_OPENRCS)
+
+    pofacetOutput.printMSEBetweenOutputsForColumn("Sth")
+    pofacetOutput.printMSEBetweenOutputsForColumn("Sph")

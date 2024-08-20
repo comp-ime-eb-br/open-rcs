@@ -77,6 +77,24 @@ end
       h_Std = findobj(gcf,'Tag','Std');
       std = getStd(delstd_str,C);
       set(h_Std,'String',num2str(std));
+
+      h_pol = findobj(gcf,'Tag','IncPolar');
+      pol = getPol(i_pol_str);
+      set(h_pol,'String',num2str(pol));
+
+
+% validates phi ending angle 
+function o_ipol = getPol(i_pol)  
+  
+  temp = str2num(i_pol);
+  
+  if (isempty(temp)) | (temp < 0) | (temp > 1)
+     errordlg('Enter a valid Incidente polarization.', ...
+        		  'Polarization Status', 'error');
+     temp = 0; % default polarization
+  end 
+  o_ipol = temp+1;
+  % end getPol
                      
    
 % validates theta starting angle

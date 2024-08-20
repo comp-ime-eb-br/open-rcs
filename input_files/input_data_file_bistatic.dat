@@ -1,7 +1,7 @@
 # input model (stl_models)
-box.stl
+sidewinder.stl
 # 1 radar frequency(GHz)
-0.3
+162.4
 # 2 correlation distance in meters
 0
 # 3 standard deviation in meters

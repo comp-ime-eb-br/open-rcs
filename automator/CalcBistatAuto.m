@@ -46,7 +46,7 @@ global Ethscat Ephscat
       delp   = str2num(get(findobj(h_bistat,'Tag','Delp'),'String')); 
       Lt     = str2num(get(findobj(h_bistat,'Tag','LRegion'),'String')); 
       Nt     = str2num(get(findobj(h_bistat,'Tag','NTerms'),'String'));       
-      i_pol  = get(findobj(h_bistat,'Tag','IncPolar'),'Value');          
+      i_pol  = str2num(get(findobj(h_bistat,'Tag','IncPolar'),'String'));          
       freq	 = str2num(get(findobj(h_bistat,'Tag','Freq'),'String')); 
       wave   = C/(freq * 10^9);     
       bk     = 2*pi/wave;
@@ -268,7 +268,7 @@ global Ethscat Ephscat
             Sth(i1,i2) = 10*log10(4*pi*cfac1*(abs(sumt)^2+sqrt(1-cfac1^2)*sumdt)/wave^2+1e-10);
             Sph(i1,i2) = 10*log10(4*pi*cfac1*(abs(sump)^2+sqrt(1-cfac1^2)*sumdp)/wave^2+1e-10);
 %   	 		Sth(i1,i2) = 10*log10(4*pi*abs(sumt/wave)^2 + 1.e-10);
-%    			Sph(i1,i2) = 10*log10(4*pi*abs(sump/wave)^2 + 1.e-10);
+%    			Sph(i1,i2) = 10*log10(4*pi*abs(sump/wave)^2 + 1.e-10)
 			end	% for i2 = 1:it 
    	end	% end of pattern loop (for i1 = 1:ip)
     
@@ -280,8 +280,8 @@ global Ethscat Ephscat
        %dynamic range initially set to 60 for axis only
       Lmin = Lmax - 60;
       % true dynamic range is 120 for linear plots
-   	  Sth(:,:) = max(Sth(:,:),Lmax-120);
-	  Sph(:,:) = max(Sph(:,:),Lmax-120);
+   	  %Sth(:,:) = max(Sth(:,:),Lmax-120);
+	  %Sph(:,:) = max(Sph(:,:),Lmax-120);
       RCSth=Sth;
       RCSph=Sph;
       thetadeg=theta;
@@ -321,8 +321,8 @@ global Ethscat Ephscat
 
    	if ip > 1 & it > 1
          %Dynamic range set for 80dB
-         Sth(:,:) = max(Sth(:,:),Lmax-80);
-         Sph(:,:) = max(Sph(:,:),Lmax-80);
+         %Sth(:,:) = max(Sth(:,:),Lmax-80);
+         %Sph(:,:) = max(Sph(:,:),Lmax-80);
      %   openfig('MPlot.fig'); 
      %    Lv = [0,-20];
          figure
@@ -356,8 +356,8 @@ global Ethscat Ephscat
  
 if show3D==1
    %set dynamic range back to 60dB
-   Sth1(:,:) = max(Sth(:,:),Lmax-60);
-   Sph1(:,:) = max(Sph(:,:),Lmax-60);
+   %Sth1(:,:) = max(Sth(:,:),Lmax-60);
+   %Sph1(:,:) = max(Sph(:,:),Lmax-60);
    %theta and phi angles
    theta1=tstart:delt:tstop;
    phi1=pstart:delp:pstop;
@@ -454,13 +454,8 @@ switch answer
           save([pathname,filename],'itheta','iphi','theta','phi','freq','Sth','Sph','Ethscat','Ephscat','-ASCII');
       end  
   case 'Auto'
-      dataHoraAtual = datetime('now');
-      % Converter para o formato desejado
-      formatoDesejado = 'yyyymmddHHMMSS';
-      dataHoraFormatada = datestr(dataHoraAtual, formatoDesejado);
-      filename = [dataHoraFormatada,'B_',filename];
       fullFileName = fullfile(pathname, filename);
-      save(fullFileName,'itheta','iphi','theta','phi','freq','Sth','Sph','Ethscat','Ephscat','-ASCII');   
+      save(fullFileName,'itheta','iphi','theta','phi','freq','Sth','Sph','Ethscat','Ephscat');   
          
 end
 

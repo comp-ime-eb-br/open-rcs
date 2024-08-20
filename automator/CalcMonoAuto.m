@@ -1,4 +1,4 @@
-function CalcMono;
+function CalcMonoAuto(rsmethod,pathname,filename);
 % filename: CalcMono.m
 % Project: POFACETS
 % Description: This  computes the monostatic RCS of a selected model.
@@ -28,21 +28,13 @@ ntria=size(facet,1);
            h_mono = fig;
 		  end
 	 end
-    
-     answer=questdlg('Use Surface Resistivity Values (Rs) or Material data?','Select Material Type','Rs','Material','Rs');
-     switch answer
-         case 'Rs'
-             rsmethod=1;
-         case 'Material'
-             rsmethod=2;
-      end
       e0=8.85e-12;%permittivity of free space
       m0=4*pi*1e-7;%permeability of free space
       
       
       %open('MsgComputing.fig');
       txt = ['Computing the monostatic RCS of ',modelname,' model . . .'];         
-      %set(findobj(gcf,'Tag','Msg'),'String',txt); 
+      set(findobj(gcf,'Tag','Msg'),'String',txt); 
       hwait=waitbar(0,txt);
       pause(0.1);     
       
@@ -55,32 +47,15 @@ ntria=size(facet,1);
       delp   = str2num(get(findobj(h_mono,'Tag','Delp'),'String')); 
       Lt     = str2num(get(findobj(h_mono,'Tag','LRegion'),'String')); 
       Nt     = str2num(get(findobj(h_mono,'Tag','NTerms'),'String')); 
-      i_pol  = get(findobj(h_mono,'Tag','IncPolar'),'Value');           
+      i_pol  = str2num(get(findobj(h_mono,'Tag','IncPolar'),'String'))           
       freq	 = str2num(get(findobj(h_mono,'Tag','Freq'),'String')); 
       show3D = get(findobj(h_mono,'Tag','ModelandRCS'),'Value');
       showpolar = get(findobj(h_mono,'Tag','PolarPlot'),'Value');
       usesymmetry= get(findobj(h_mono,'Tag','usesymmetry'),'Value');
       useground=get(findobj(h_mono,'Tag','groundplane'),'Value');
-         
-      
-       %if ground plane is used, create symmetric model
-      if useground==1
-          %save initial data
-          coordi=coord;
-          faceti=facet;
-          %create symmetric model
-          xysymmetric;
-          nvert = size(coord,1);
-          ntria=size(facet,1);
-          % get data about ground plane
-          pec=get(findobj(h_mono,'Tag','checkpec'),'Value');
-          if pec==0
-              relpermit=str2num(get(findobj(h_mono,'Tag','relativeperm'),'String'));
-          end
-      end
-      
+
             
-      wave   = C/(freq * 10^9);
+      wave   = 3e8/(freq * 10^9);
       corr   = str2num(get(findobj(h_mono,'Tag','Corr'),'String')); 
       corel	 = corr/wave; % normalized to the wavelength
       std    = str2num(get(findobj(h_mono,'Tag','Std'),'String'));     
@@ -96,29 +71,6 @@ ntria=size(facet,1);
 	  it = floor((tstop-tstart)/delt) + 1;
    	  ip = floor((pstop-pstart)/delp) + 1;
       
-      %When symmetry conditions exist do some calculations of parameters
-      % that are going to be used later for RCS calculations
-      if usesymmetry==1
-          %number of symmetry planes
-          symnumber=size(symplanes,1)/3;
-          
-          for i=1:symnumber
-           	A = symplanes((i-1)*3+2,:)-symplanes((i-1)*3+1,:);
-	   	    B = symplanes((i-1)*3+3,:)-symplanes((i-1)*3+2,:);
-		    C = symplanes((i-1)*3+1,:)-symplanes((i-1)*3+3,:);
-            symN(i,:) = - cross(B,A);
-          	symNn = norm(symN(i,:));
-            % unit normals
-            symN(i,:) = symN(i,:)/symNn;
-            % rotation angles
-            symbeta(i) = acos(symN(i,3));  
-            symalpha(i) = atan2(symN(i,2),symN(i,1));
-            ca = cos(symalpha(i)); sa = sin(symalpha(i));  cb = cos(symbeta(i)); sb = sin(symbeta(i));
-		    symT1{i} = [ca sa 0; -sa ca 0; 0 0 1]; 
-            symT2{i} = [cb 0 -sb; 0 1 0; sb 0 cb];
-        end
-      end
-      
       
       % Incident wave polarization
       if i_pol == 1	
@@ -126,7 +78,7 @@ ntria=size(facet,1);
          Ep = 0+j*0;  
       else					
 	      Et = 0+j*0;  
-         Ep = 1+j*0;  
+        Ep = 1+j*0;  
       end    
 		% Wave amplitude at all vertices
 	  Co = 1;      
@@ -366,8 +318,8 @@ ntria=size(facet,1);
     % dynamic range initially set to 60 for axis only
     Lmin = Lmax - 60;
     % true dynamic range is 120 for linearplots
-   	Sth(:,:) = max(Sth(:,:),Lmax-120);
-    Sph(:,:) = max(Sph(:,:),Lmax-120);
+   	%Sth(:,:) = max(Sth(:,:),Lmax-120);
+    %Sph(:,:) = max(Sph(:,:),Lmax-120);
     RCSth=Sth;
     RCSph=Sph;
     thetadeg=theta;
@@ -406,8 +358,8 @@ ntria=size(facet,1);
    
    	if ip > 1 & it > 1
          %Dynamic range set for 80dB for surface plots
-         Sth(:,:) = max(Sth(:,:),Lmax-80);
-         Sph(:,:) = max(Sph(:,:),Lmax-80);
+         %Sth(:,:) = max(Sth(:,:),Lmax-80);
+         %Sph(:,:) = max(Sph(:,:),Lmax-80);
          %h=openfig('MPlot.fig'); 
          %ax=findall(h,'Type','Axes');
          %Lv = [0,-20];
@@ -521,7 +473,8 @@ if showpolar==1
     hold on
 end %if showpolar
 
-answer=questdlg('Save RCS Results?','Save to File','Mat File','Text File','No','Mat File');
+%answer=questdlg('Save RCS Results?','Save to File','Mat File','Text File','No','Mat File');
+answer = 'Auto';
 switch answer
    case 'Mat File'
       [filename, pathname]=uiputfile('*.mat','Select file name','MResults');
@@ -537,7 +490,9 @@ switch answer
       Ieph=imag(Ephscat);
       if filename~=0
           save([pathname,filename],'theta','phi','freq','Sth','Sph','Reth','Ieth','Reph','Ieph','-ASCII');
-      end  
-      
-         
+      end 
+  case 'Auto'
+      fullFileName = fullfile(pathname, filename);
+      save(fullFileName, 'theta', 'phi', 'freq', 'Sth', 'Sph', 'Ethscat','Ephscat'); 
+          
 end

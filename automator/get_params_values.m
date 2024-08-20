@@ -1,6 +1,6 @@
-function params = get_params_values(method,figure,path)
+function params = get_params_values(input_data_file)
      % Abra o arquivo para leitura
-    input_data_file = [path,'input_data_file_',method,'.dat'];
+
     fid = fopen(input_data_file, 'r');
 
     % Verifique se o arquivo foi aberto com sucesso

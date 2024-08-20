@@ -1,4 +1,4 @@
-function CalcMonoAuto(rsmethod,pathname,filename);
+function CalcMono;
 % filename: CalcMono.m
 % Project: POFACETS
 % Description: This  computes the monostatic RCS of a selected model.
@@ -28,13 +28,21 @@ ntria=size(facet,1);
            h_mono = fig;
 		  end
 	 end
+    
+     answer=questdlg('Use Surface Resistivity Values (Rs) or Material data?','Select Material Type','Rs','Material','Rs');
+     switch answer
+         case 'Rs'
+             rsmethod=1;
+         case 'Material'
+             rsmethod=2;
+      end
       e0=8.85e-12;%permittivity of free space
       m0=4*pi*1e-7;%permeability of free space
       
       
       %open('MsgComputing.fig');
       txt = ['Computing the monostatic RCS of ',modelname,' model . . .'];         
-      set(findobj(gcf,'Tag','Msg'),'String',txt); 
+      %set(findobj(gcf,'Tag','Msg'),'String',txt); 
       hwait=waitbar(0,txt);
       pause(0.1);     
       
@@ -47,21 +55,14 @@ ntria=size(facet,1);
       delp   = str2num(get(findobj(h_mono,'Tag','Delp'),'String')); 
       Lt     = str2num(get(findobj(h_mono,'Tag','LRegion'),'String')); 
       Nt     = str2num(get(findobj(h_mono,'Tag','NTerms'),'String')); 
-      i_pol  = get(findobj(h_mono,'Tag','IncPolar'),'Value');           
+      i_pol  = get(findobj(h_mono,'Tag','IncPolar'),'Value');          
       freq	 = str2num(get(findobj(h_mono,'Tag','Freq'),'String')); 
       show3D = get(findobj(h_mono,'Tag','ModelandRCS'),'Value');
       showpolar = get(findobj(h_mono,'Tag','PolarPlot'),'Value');
       usesymmetry= get(findobj(h_mono,'Tag','usesymmetry'),'Value');
       useground=get(findobj(h_mono,'Tag','groundplane'),'Value');
          
-      if i_pol == 0
-         Et = 1;
-         Ep = 0;
-      else
-         Et = 0;
-         Ep = 1;
-      end
-
+      
        %if ground plane is used, create symmetric model
       if useground==1
           %save initial data
@@ -79,7 +80,7 @@ ntria=size(facet,1);
       end
       
             
-      wave   = 3e8/(freq * 10^9);
+      wave   = C/(freq * 10^9);
       corr   = str2num(get(findobj(h_mono,'Tag','Corr'),'String')); 
       corel	 = corr/wave; % normalized to the wavelength
       std    = str2num(get(findobj(h_mono,'Tag','Std'),'String'));     
@@ -365,8 +366,9 @@ ntria=size(facet,1);
     % dynamic range initially set to 60 for axis only
     Lmin = Lmax - 60;
     % true dynamic range is 120 for linearplots
-   	Sth(:,:) = max(Sth(:,:),Lmax-120);
-    Sph(:,:) = max(Sph(:,:),Lmax-120);
+   	%Sth(:,:) = max(Sth(:,:),Lmax-120);
+    %Sph(:,:) = max(Sph(:,:),Lmax-120);
+  
     RCSth=Sth;
     RCSph=Sph;
     thetadeg=theta;
@@ -520,8 +522,7 @@ if showpolar==1
     hold on
 end %if showpolar
 
-%answer=questdlg('Save RCS Results?','Save to File','Mat File','Text File','No','Mat File');
-answer = 'Auto';
+answer=questdlg('Save RCS Results?','Save to File','Mat File','Text File','No','Mat File');
 switch answer
    case 'Mat File'
       [filename, pathname]=uiputfile('*.mat','Select file name','MResults');
@@ -537,14 +538,7 @@ switch answer
       Ieph=imag(Ephscat);
       if filename~=0
           save([pathname,filename],'theta','phi','freq','Sth','Sph','Reth','Ieth','Reph','Ieph','-ASCII');
-      end 
-  case 'Auto'
-      dataHoraAtual = datetime('now');
-      % Converter para o formato desejado
-      formatoDesejado = 'yyyymmddHHMMSS';
-      dataHoraFormatada = datestr(dataHoraAtual, formatoDesejado);
-      filename = [dataHoraFormatada,'M_',filename];
-      fullFileName = fullfile(pathname, filename);
-      save(fullFileName, 'theta', 'phi', 'freq', 'Sth', 'Sph', 'Ethscat','Ephscat'); 
-          
+      end  
+      
+         
 end
