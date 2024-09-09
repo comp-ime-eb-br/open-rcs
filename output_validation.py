@@ -6,13 +6,19 @@ from sklearn.metrics import mean_squared_error
 validKeys = Literal["Ethscat", "Ephscat", "freq", "phi", "theta", "Sth", "Sph"]
 
 class CorrectOutput:
-    def __init__(self, trueFilePath):
+    def __init__(self, trueFilePath:str) -> None:
+        if not trueFilePath:  
+            raise ValueError("A valid file path must be specified.")
+        
         self.trueFilePath = trueFilePath
 
-    def setPredictOutputFile(self, path_to_predict_file):
+    def setPredictOutputFile(self, path_to_predict_file: str) -> None:
+        if not path_to_predict_file:  
+            raise ValueError("A valid file path must be specified.")
+        
         self.predictFilePath = path_to_predict_file
 
-    def extension_validation(self, path):
+    def extension_validation(self, path:str) -> str | None:
         fileType = path[::-1].split(".", 1)[0][::-1]
 
         if fileType != 'mat' and fileType != 'dat':
@@ -20,11 +26,7 @@ class CorrectOutput:
         else:
             return fileType
 
-    def readValues(
-            self,
-            key: validKeys,
-            path: str | None = None,
-        ) -> np.ndarray:
+    def getValuesListWithin(self,key: validKeys, path: str) -> list:
 
             _file_type = self.extension_validation(path)
 
@@ -72,15 +74,15 @@ class CorrectOutput:
                         #print(rcs_float)
                         return rcs_float
 
-    def getSequenceValues(self, key):
-        trueValues = self.readValues(key,self.trueFilePath)
-        predictValues = self.readValues(key,self.predictFilePath)
+    def getSequenceValues(self, key:validKeys) -> tuple[list,list]:
+        trueValues = self.getValuesListWithin(key,self.trueFilePath)
+        predictValues = self.getValuesListWithin(key,self.predictFilePath)
         if len(trueValues) == 0 or len(predictValues) == 0:
             raise TypeError("Impossible to extract values of one file.")
         return trueValues, predictValues
 
 
-    def calculateMSEBetweenOutputsForColumn(self, key: validKeys):
+    def calculateMSEBetweenOutputsForColumn(self, key: validKeys) -> float:
         try:
             trueValues, predictValues = self.getSequenceValues(key)
             return mean_squared_error(trueValues,predictValues)
@@ -88,7 +90,7 @@ class CorrectOutput:
         except TypeError as e:
             print(f"Error: {e}")
 
-    def calculateRelativeMSEBetweenOutputsForColumn(self, key: validKeys):
+    def calculateRelativeMSEBetweenOutputsForColumn(self, key: validKeys)-> float:
         try:
             trueValues, predictValues = self.getSequenceValues(key)
             relative_erro = 0.0
@@ -99,10 +101,10 @@ class CorrectOutput:
         except TypeError as e:
             print(f"Error: {e}")
 
-    def printMSEBetweenOutputsForColumn(self, key: validKeys):
+    def printMSEBetweenOutputsForColumn(self, key: validKeys) -> None:
         print(f"Testing column {key}:\n", self.calculateMSEBetweenOutputsForColumn(key))
 
-    def printRelativeMSEBetweenOutputsForColumn(self, key: validKeys):
+    def printRelativeMSEBetweenOutputsForColumn(self, key: validKeys) -> None:
         print(f"Testing column {key}:\n", self.calculateRelativeMSEBetweenOutputsForColumn(key))
 
 if __name__ == "__main__":

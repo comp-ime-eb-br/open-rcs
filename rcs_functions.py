@@ -335,7 +335,7 @@ def bi_incidentFieldSphericalCoordinates(cpi2, cti2, sti2,spi2,e2):
                         return Et2, Ep2
 
 
-def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode):
+def finalPlot(ip,it,phi, wave,theta, Lmin,Lmax,Sth,Sph,U,V,now,input_model,mode) -> str:
     if ip==1:
         plt.figure(1)
         plt.suptitle(f"RCS Simulation IR Signature - {mode}")

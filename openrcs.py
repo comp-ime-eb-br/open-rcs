@@ -207,7 +207,7 @@ class App(customtkinter.CTk):
         elif self.inputFont == 'inputFile':
             self.simulationParamsList = getParamsFromFile(self.method)
 
-    def getParamsFromInterface(self):
+    def getParamsFromInterface(self) -> list:
         def get_common_params(prefix):
             return [
                 float(getattr(self, f"{prefix}freq").get()),

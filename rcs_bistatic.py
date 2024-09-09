@@ -2,7 +2,7 @@ import numpy as np
 from rcs_functions import *
 
 
-def rcs_bistatic(params_entrys):
+def rcs_bistatic(params_entrys:list) -> tuple[str,list,list]:
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = params_entrys
     wave = 3e8 / freq
     # 2: correlation distance

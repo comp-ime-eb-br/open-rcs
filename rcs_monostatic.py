@@ -2,7 +2,7 @@ import math
 import numpy as np
 from rcs_functions import *
 
-def rcs_monostatic(params_entrys):
+def rcs_monostatic(params_entrys:list)-> tuple[str,list,list]:
     input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt = params_entrys
     wave = 3e8/freq
     
