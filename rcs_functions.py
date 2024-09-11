@@ -18,6 +18,7 @@ TYPE = 0
 MATERIALCOEFFICIENTS = 1
 THETA = 1
 NTRIA = 14
+DESCRIPTION = 2
 
 def getPolarization(incidentPolarization):
     if incidentPolarization == 0: # Theta-polarized (TM-z)
@@ -402,7 +403,7 @@ def spherglobal2local(sphericalVector:np.array, T21:np.array):
 
 def reflectionCoefficientsComposite(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
     j = 1j
-    matdata=matrlLine[MATERIALCOEFFICIENTS:]
+    matdata=matrlLine[DESCRIPTION:]
     
     er=matdata[0]-j*matdata[1]*matdata[0]
     mr=matdata[2]-j*matdata[3]

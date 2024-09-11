@@ -252,31 +252,75 @@ class App(customtkinter.CTk):
             messagebox.showerror("Desvio", "Desvio Padrão elevado")
             raise ValueError("Desvio padrão elevado")
 
+    
     def defineActionForEachResistivityCase(self):
+        self.entrys = []
         if self.simulationParamsList[RESISTIVITY] == MATERIALESPECIFICO:
-            pass
-            Entrys = []
-            '''
-            implementar aqui
-            
-            o Entrys deve ser uma lista de strings, onde string corresponde a 
-            uma facets e o formato da string deve ser "tipo,facet description,valor1,valor2,valor3,
-            valor4,valor5". valor float representado no padrão americano(ex:5.23)
-            
-            '''
-            self.writeInMatrl(Entrys)
+            self.openMaterialEspecificationTab()
         else:
-            self.writeInMatrl([])
+            self.writeInMatrl()
             
-    def writeInMatrl(self, entrys:list):
+    def openMaterialEspecificationTab(self):
+        self.ntria = self.coordinatesData[NTRIA]
+        self.types = ['PEC'] * self.ntria
+        self.description = ['facet description'] * self.ntria
+        self.layers = []
+        
+            
+    def getEntrysFromMaterialInterface(self):
+        self.facetBeginIndex = 1
+        self.facetEndIndex = 2
+        self.type = "especifico"
+        self.tickness = 2
+        self.RelPermittivity = 2
+        self.lossTangent = 2
+        self.RelaPermeabilityReal = 2
+        self.RelaPermeabilityImaginary = 2
+    
+    def defineEntrysFromMaterialFile(self):
+        materialFile = 'buscar'
+        with open(materialFile, 'r') as file:
+            for line in file:
+                self.entrys.append(line)
+        
+        self.writeInMatrl()
+        
+    def defineEntrysFromMaterialInterface(self):
+        self.getEntrysFromMaterialInterface()
+
+        for m in range(self.ntria):
+            entry = [self.types[m],self.description[m]]
+            for layer in self.layers[m]:
+                for value in layer:
+                    entry.append(value)
+            
+            self.entry = ','.join(self.entry)                
+            self.entrys.append(entry)
+        
+              
+        self.writeInMatrl()
+        
+    
+    def addNewLayerOn(self,layerProperties,facetindexs):
+        for facetIndex in facetindexs:
+            self.layers[facetIndex].append(layerProperties)
+    
+    def eraseLayers(self):
+        self.layers = []
+    
+    def removeLastLayer(self,facetIndexs):
+        for facetIndex in facetIndexs:
+            if not self.layers[facetIndex]:
+                self.layers[facetIndex] = self.layers[facetIndex][:-1]
+            
+    def writeInMatrl(self):
         with open('matrl.txt','w') as file:
-            ntria = self.coordinatesData[NTRIA]
-            if not entrys:
-                for i in range(ntria):
+            if not self.entrys:
+                for i in range(self.ntria):
                     file.write("PEC,facet description,0,0,0,0,0\n")
             else:
-                for i in range(ntria):
-                    file.write(entrys[i])
+                for i in range(self.ntria):
+                    file.write(self.entrys[i])
               
         
     def calculate_RCS(self):
