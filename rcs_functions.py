@@ -400,7 +400,7 @@ def spherglobal2local(sphericalVector:np.array, T21:np.array):
 
     return cart2spher(cartVector)
 
-def reflectionCoefficientsComposite(thri,phrii,alpha,beta,freq, matrlLine):
+def reflectionCoefficientsComposite(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
     j = 1j
     matdata=matrlLine[MATERIALCOEFFICIENTS:]
     
@@ -448,7 +448,7 @@ def reflectionCoefficientsComposite(thri,phrii,alpha,beta,freq, matrlLine):
     
     return RCperp,RCpar
     
-def getReflectionCoefficientsFromMatrl(thri,phrii,alpha,beta,freq, matrlLine)->tuple[float,float]:
+def getReflectionCoefficientsFromMatrl(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list)->tuple[float,float]:
     RCperp = 0
     RCpar = 0
     if matrlLine[TYPE] == 'PEC':
@@ -467,7 +467,7 @@ def getReflectionCoefficientsFromMatrl(thri,phrii,alpha,beta,freq, matrlLine)->t
     
     return RCperp, RCpar
         
-def reflectionCoefficients(rs, th2, thri, phrii, alpha, beta, freq, matrlLine):
+def reflectionCoefficients(rs:int, th2:float, thri:float, phrii:float, alpha:float, beta:float, freq:float, matrlLine:list) -> tuple[float,float]:
     perp = 0
     para = 0
     
