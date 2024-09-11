@@ -245,7 +245,7 @@ class App(customtkinter.CTk):
 
         return simulationParamsList
 
-    def verifyStandartDeviation(self):
+    def verify_standart_deviation(self):
         wave = 3e8/(self.simulationParamsList[FREQUENCY])
 
         if self.simulationParamsList[STANDART_DEVIATION] > 0.1*wave:
@@ -253,21 +253,22 @@ class App(customtkinter.CTk):
             raise ValueError("Desvio padrão elevado")
 
     
-    def defineActionForEachResistivityCase(self):
-        self.entrys = []
+    def define_action_for_each_resistivity_case(self): #verificar se vai ser necessário abrir nova janela
+        self.entrysList = []
         if self.simulationParamsList[RESISTIVITY] == MATERIALESPECIFICO:
-            self.openMaterialEspecificationTab()
+            self.open_material_especification_tab()
         else:
-            self.writeInMatrl()
+            self.write_in_matrl()
             
-    def openMaterialEspecificationTab(self):
+    def open_material_especification_tab(self): 
         self.ntria = self.coordinatesData[NTRIA]
         self.types = ['PEC'] * self.ntria
         self.description = ['facet description'] * self.ntria
         self.layers = []
+        #  definir nova janela apartir daqui dentro
         
             
-    def getEntrysFromMaterialInterface(self):
+    def get_entrys_from_material_interface(self): #pegar informações da interface
         self.facetBeginIndex = 1
         self.facetEndIndex = 2
         self.type = "especifico"
@@ -277,16 +278,16 @@ class App(customtkinter.CTk):
         self.RelaPermeabilityReal = 2
         self.RelaPermeabilityImaginary = 2
     
-    def defineEntrysFromMaterialFile(self):
-        materialFile = 'buscar'
+    def define_entrysList_from_material_file(self):
+        materialFile = askopenfile(title="Selecionar um arquivo", filetypes=[("Text files", "*.txt")])
         with open(materialFile, 'r') as file:
             for line in file:
-                self.entrys.append(line)
+                self.entrysList.append(line)
         
-        self.writeInMatrl()
+        self.write_in_matrl()
         
-    def defineEntrysFromMaterialInterface(self):
-        self.getEntrysFromMaterialInterface()
+    def update_entrysList(self):
+        self.get_entrys_from_material_interface()
 
         for m in range(self.ntria):
             entry = [self.types[m],self.description[m]]
@@ -295,32 +296,41 @@ class App(customtkinter.CTk):
                     entry.append(value)
             
             self.entry = ','.join(self.entry)                
-            self.entrys.append(entry)
+            self.entrysList.append(entry)
         
-              
-        self.writeInMatrl()
+    def define_entrysList_from_material_interface(self):
+        self.update_entrysList()
+        self.write_in_matrl()
+   
         
-    
-    def addNewLayerOn(self,layerProperties,facetindexs):
+    def add_new_layerOn(self,layerProperties,facetindexs):
         for facetIndex in facetindexs:
             self.layers[facetIndex].append(layerProperties)
     
-    def eraseLayers(self):
+    def erase_layers(self):
         self.layers = []
     
-    def removeLastLayer(self,facetIndexs):
+    def remove_last_layer(self,facetIndexs):
         for facetIndex in facetIndexs:
             if not self.layers[facetIndex]:
                 self.layers[facetIndex] = self.layers[facetIndex][:-1]
+                
+    def get_current_material_properties(self): #exibir as informações armazenadas até agora
+        self.update_entrysList()
+        #vetor entrysList tem todas informações até agora
+        
             
-    def writeInMatrl(self):
+    def write_in_matrl(self):
         with open('matrl.txt','w') as file:
-            if not self.entrys:
+            if not self.entrysList:
                 for i in range(self.ntria):
                     file.write("PEC,facet description,0,0,0,0,0\n")
             else:
-                for i in range(self.ntria):
-                    file.write(self.entrys[i])
+                if self.ntria != len(self.entrysList):
+                    raise ValueError("Number of entrys in matrl diferent then number of facets")
+                else:
+                    for i in range(self.ntria):
+                        file.write(self.entrysList[i])
               
         
     def calculate_RCS(self):
