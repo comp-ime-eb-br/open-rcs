@@ -339,12 +339,13 @@ def G(n,w):
 def getEntrysFromMatrlFile():
     matrl = []
     with open('matrl.txt','r') as file:
-        i = 0
         for line in file:
             entrys = line.strip('\n')
             entrys = entrys.split(',')
-            entrys = [entrys[0],float(entrys[1]),float(entrys[2]),float(entrys[3]),float(entrys[4]),float(entrys[5])]
-            matrl.append(entrys)
+            formatedEntrys = [entrys[0],entrys[1]]
+            for entry in entrys[2:]:
+                formatedEntrys.append(float(entry))
+            matrl.append(formatedEntrys)
   
     return matrl
 

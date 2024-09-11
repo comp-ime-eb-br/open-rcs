@@ -199,7 +199,7 @@ class App(customtkinter.CTk):
         self.defineActionForEachResistivityCase()
         
         self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
-        print("3")
+
         self.restore_result_tab()
 
         self.show_results_on_interface()
@@ -260,7 +260,7 @@ class App(customtkinter.CTk):
             implementar aqui
             
             o Entrys deve ser uma lista de strings, onde string corresponde a 
-            uma facets e o formato da string deve ser "tipo,valor1,valor2,valor3,
+            uma facets e o formato da string deve ser "tipo,facet description,valor1,valor2,valor3,
             valor4,valor5". valor float representado no padrão americano(ex:5.23)
             
             '''
@@ -273,7 +273,7 @@ class App(customtkinter.CTk):
             ntria = self.coordinatesData[NTRIA]
             if not entrys:
                 for i in range(ntria):
-                    file.write("PEC, 0, 0, 0, 0, 0\n")
+                    file.write("PEC,facet description,0,0,0,0,0\n")
             else:
                 for i in range(ntria):
                     file.write(entrys[i])
