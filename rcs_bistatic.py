@@ -2,7 +2,7 @@ import numpy as np
 from rcs_functions import *
 
 
-def rcs_bistatic(params_entrys:list) -> tuple[str,list,list]:
+def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,list]:
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = params_entrys
     wave = 3e8 / freq
     # 2: correlation distance
@@ -14,10 +14,7 @@ def rcs_bistatic(params_entrys:list) -> tuple[str,list,list]:
     Co = 1  # wave amplitude at all vertices
 
     # processing coordinate data
-    x, y, z, xpts, ypts, zpts, nverts = read_coordinates()
-    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(rs)
-    vind = create_vind(node1, node2, node3)
-    r = calculate_r(x, y, z, nverts)
+    x, y, z, xpts, ypts, zpts, nverts, nfc, node1, node2, node3, iflag, ilum, Rs, ntria, vind, r = coordinatesData
 
     # pattern loop
     (
@@ -48,6 +45,9 @@ def rcs_bistatic(params_entrys:list) -> tuple[str,list,list]:
     phi, theta, U, V, W, e0, Sth, Sph = otherVectorComponents(ip, it)
 
     e0 = bi_incidentFieldCartesian(uui, vvi, wwi, cpi, spi, Et, Ep, e0)
+    
+
+    matrl = getEntrysFromMatrlFile()
 
     for i1 in range(ip):
         for i2 in range(it):
@@ -96,7 +96,7 @@ def rcs_bistatic(params_entrys:list) -> tuple[str,list,list]:
                         )
 
                         # reflection coefficients (Rs is normalized to eta0)
-                        perp, para = reflectionCoefficients(Rs, th2, m)
+                        perp, para = reflectionCoefficients(Rs, th2, thr, phr, alpha, beta, freq, matrl[m])
 
                         # surface current components in local Cartesian coordinates
                         Jx2 = -Et2 * cpi2 * para + Ep2 * spi2 * perp * cti2

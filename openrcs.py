@@ -8,7 +8,7 @@ import os
 from stl_module import *
 from rcs_monostatic import *
 from rcs_bistatic import *
-from rcs_functions import getParamsFromFile,FREQUENCY,STANDART_DEVIATION
+from rcs_functions import getParamsFromFile,FREQUENCY,STANDART_DEVIATION,RESISTIVITY,MATERIALESPECIFICO,NTRIA
 from thread_trace import thread_with_trace
 from gif import ImageLabel
 import warnings
@@ -22,7 +22,6 @@ class App(customtkinter.CTk):
         self.model = None
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.defineInterfaceComponents()
-        
         
     def defineInterfaceComponents(self):
         self.define_window_and_grid()
@@ -91,7 +90,7 @@ class App(customtkinter.CTk):
         self.monoipol = customtkinter.CTkOptionMenu(self.tabview.tab("Monoestático"), values=["TM-Z","TE-Z"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.monoipol.grid(row=2, column=0, padx=5, pady=(5,5))
         self.monoipol.set("Polarização")
-        self.monorest = customtkinter.CTkOptionMenu(self.tabview.tab("Monoestático"), values=["Transparente","Condutor Perfeito"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monorest = customtkinter.CTkOptionMenu(self.tabview.tab("Monoestático"), values=["Material Específico","Condutor Perfeito"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.monorest.grid(row=3, column=0, padx=5, pady=(5,5))
         self.monorest.set("Resistividade")
         self.monopstart = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Phi Inicial (º)")
@@ -127,7 +126,7 @@ class App(customtkinter.CTk):
         self.biipol = customtkinter.CTkOptionMenu(self.tabview.tab("Biestático"), dynamic_resizing=False, values=["TM-Z","TE-Z"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.biipol.grid(row=2, column=0, padx=5, pady=(5,5))
         self.biipol.set("Polarização")
-        self.birest = customtkinter.CTkOptionMenu(self.tabview.tab("Biestático"), values=["Transparente","Condutor Perfeito"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.birest = customtkinter.CTkOptionMenu(self.tabview.tab("Biestático"), values=["Material Específico","Condutor Perfeito"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.birest.grid(row=3, column=0, padx=5, pady=(5,5))
         self.birest.set("Resistividade")
         self.biphi = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Incidente (º)")
@@ -194,9 +193,13 @@ class App(customtkinter.CTk):
         self.verifyStandartDeviation()
 
         self.now = datetime.now().strftime("%Y%m%d%H%M%S")
-  
+        
+        self.coordinatesData = extractCoordinatesData(self.simulationParamsList[RESISTIVITY])
+        
+        self.defineActionForEachResistivityCase()
+        
         self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
-
+        print("3")
         self.restore_result_tab()
 
         self.show_results_on_interface()
@@ -229,7 +232,7 @@ class App(customtkinter.CTk):
 
         def convert_reisivity(rest):
             if rest == 'Condutor Perfeito': return 0
-            elif rest == 'Transparente': return 1
+            elif rest == 'Material Específico': return 1
 
         simulationParamsList = [self.model]
         
@@ -249,9 +252,36 @@ class App(customtkinter.CTk):
             messagebox.showerror("Desvio", "Desvio Padrão elevado")
             raise ValueError("Desvio padrão elevado")
 
+    def defineActionForEachResistivityCase(self):
+        if self.simulationParamsList[RESISTIVITY] == MATERIALESPECIFICO:
+            pass
+            Entrys = []
+            '''
+            implementar aqui
+            
+            o Entrys deve ser uma lista de strings, onde string corresponde a 
+            uma facets e o formato da string deve ser "tipo,valor1,valor2,valor3,
+            valor4,valor5". valor float representado no padrão americano(ex:5.23)
+            
+            '''
+            self.writeInMatrl(Entrys)
+        else:
+            self.writeInMatrl([])
+            
+    def writeInMatrl(self, entrys:list):
+        with open('matrl.txt','w') as file:
+            ntria = self.coordinatesData[NTRIA]
+            if not entrys:
+                for i in range(ntria):
+                    file.write("PEC, 0, 0, 0, 0, 0\n")
+            else:
+                for i in range(ntria):
+                    file.write(entrys[i])
+              
+        
     def calculate_RCS(self):
-        if self.method == 'monostatic': return rcs_monostatic(self.simulationParamsList)
-        elif self.method == 'bistatic': return rcs_bistatic(self.simulationParamsList)
+        if self.method == 'monostatic': return rcs_monostatic(self.simulationParamsList,self.coordinatesData)
+        elif self.method == 'bistatic': return rcs_bistatic(self.simulationParamsList,self.coordinatesData)
   
     def error_message_and_restore_tab(self,e):
         print(f"An error occurred: {str(e)}")
@@ -264,7 +294,6 @@ class App(customtkinter.CTk):
         if self.method == 'monostatic': self.monoerror.configure(text="")
         elif self.method == 'bistatic': self.bierror.configure(text="")
             
-
     def results_window(self):
         w,h=Image.open(self.plotpath).size
         plot= customtkinter.CTkImage(dark_image=Image.open(self.plotpath), size=(400,400*h/w))

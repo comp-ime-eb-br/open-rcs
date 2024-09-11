@@ -12,6 +12,12 @@ BIGGER_SIZE = 12
 INPUT_MODEL = 0
 FREQUENCY = 1
 STANDART_DEVIATION = 3
+RESISTIVITY = 5
+MATERIALESPECIFICO = 1
+TYPE = 0
+MATERIALCOEFFICIENTS = 1
+THETA = 1
+NTRIA = 14
 
 def getPolarization(incidentPolarization):
     if incidentPolarization == 0: # Theta-polarized (TM-z)
@@ -46,6 +52,19 @@ ytickLabel=SMALL_SIZE, legendSize=SMALL_SIZE, figureTitle=BIGGER_SIZE):
     plt.rc('ytick', labelsize=ytickLabel)    # fontsize of the tick labels
     plt.rc('legend', fontsize=legendSize)    # legend fontsize
     plt.rc('figure', titlesize=figureTitle)  
+
+def extractCoordinatesData(Rs):
+    x, y, z, xpts, ypts, zpts, nverts = read_coordinates()
+    
+    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(Rs)
+    
+    vind = create_vind(node1, node2, node3)
+    
+    r = calculate_r(x, y, z, nverts)
+    
+    coordinatesData = [x, y, z, xpts, ypts, zpts, nverts, nfc, node1, node2, node3, iflag, ilum, Rs, ntria, vind, r]
+    
+    return coordinatesData
 
 def getParamsFromFile(method):
     input_data_file = f"./input_files/input_data_file_{method}.dat"
@@ -309,20 +328,157 @@ def bi_phaseVerticeTriangle(x,y,z,vind,bk,m,u,v,w,ui,vi,wi):
     return(Dp,Dq,Do)
 
 def G(n,w):
-                        jw=1j*w
-                        g=(np.exp(jw)-1)/jw
-                        if n > 0:
-                            for m in range(1,n+1):
-                                go=g
-                                g=(cmath.exp(jw)-n*go)/jw
-                        return g
+    jw=1j*w
+    g=(np.exp(jw)-1)/jw
+    if n > 0:
+        for m in range(1,n+1):
+            go=g
+            g=(cmath.exp(jw)-n*go)/jw
+    return g
 
-def reflectionCoefficients(Rs, th2, m):
-                        perp=-1/(2*Rs[m]*math.cos(th2)+1)  #local TE polarization
-                        para=0  #local TM polarization
-                        if (2*Rs[m]+math.cos(th2))!=0:
-                            para=-math.cos(th2)/(2*Rs[m]+math.cos(th2))
-                        return perp, para
+def getEntrysFromMatrlFile():
+    matrl = []
+    with open('matrl.txt','r') as file:
+        i = 0
+        for line in file:
+            entrys = line.strip('\n')
+            entrys = entrys.split(',')
+            entrys = [entrys[0],float(entrys[1]),float(entrys[2]),float(entrys[3]),float(entrys[4]),float(entrys[5])]
+            matrl.append(entrys)
+  
+    return matrl
+
+def rotationTransfMatrix(alpha,beta):
+    T1=np.array([[np.cos(alpha), np.sin(alpha), 0],[-np.sin(alpha), np.cos(alpha), 0], [0, 0, 1]])
+    T2=np.array([[np.cos(beta), 0, -np.sin(beta)],[0,1,0], [np.sin(beta), 0, np.cos(beta)]])
+    return np.dot(T2,T1)
+
+def reflCoeff(er1,mr1,er2,mr2,thetai):
+    m0 = 4 * np.pi * 1e-7  # permeabilidade no vácuo
+    e0 = 8.854e-12  # permissividade no vácuo
+    
+    TIR = 0
+    sinthetat = np.sin(thetai) * np.sqrt(np.real(er1) * np.real(mr1) / (np.real(er2) * np.real(mr2)))
+
+    # Verificação de reflexão interna total (TIR)
+    if sinthetat > 1:
+        TIR = 1
+        thetat = np.pi / 2  # ângulo crítico
+    else:
+        thetat = np.arcsin(sinthetat)
+
+    # Cálculo de n1 e n2 (índices de refração)
+    n1 = np.sqrt(mr1 * m0 / (er1 * e0))
+    n2 = np.sqrt(mr2 * m0 / (er2 * e0))
+
+    # Cálculo de gammaperp e gammapar
+    gammaperp = (n2 * np.cos(thetai) - n1 * np.cos(thetat)) / (n2 * np.cos(thetai) + n1 * np.cos(thetat))
+    gammapar = (n2 * np.cos(thetat) - n1 * np.cos(thetai)) / (n2 * np.cos(thetat) + n1 * np.cos(thetai))
+    
+    return gammapar,gammaperp,thetat,TIR
+
+def spher2cart(sphericalVector:np.array) -> np.array:
+    R = sphericalVector[0]; theta = sphericalVector[1]; phi= sphericalVector[2]
+    x=R*np.sin(theta)*np.cos(phi)
+    y=R*np.sin(theta)*np.sin(phi)
+    z=R*np.cos(theta)
+    
+    return np.array([x,y,z])
+
+def cart2spher(cartVector:np.array) -> np.array:
+    x = cartVector[0]; y = cartVector[1]; z = cartVector[2]
+    R = np.sqrt(x**2+y**2+z**2)
+    theta = math.atan2(np.sqrt(x**2+y**2),z)
+    phi = math.atan2(y,x)
+    return np.array([R,theta,phi])
+
+def spherglobal2local(sphericalVector:np.array, T21:np.array):
+    cartVector = spher2cart(sphericalVector)
+
+    cartVector = np.dot(T21,cartVector)
+
+    return cart2spher(cartVector)
+
+def reflectionCoefficientsComposite(thri,phrii,alpha,beta,freq, matrlLine):
+    j = 1j
+    matdata=matrlLine[MATERIALCOEFFICIENTS:]
+    
+    er=matdata[0]-j*matdata[1]*matdata[0]
+    mr=matdata[2]-j*matdata[3]
+    t=matdata[4]*0.001
+       
+    T21=rotationTransfMatrix(alpha,beta)
+
+    sphericalVector = spherglobal2local(1,thri,phrii,T21)
+
+    G1par,G1perp,thetat,TIR = reflCoeff(1,1,er,mr,sphericalVector[THETA])
+ 
+    G2par=-G1par; G2perp=-G1perp
+
+    v=3e8/np.sqrt(np.real(er)*np.real(mr))
+    lamda=v/freq
+    b1=2*np.pi/lamda
+    phase=b1*t
+
+    M1par = np.array([
+        [np.exp(j * phase), G1par * np.exp(-j * phase)],
+        [G1par * np.exp(j * phase), np.exp(-j * phase)]
+    ])
+
+    M1perp = np.array([
+        [np.exp(j * phase), G1perp * np.exp(-j * phase)],
+        [G1perp * np.exp(j * phase), np.exp(-j * phase)]
+    ])
+
+    M2par = np.array([
+        [1, G2par],
+        [G2par, 1]
+    ])
+
+    M2perp = np.array([
+        [1, G2perp],
+        [G2perp, 1]
+    ])
+    Mpar=np.dot(M1par,M2par)
+    Mperp=np.dot(M1perp,M2perp)
+
+    RCpar=Mpar[1,0]/Mpar[0,0]
+    RCperp=Mperp[1,0]/Mperp[0,0]
+    
+    return RCperp,RCpar
+    
+def getReflectionCoefficientsFromMatrl(thri,phrii,alpha,beta,freq, matrlLine)->tuple[float,float]:
+    RCperp = 0
+    RCpar = 0
+    if matrlLine[TYPE] == 'PEC':
+        RCperp = -1
+        RCpar = -1
+        
+    elif matrlLine[TYPE] == 'Composite':
+       RCperp, RCpar = reflectionCoefficientsComposite(thri,phrii,alpha,beta,freq, matrlLine)
+        
+    elif matrlLine[TYPE] == 'Composite Layer on PEC':
+        pass
+    elif matrlLine[TYPE] == 'Multiple Layers':
+        pass
+    elif matrlLine[TYPE] == 'Multiple Layers on PEC':
+        pass
+    
+    return RCperp, RCpar
+        
+def reflectionCoefficients(rs, th2, thri, phrii, alpha, beta, freq, matrlLine):
+    perp = 0
+    para = 0
+    
+    if rs == MATERIALESPECIFICO:
+        perp, para = getReflectionCoefficientsFromMatrl(thri,phrii, alpha, beta, freq, matrlLine)
+    else:               
+        perp=-1/(2*rs*math.cos(th2)+1)  #local TE polarization
+        para=0  #local TM polarization
+        if (2*rs+math.cos(th2))!=0:
+            para=-math.cos(th2)/(2*rs+math.cos(th2))
+    
+    return perp, para
 
 def incidentFieldSphericalCoordinates(th2,e2,phi2):
                         Et2=e2[0]*math.cos(th2)*math.cos(phi2)+e2[1]*math.cos(th2)*math.sin(phi2)-e2[2]*math.sin(th2)

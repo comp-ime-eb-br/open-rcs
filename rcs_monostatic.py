@@ -2,7 +2,7 @@ import math
 import numpy as np
 from rcs_functions import *
 
-def rcs_monostatic(params_entrys:list)-> tuple[str,list,list]:
+def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,list]:
     input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt = params_entrys
     wave = 3e8/freq
     
@@ -18,13 +18,7 @@ def rcs_monostatic(params_entrys:list)-> tuple[str,list,list]:
     Co=1  # wave amplitude at all verticesFRe
     
     # processing coordinate data 
-    x, y, z, xpts, ypts, zpts, nverts = read_coordinates()
-    
-    nfc, node1, node2, node3, iflag, ilum, Rs, ntria = read_facets(Rs)
-    
-    vind = create_vind(node1, node2, node3)
-    
-    r = calculate_r(x, y, z, nverts)
+    x, y, z, xpts, ypts, zpts, nverts, nfc, node1, node2, node3, iflag, ilum, Rs, ntria, vind, r = coordinatesData
     
     # pattern loop
     Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
@@ -32,6 +26,8 @@ def rcs_monostatic(params_entrys:list)-> tuple[str,list,list]:
     N,d,Area,beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
     phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it)
     
+    matrl = getEntrysFromMatrlFile()
+
     for i1 in range(ip):
         for i2 in range(it):
             phi[i1,i2]=pstart+(i1)*delp
@@ -69,9 +65,9 @@ def rcs_monostatic(params_entrys:list)-> tuple[str,list,list]:
                         # incident field in local spherical coordinates
                         Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
 
-                        # reflection coefficients (Rs is normalized to eta0)
-                        perp, para = reflectionCoefficients(Rs, th2, m)
-                        
+                        # reflection coefficients (Rs is normalized to eta0)   
+                        perp, para = reflectionCoefficients(Rs[m], th2, thr, phr, alpha[m], beta[m], freq, matrl[m])
+  
                         # surface current components in local Cartesian coordinates
                         Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp*math.cos(th2));   # math.cos(th2) removed
                         Jy2=(-Et2*math.sin(phi2)*para-Ep2*math.cos(phi2)*perp*math.cos(th2));   # math.cos(th2) removed
@@ -97,7 +93,6 @@ def rcs_monostatic(params_entrys:list)-> tuple[str,list,list]:
     param = plotParameters("Monostatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
     now, file_name = generateResultFiles(theta, Sth, phi,Sph, param, ip)
     plot_name = finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth_grafico,Sph_grafico,U,V,now, input_model, "Monostatic")
-    
     return plot_name, fig_name, file_name
 
 
