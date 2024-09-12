@@ -29,6 +29,7 @@ class App(customtkinter.CTk):
         self.define_description_frame_and_tabview()
         self.define_monostatic_inputs()
         self.define_bistatic_inputs()
+        self.define_material_inputs()
         self.define_results_frame()
 
     def define_window_and_grid(self):
@@ -73,6 +74,75 @@ class App(customtkinter.CTk):
         self.tabview.tab("Monoestático").grid_columnconfigure((0,1,2), weight=0)
         self.tabview.tab("Biestático").grid_columnconfigure((0,1,2), weight=0)
 
+    def define_material_inputs(self):
+        material_window = tk.Toplevel(self)
+
+        material_window.title("Características do Material")
+        self.wm_iconbitmap()
+        self.iconphoto(True, ImageTk.PhotoImage(file="./img/logo_openrcs.png"))
+        self.geometry(f"{500}x{600}")
+        self.resizable(True,True)
+        self.minsize(300, 400)
+       
+        
+        self.material_text = customtkinter.CTkLabel(material_window, text="Selecione o Tipo de Material")
+        self.material_text.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
+
+        self.material_type = customtkinter.CTkOptionMenu(material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layerrs on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.material_type.grid(row=1, column=0, padx=20, pady=(20,20), sticky="ew")
+
+        self.material_ffacet = customtkinter.CTkLabel(material_window, text="First Facet")
+        self.material_ffacet.grid(row=2, column=0, padx=5, pady=(5,5), sticky="ew")
+
+        self.ffacet_entry = customtkinter.CTkEntry(material_window, placeholder_text="All")
+        self.ffacet_entry.grid(row=3, column=0, padx=5, pady=(5, 5))
+
+
+        self.material_lfacet = customtkinter.CTkLabel(material_window, text="Last Facet")
+        self.material_lfacet.grid(row=2, column=1, padx=5, pady=(5,5), sticky="ew")
+
+        self.lfacet_entry = customtkinter.CTkEntry(material_window, placeholder_text="All")
+        self.lfacet_entry.grid(row=3, column=1, padx=5, pady=(5, 5))
+
+        self.material_perms = customtkinter.CTkLabel(material_window, text="Permissividade")
+        self.material_perms.grid(row=4, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
+
+        self.material_relperms = customtkinter.CTkLabel(material_window, text="Rel. Permissividade")
+        self.material_relperms.grid(row=5, column=0, padx=5, pady=(5,5), sticky="ew")
+
+        self.perms_entry = customtkinter.CTkEntry(material_window)
+        self.perms_entry.grid(row=6, column=0, padx=5, pady=(5, 5))
+
+        self.material_losstang = customtkinter.CTkLabel(material_window, text="Loss Tangent")
+        self.material_losstang.grid(row=5, column=1, padx=5, pady=(5,5), sticky="ew")
+
+        self.losstang_entry = customtkinter.CTkEntry(material_window)
+        self.losstang_entry.grid(row=6, column=1, padx=5, pady=(5, 5))
+
+        self.material_perm = customtkinter.CTkLabel(material_window, text="Permeabilidade")
+        self.material_perm.grid(row=7, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
+
+        self.material_real = customtkinter.CTkLabel(material_window, text="Parte Real")
+        self.material_real.grid(row=8, column=0, padx=5, pady=(5,5), sticky="ew")
+
+        self.real_entry = customtkinter.CTkEntry(material_window)
+        self.real_entry.grid(row=9, column=0, padx=5, pady=(5, 5))
+
+        self.material_imag = customtkinter.CTkLabel(material_window, text="Parte Imaginária")
+        self.material_imag.grid(row=8, column=1, padx=5, pady=(5,5), sticky="ew")
+
+        self.imag_entry = customtkinter.CTkEntry(material_window)
+        self.imag_entry.grid(row=9, column=1, padx=5, pady=(5, 5),)
+
+        self.material_thick = customtkinter.CTkLabel(material_window, text="Grossura (mm)")
+        self.material_thick.grid(row=10, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
+
+        self.thick_entry = customtkinter.CTkEntry(material_window)
+        self.thick_entry.grid(row=11, column=1, padx=5, pady=(5, 5))
+
+
+
+    
     def define_monostatic_inputs(self):
         self.monomodel_text = "\n⬆\nUpload Modelo (.stl)\n"
         self.monotext = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="Insira os dados para o cálculo monoestático da RCS estimada")
@@ -199,7 +269,7 @@ class App(customtkinter.CTk):
         self.defineActionForEachResistivityCase()
         
         self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
-
+        print("3")
         self.restore_result_tab()
 
         self.show_results_on_interface()
@@ -260,7 +330,7 @@ class App(customtkinter.CTk):
             implementar aqui
             
             o Entrys deve ser uma lista de strings, onde string corresponde a 
-            uma facets e o formato da string deve ser "tipo,facet description,valor1,valor2,valor3,
+            uma facets e o formato da string deve ser "tipo,valor1,valor2,valor3,
             valor4,valor5". valor float representado no padrão americano(ex:5.23)
             
             '''
@@ -273,7 +343,7 @@ class App(customtkinter.CTk):
             ntria = self.coordinatesData[NTRIA]
             if not entrys:
                 for i in range(ntria):
-                    file.write("PEC,facet description,0,0,0,0,0\n")
+                    file.write("PEC, 0, 0, 0, 0, 0\n")
             else:
                 for i in range(ntria):
                     file.write(entrys[i])
