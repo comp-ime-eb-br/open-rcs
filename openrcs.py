@@ -177,16 +177,6 @@ class App(customtkinter.CTk):
         material_window.grid_columnconfigure(1, weight=1)
        
     
-
-        '''
-        self.wm_iconbitmap()
-        self.iconphoto(True, ImageTk.PhotoImage(file="./img/logo_openrcs.png"))
-        self.geometry(f"{500}x{600}")
-        self.resizable(True,True)
-        self.minsize(300, 400)
-        '''
-       
-        
         self.material_text = customtkinter.CTkLabel(material_window, text="Selecione o Tipo de Material")
         self.material_text.grid(row=0, column=0,columnspan=2, padx=10, pady=10)
 
@@ -236,8 +226,9 @@ class App(customtkinter.CTk):
         self.button_removelayer = customtkinter.CTkButton(material_window, text="Remover Último Layer")
         self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
 
-        self.thick_entry = customtkinter.CTkEntry(material_window)
-        self.thick_entry.grid(row=11, column=1, padx=5, pady=(5, 5))
+        self.button_continue = customtkinter.CTkButton(material_window, text="Calcular RCS")
+        self.button_continue.grid(row=13, column=0,columnspan=2, padx=5, pady=(5,5))
+
 
     def generate_and_show_results(self,method,inputFont):
         try:
