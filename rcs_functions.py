@@ -337,7 +337,7 @@ def G(n,w):
             g=(cmath.exp(jw)-n*go)/jw
     return g
 
-def getEntrysFromMatrlFile():
+def getEntrysFromMatrlFile(ntria:int) -> list:
     matrl = []
     with open('matrl.txt','r') as file:
         for line in file:
@@ -347,7 +347,8 @@ def getEntrysFromMatrlFile():
             for entry in entrys[2:]:
                 formatedEntrys.append(float(entry))
             matrl.append(formatedEntrys)
-  
+    if len(matrl) != ntria:
+        raise ValueError("Number of entrys in matrl diferent from number of facets.")
     return matrl
 
 def rotationTransfMatrix(alpha,beta):

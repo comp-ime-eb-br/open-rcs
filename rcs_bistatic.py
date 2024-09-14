@@ -47,7 +47,7 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
     e0 = bi_incidentFieldCartesian(uui, vvi, wwi, cpi, spi, Et, Ep, e0)
     
 
-    matrl = getEntrysFromMatrlFile()
+    matrl = getEntrysFromMatrlFile(ntria)
 
     for i1 in range(ip):
         for i2 in range(it):
@@ -193,4 +193,5 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
 
 if __name__ == "__main__":
     param_list = getParamsFromFile('bistatic')
+    coord_list = extractCoordinatesData()
     rcs_bistatic(param_list)

@@ -1,3 +1,4 @@
+import time
 import customtkinter, shutil
 from tkinter.filedialog import askopenfile
 from customtkinter import ThemeManager
@@ -168,17 +169,19 @@ class App(customtkinter.CTk):
         material_window = tk.Toplevel(self)
 
         material_window.title("Características do Material")
+        '''
         self.wm_iconbitmap()
         self.iconphoto(True, ImageTk.PhotoImage(file="./img/logo_openrcs.png"))
         self.geometry(f"{500}x{600}")
         self.resizable(True,True)
         self.minsize(300, 400)
+        '''
        
         
         self.material_text = customtkinter.CTkLabel(material_window, text="Selecione o Tipo de Material")
         self.material_text.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
 
-        self.material_type = customtkinter.CTkOptionMenu(material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layerrs on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.material_type = customtkinter.CTkOptionMenu(material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layers on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.material_type.grid(row=1, column=0, padx=20, pady=(20,20), sticky="ew")
 
         self.material_ffacet = customtkinter.CTkLabel(material_window, text="First Facet")
@@ -224,11 +227,12 @@ class App(customtkinter.CTk):
         self.imag_entry = customtkinter.CTkEntry(material_window)
         self.imag_entry.grid(row=9, column=1, padx=5, pady=(5, 5),)
 
-        self.material_thick = customtkinter.CTkLabel(material_window, text="Grossura (mm)")
+        self.material_thick = customtkinter.CTkLabel(material_window, text="Espessura (mm)")
         self.material_thick.grid(row=10, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
 
         self.thick_entry = customtkinter.CTkEntry(material_window)
         self.thick_entry.grid(row=11, column=1, padx=5, pady=(5, 5))
+        
 
     def generate_and_show_results(self,method,inputFont):
         try:
@@ -238,11 +242,12 @@ class App(customtkinter.CTk):
 
         self.method = method # monostatic or bistatic
         self.inputFont = inputFont # interface or inputFile
-
-        self.initiate_thread_generate_and_show_results_event() 
-    
-    def initiate_thread_generate_and_show_results_event(self):
-        self.thread = thread_with_trace(target=self.generate_and_show_results_event)
+        
+        self.initiate_thread_for_function(self.generate_and_show_results_event)
+        
+        
+    def initiate_thread_for_function(self, function):
+        self.thread = thread_with_trace(target=function)
         self.thread.start()
         self.result_tab_loading()
 
@@ -252,24 +257,18 @@ class App(customtkinter.CTk):
 
         except Exception as e:
             self.error_message_and_restore_tab(e)
-
+            
     def generate_and_show_rcs_results(self):
         self.update_simulation_params_list()
         
-        self.verifyStandartDeviation()
+        self.verify_standart_deviation()
 
         self.now = datetime.now().strftime("%Y%m%d%H%M%S")
         
         self.coordinatesData = extractCoordinatesData(self.simulationParamsList[RESISTIVITY])
         
-        self.defineActionForEachResistivityCase()
-        
-        self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
-
-        self.restore_result_tab()
-
-        self.show_results_on_interface()
-
+        self.define_action_for_each_resistivity_case()
+              
     def update_simulation_params_list(self):
         if self.inputFont == 'interface':
             self.simulationParamsList = self.getParamsFromInterface()
@@ -318,22 +317,30 @@ class App(customtkinter.CTk):
             messagebox.showerror("Desvio", "Desvio Padrão elevado")
             raise ValueError("Desvio padrão elevado")
 
-    
     def define_action_for_each_resistivity_case(self): #verificar se vai ser necessário abrir nova janela
         self.entrysList = []
+        self.ntria = self.coordinatesData[NTRIA]
+        
         if self.simulationParamsList[RESISTIVITY] == MATERIALESPECIFICO:
             self.open_material_especification_tab()
         else:
             self.write_in_matrl()
+            self.calculate_and_show_rcs_results()
             
     def open_material_especification_tab(self): 
-        self.ntria = self.coordinatesData[NTRIA]
         self.types = ['PEC'] * self.ntria
         self.description = ['facet description'] * self.ntria
         self.layers = []
-        #  definir nova janela apartir daqui dentro
+        self.define_material_inputs()
+        self.end_generate_attempt()
         
-            
+    def calculate_and_show_rcs_results(self):
+        self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
+
+        self.restore_result_tab()
+
+        self.show_results_on_interface()
+        
     def get_entrys_from_material_interface(self): #pegar informações da interface
         self.facetBeginIndex = 1
         self.facetEndIndex = 2
