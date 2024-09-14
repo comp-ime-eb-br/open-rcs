@@ -199,8 +199,8 @@ class App(customtkinter.CTk):
         self.material_perms = customtkinter.CTkLabel(material_window, text="Permissividade")
         self.material_perms.grid(row=4, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.perms_entry = customtkinter.CTkEntry(material_window, placeholder_text="Rel. Permissividade")
-        self.perms_entry.grid(row=6, column=0, padx=5, pady=(5, 5))
+        self.relperm_entry = customtkinter.CTkEntry(material_window, placeholder_text="Rel. Permissividade")
+        self.relperm_entry.grid(row=6, column=0, padx=5, pady=(5, 5))
 
         self.losstang_entry = customtkinter.CTkEntry(material_window, placeholder_text="Loss Tangent")
         self.losstang_entry.grid(row=6, column=1, padx=5, pady=(5, 5))
@@ -220,15 +220,14 @@ class App(customtkinter.CTk):
         self.thick_entry = customtkinter.CTkEntry(material_window, placeholder_text="Espessura")
         self.thick_entry.grid(row=11, column=0,columnspan=2, padx=5, pady=(5, 5))
 
-        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer")
+        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer", command=lambda: self.add_new_layerOn())
         self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
 
-        self.button_removelayer = customtkinter.CTkButton(material_window, text="Remover Último Layer")
+        self.button_removelayer = customtkinter.CTkButton(material_window, text="Remover Último Layer", command=lambda: self.remove_last_layer())
         self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
 
-        self.button_continue = customtkinter.CTkButton(material_window, text="Calcular RCS")
+        self.button_continue = customtkinter.CTkButton(material_window, text="Calcular RCS",command=lambda: self.run_write_matrl_and_calculate_rcs())
         self.button_continue.grid(row=13, column=0,columnspan=2, padx=5, pady=(5,5))
-
 
     def generate_and_show_results(self,method,inputFont):
         try:
@@ -338,15 +337,21 @@ class App(customtkinter.CTk):
         self.show_results_on_interface()
         
     def get_entrys_from_material_interface(self): #pegar informações da interface
-        self.facetBeginIndex = 1
-        self.facetEndIndex = 2
-        self.type = "especifico"
-        self.tickness = 2
-        self.RelPermittivity = 2
-        self.lossTangent = 2
-        self.RelaPermeabilityReal = 2
-        self.RelaPermeabilityImaginary = 2
+        self.facetBeginIndex = float(getattr(self, f"ffacet_entry").get())
+        self.facetEndIndex = float(getattr(self, f"lfacet_entry").get())
+        self.type = getattr(self, f"material_type").get()
+        self.tickness = float(getattr(self, f"thick_entry").get())
+        self.RelPermittivity = float(getattr(self, f"relperm_entry").get())
+        self.lossTangent = float(getattr(self, f"losstang_entry").get())
+        self.RelaPermeabilityReal = float(getattr(self, f"real_entry").get())
+        self.RelaPermeabilityImaginary = float(getattr(self, f"imag_entry").get())
+        print(self.facetBeginIndex,self.facetEndIndex,self.type,self.tickness,self.RelPermittivity,self.lossTangent,self.RelaPermeabilityReal,self.RelaPermeabilityImaginary)
     
+    def run_write_matrl_and_calculate_rcs(self):
+        self.get_entrys_from_material_interface()
+        self.write_in_matrl()
+        self.calculate_and_show_rcs_results()
+
     def define_entrysList_from_material_file(self):
         materialFile = askopenfile(title="Selecionar um arquivo", filetypes=[("Text files", "*.txt")])
         with open(materialFile, 'r') as file:
