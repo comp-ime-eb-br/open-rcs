@@ -30,6 +30,7 @@ class App(customtkinter.CTk):
         self.define_monostatic_inputs()
         self.define_bistatic_inputs()
         self.define_results_frame()
+        self.define_material_inputs()
 
     def define_window_and_grid(self):
         self.title("Open RCS")
@@ -168,67 +169,69 @@ class App(customtkinter.CTk):
         material_window = tk.Toplevel(self)
 
         material_window.title("Características do Material")
-        self.wm_iconbitmap()
-        self.iconphoto(True, ImageTk.PhotoImage(file="./img/logo_openrcs.png"))
-        self.geometry(f"{500}x{600}")
-        self.resizable(True,True)
-        self.minsize(300, 400)
+        material_window.wm_iconbitmap()
+        material_window.iconphoto(True, ImageTk.PhotoImage(file="./img/logo_openrcs.png"))
+        material_window.resizable(True,True)
+        material_window.grid_columnconfigure(0, weight=1)
+        material_window.grid_columnconfigure(1, weight=1)
        
-        
-        self.material_text = customtkinter.CTkLabel(material_window, text="Selecione o Tipo de Material")
-        self.material_text.grid(row=0, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
+    
 
-        self.material_type = customtkinter.CTkOptionMenu(material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layerrs on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.material_type.grid(row=1, column=0, padx=20, pady=(20,20), sticky="ew")
+        self.material_text = customtkinter.CTkLabel(material_window, text="Selecione o Tipo de Material")
+        self.material_text.grid(row=0, column=0,columnspan=2, padx=10, pady=10)
+
+        self.material_type = customtkinter.CTkOptionMenu(material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layers on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.material_type.grid(row=1, column=0, columnspan=2, padx=5, pady=(5,5))
 
         self.material_ffacet = customtkinter.CTkLabel(material_window, text="First Facet")
-        self.material_ffacet.grid(row=2, column=0, padx=5, pady=(5,5), sticky="ew")
+        self.material_ffacet.grid(row=2, column=0, padx=5, pady=(5,5))
 
         self.ffacet_entry = customtkinter.CTkEntry(material_window, placeholder_text="All")
         self.ffacet_entry.grid(row=3, column=0, padx=5, pady=(5, 5))
 
 
         self.material_lfacet = customtkinter.CTkLabel(material_window, text="Last Facet")
-        self.material_lfacet.grid(row=2, column=1, padx=5, pady=(5,5), sticky="ew")
+        self.material_lfacet.grid(row=2, column=1, padx=5, pady=(5,5))
 
         self.lfacet_entry = customtkinter.CTkEntry(material_window, placeholder_text="All")
         self.lfacet_entry.grid(row=3, column=1, padx=5, pady=(5, 5))
 
         self.material_perms = customtkinter.CTkLabel(material_window, text="Permissividade")
-        self.material_perms.grid(row=4, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
+        self.material_perms.grid(row=4, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.material_relperms = customtkinter.CTkLabel(material_window, text="Rel. Permissividade")
-        self.material_relperms.grid(row=5, column=0, padx=5, pady=(5,5), sticky="ew")
-
-        self.perms_entry = customtkinter.CTkEntry(material_window)
+        self.perms_entry = customtkinter.CTkEntry(material_window, placeholder_text="Rel. Permissividade")
         self.perms_entry.grid(row=6, column=0, padx=5, pady=(5, 5))
 
-        self.material_losstang = customtkinter.CTkLabel(material_window, text="Loss Tangent")
-        self.material_losstang.grid(row=5, column=1, padx=5, pady=(5,5), sticky="ew")
-
-        self.losstang_entry = customtkinter.CTkEntry(material_window)
+        self.losstang_entry = customtkinter.CTkEntry(material_window, placeholder_text="Loss Tangent")
         self.losstang_entry.grid(row=6, column=1, padx=5, pady=(5, 5))
 
         self.material_perm = customtkinter.CTkLabel(material_window, text="Permeabilidade")
         self.material_perm.grid(row=7, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
 
-        self.material_real = customtkinter.CTkLabel(material_window, text="Parte Real")
-        self.material_real.grid(row=8, column=0, padx=5, pady=(5,5), sticky="ew")
-
-        self.real_entry = customtkinter.CTkEntry(material_window)
+        self.real_entry = customtkinter.CTkEntry(material_window, placeholder_text="Parte Real")
         self.real_entry.grid(row=9, column=0, padx=5, pady=(5, 5))
 
-        self.material_imag = customtkinter.CTkLabel(material_window, text="Parte Imaginária")
-        self.material_imag.grid(row=8, column=1, padx=5, pady=(5,5), sticky="ew")
+        self.imag_entry = customtkinter.CTkEntry(material_window, placeholder_text="Parte Imaginária")
+        self.imag_entry.grid(row=9, column=1, padx=5, pady=(5, 5))
 
-        self.imag_entry = customtkinter.CTkEntry(material_window)
-        self.imag_entry.grid(row=9, column=1, padx=5, pady=(5, 5),)
+        self.material_thick = customtkinter.CTkLabel(material_window, text="Espessura (mm)")
+        self.material_thick.grid(row=10, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.material_thick = customtkinter.CTkLabel(material_window, text="Grossura (mm)")
-        self.material_thick.grid(row=10, column=0, columnspan=3, padx=5, pady=(5,5), sticky="ew")
+        self.thick_entry = customtkinter.CTkEntry(material_window, placeholder_text="Espessura")
+        self.thick_entry.grid(row=11, column=0,columnspan=2, padx=5, pady=(5, 5))
 
-        self.thick_entry = customtkinter.CTkEntry(material_window)
-        self.thick_entry.grid(row=11, column=1, padx=5, pady=(5, 5))
+        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer")
+        self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
+
+        self.button_removelayer = customtkinter.CTkButton(material_window, text="Remover Último Layer")
+        self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
+
+        self.button_continue = customtkinter.CTkButton(material_window, text="Calcular RCS")
+        self.button_continue.grid(row=13, column=0,columnspan=2, padx=5, pady=(5,5))
+
+
+
+
 
     def generate_and_show_results(self,method,inputFont):
         try:
