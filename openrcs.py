@@ -229,8 +229,17 @@ class App(customtkinter.CTk):
         self.material_message = customtkinter.CTkLabel(material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
 
+        self.button_openconfig = customtkinter.CTkButton(material_window, text="Abrir Configuração", command=lambda: self.define_entrysList_from_material_file())
+        self.button_openconfig.grid(row=14, column=0, padx=5, pady=(5,5))
+
+        self.button_actualconfig = customtkinter.CTkButton(material_window, text="Configuração Atual", command=lambda: self.show_actual_material_config())
+        self.button_actualconfig.grid(row=14, column=1, padx=5, pady=(5,5))
+
+        self.button_saveconfig = customtkinter.CTkButton(material_window, text="Salvar", command=lambda: self.save_current_material_properties())
+        self.button_saveconfig.grid(row=15, column=0, padx=5, pady=(5,5))
+
         self.button_continue = customtkinter.CTkButton(material_window, text="Calcular RCS",command=lambda: self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs))
-        self.button_continue.grid(row=14, column=0,columnspan=2, padx=5, pady=(5,5))
+        self.button_continue.grid(row=15, column=1,columnspan=2, padx=5, pady=(5,5))
         
         self.button_addlayer.grid_remove()
         self.button_removelayer.grid_remove()
@@ -266,7 +275,10 @@ class App(customtkinter.CTk):
         self.inputFont = inputFont # interface or inputFile
         
         self.initiate_thread_for_function(self.generate_and_show_results_event)
-        
+    
+    def show_actual_material_config(self):
+        print(self.entrysList)
+        print(self.layers)
         
     def initiate_thread_for_function(self, function):
         self.thread = thread_with_trace(target=function)
