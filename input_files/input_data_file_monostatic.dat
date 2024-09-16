@@ -1,5 +1,5 @@
 # input model (stl_models)
-airplane.stl
+sidewinder.stl
 # 1 radar frequency(GHz)
 162.4
 # 2 correlation distance in meters
@@ -9,7 +9,7 @@ airplane.stl
 # 4 incident wave polarization 
 0
 # 5 material resistivity
-1
+0
 # 6 start phi angle in degrees
 0
 # 7 stop phi angle in degrees

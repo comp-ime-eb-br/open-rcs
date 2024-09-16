@@ -31,7 +31,7 @@ class App(customtkinter.CTk):
         self.define_monostatic_inputs()
         self.define_bistatic_inputs()
         self.define_results_frame()
-        self.define_material_inputs()
+        #self.define_material_inputs()
 
     def define_window_and_grid(self):
         self.title("Open RCS")
@@ -229,7 +229,7 @@ class App(customtkinter.CTk):
         self.material_message = customtkinter.CTkLabel(material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.button_continue = customtkinter.CTkButton(material_window, text="Calcular RCS",command=lambda: self.run_write_matrl_and_calculate_rcs())
+        self.button_continue = customtkinter.CTkButton(material_window, text="Calcular RCS",command=lambda: self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs))
         self.button_continue.grid(row=14, column=0,columnspan=2, padx=5, pady=(5,5))
         
         self.button_addlayer.grid_remove()
@@ -255,6 +255,7 @@ class App(customtkinter.CTk):
         elif choice == "Multiple Layers on PEC":
             self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
             self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
+    
     def generate_and_show_results(self,method,inputFont):
         try:
             self.reset_event()
@@ -378,6 +379,7 @@ class App(customtkinter.CTk):
         
     def run_write_matrl_and_calculate_rcs(self):
         if self.get_entrys_from_material_interface():
+            self.update_entrysList()
             save_list_in_file(self.entrysList,'matrl.txt')
             self.calculate_and_show_rcs_results()
 
@@ -414,7 +416,7 @@ class App(customtkinter.CTk):
                     for value in layer:
                         entry.append(value)
             
-            self.entry = ','.join(self.entry)                
+            entry = ','.join(entry)                
             self.entrysList.append(entry)
         
     def define_entrysList_from_material_interface(self):
@@ -432,9 +434,9 @@ class App(customtkinter.CTk):
     
     def reset_all_material_lists_and_define_type(self,type):
         self.entrysList = []
-        self.types = [type for _ in self.ntria]
-        self.description = ['facet description' for _ in self.ntria]
-        self.layers = [[] for _ in self.ntria]
+        self.types = [type for _ in range(self.ntria)]
+        self.description = ['facet description' for _ in range(self.ntria)]
+        self.layers = [[] for _ in range(self.ntria)]
         
     def remove_last_layer(self):
         self.get_facets_indexs()
