@@ -1,6 +1,6 @@
 import time
 import customtkinter, shutil
-from tkinter.filedialog import askopenfile
+from tkinter.filedialog import askopenfile, asksaveasfilename
 from customtkinter import ThemeManager
 from tkinter import messagebox
 from PIL import Image, ImageTk
@@ -180,7 +180,7 @@ class App(customtkinter.CTk):
         self.material_text = customtkinter.CTkLabel(material_window, text="Selecione o Tipo de Material")
         self.material_text.grid(row=0, column=0,columnspan=2, padx=10, pady=10)
 
-        self.material_type = customtkinter.CTkOptionMenu(material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layers on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.material_type = customtkinter.CTkOptionMenu(material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layers on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'], command=self.on_select_material_type)
         self.material_type.grid(row=1, column=0, columnspan=2, padx=5, pady=(5,5))
 
         self.material_ffacet = customtkinter.CTkLabel(material_window, text="First Facet")
@@ -220,15 +220,41 @@ class App(customtkinter.CTk):
         self.thick_entry = customtkinter.CTkEntry(material_window, placeholder_text="Espessura")
         self.thick_entry.grid(row=11, column=0,columnspan=2, padx=5, pady=(5, 5))
 
-        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer", command=lambda: self.add_new_layerOn())
+        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer", command=lambda: self.add_new_layer())
         self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
 
         self.button_removelayer = customtkinter.CTkButton(material_window, text="Remover Último Layer", command=lambda: self.remove_last_layer())
         self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
+        
+        self.material_message = customtkinter.CTkLabel(material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
+        self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
 
         self.button_continue = customtkinter.CTkButton(material_window, text="Calcular RCS",command=lambda: self.run_write_matrl_and_calculate_rcs())
-        self.button_continue.grid(row=13, column=0,columnspan=2, padx=5, pady=(5,5))
-
+        self.button_continue.grid(row=14, column=0,columnspan=2, padx=5, pady=(5,5))
+        
+        self.button_addlayer.grid_remove()
+        self.button_removelayer.grid_remove()
+        
+    def on_select_material_type(self,choice):
+        if choice == "PEC":
+            self.button_addlayer.grid_remove()
+            self.button_removelayer.grid_remove()
+            
+        elif choice == "Composite":
+            self.button_addlayer.grid_remove()
+            self.button_removelayer.grid_remove()
+            
+        elif choice == "Composite Layer on PEC":
+            self.button_addlayer.grid_remove()
+            self.button_removelayer.grid_remove()
+            
+        elif choice == "Multiple Layers":
+            self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
+            self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
+            
+        elif choice == "Multiple Layers on PEC":
+            self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
+            self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
     def generate_and_show_results(self,method,inputFont):
         try:
             self.reset_event()
@@ -313,19 +339,17 @@ class App(customtkinter.CTk):
             raise ValueError("Desvio padrão elevado")
 
     def define_action_for_each_resistivity_case(self): #verificar se vai ser necessário abrir nova janela
-        self.entrysList = []
         self.ntria = self.coordinatesData[NTRIA]
+        self.reset_all_material_lists_and_define_type('PEC')
         
         if self.simulationParamsList[RESISTIVITY] == MATERIALESPECIFICO:
             self.open_material_especification_tab()
         else:
-            self.write_in_matrl()
+            self.update_entrysList()
+            save_list_in_file(self.entrysList,'matrl.txt')
             self.calculate_and_show_rcs_results()
             
     def open_material_especification_tab(self): 
-        self.types = ['PEC'] * self.ntria
-        self.description = ['facet description'] * self.ntria
-        self.layers = []
         self.define_material_inputs()
         self.end_generate_attempt()
         
@@ -337,76 +361,99 @@ class App(customtkinter.CTk):
         self.show_results_on_interface()
         
     def get_entrys_from_material_interface(self): #pegar informações da interface
-        self.facetBeginIndex = float(getattr(self, f"ffacet_entry").get())
-        self.facetEndIndex = float(getattr(self, f"lfacet_entry").get())
-        self.type = getattr(self, f"material_type").get()
-        self.tickness = float(getattr(self, f"thick_entry").get())
-        self.RelPermittivity = float(getattr(self, f"relperm_entry").get())
-        self.lossTangent = float(getattr(self, f"losstang_entry").get())
-        self.RelaPermeabilityReal = float(getattr(self, f"real_entry").get())
-        self.RelaPermeabilityImaginary = float(getattr(self, f"imag_entry").get())
-        print(self.facetBeginIndex,self.facetEndIndex,self.type,self.tickness,self.RelPermittivity,self.lossTangent,self.RelaPermeabilityReal,self.RelaPermeabilityImaginary)
-    
+        try:
+            self.get_facets_indexs()
+            self.type = getattr(self, f"material_type").get()
+            self.thickness = float(getattr(self, f"thick_entry").get())
+            self.RelPermittivity = float(getattr(self, f"relperm_entry").get())
+            self.lossTangent = float(getattr(self, f"losstang_entry").get())
+            self.RelaPermeabilityReal = float(getattr(self, f"real_entry").get())
+            self.RelaPermeabilityImaginary = float(getattr(self, f"imag_entry").get())
+            print(self.facetBeginIndex,self.facetEndIndex,self.type,self.thickness,self.RelPermittivity,self.lossTangent,self.RelaPermeabilityReal,self.RelaPermeabilityImaginary)
+            return True
+        
+        except Exception as e:
+            self.material_message.configure(text="Entradas inválidas")
+            return False
+        
     def run_write_matrl_and_calculate_rcs(self):
-        self.get_entrys_from_material_interface()
-        self.write_in_matrl()
-        self.calculate_and_show_rcs_results()
+        if self.get_entrys_from_material_interface():
+            save_list_in_file(self.entrysList,'matrl.txt')
+            self.calculate_and_show_rcs_results()
 
     def define_entrysList_from_material_file(self):
         materialFile = askopenfile(title="Selecionar um arquivo", filetypes=[("Text files", "*.txt")])
+        self.entrysList = []
         with open(materialFile, 'r') as file:
             for line in file:
                 self.entrysList.append(line)
         
-        self.write_in_matrl()
+        if len(self.entrysList) != self.ntria:
+            raise ValueError("Number of entrys in matrl diferent then number of facets")
+    
+        save_list_in_file(self.entrysList,'matrl.txt')
+        
+    def save_current_material_properties(self):
+        file_path = asksaveasfilename(defaultextension=".txt", 
+                                             filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+        self.get_entrys_from_material_interface()
+        
+        self.update_entrysList()
+        
+        save_list_in_file(self.entrysList,file_path)
         
     def update_entrysList(self):
-        self.get_entrys_from_material_interface()
-
+        self.entrysList = []
         for m in range(self.ntria):
             entry = [self.types[m],self.description[m]]
             for layer in self.layers[m]:
-                for value in layer:
-                    entry.append(value)
+                if len(layer) == 0:
+                    for _ in range(5):
+                        entry.append(0)
+                else:
+                    for value in layer:
+                        entry.append(value)
             
             self.entry = ','.join(self.entry)                
             self.entrysList.append(entry)
         
     def define_entrysList_from_material_interface(self):
+        self.get_entrys_from_material_interface()
         self.update_entrysList()
-        self.write_in_matrl()
-   
-        
-    def add_new_layerOn(self,layerProperties,facetindexs):
-        for facetIndex in facetindexs:
+        save_list_in_file(self.entrysList,'matrl.txt')
+    
+    def add_new_layer(self):
+        self.get_entrys_from_material_interface()
+        layerProperties = [self.RelPermittivity, self.lossTangent, self.RelaPermeabilityReal, self.RelaPermeabilityImaginary, self.thickness]
+        for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
             self.layers[facetIndex].append(layerProperties)
+        self.material_message.configure(text="Nova layer adicionada com sucesso")
+        
     
-    def erase_layers(self):
-        self.layers = []
-    
-    def remove_last_layer(self,facetIndexs):
-        for facetIndex in facetIndexs:
+    def reset_all_material_lists_and_define_type(self,type):
+        self.entrysList = []
+        self.types = [type for _ in self.ntria]
+        self.description = ['facet description' for _ in self.ntria]
+        self.layers = [[] for _ in self.ntria]
+        
+    def remove_last_layer(self):
+        self.get_facets_indexs()
+        for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
             if not self.layers[facetIndex]:
                 self.layers[facetIndex] = self.layers[facetIndex][:-1]
-                
+        
+        self.material_message.configure(text="Remoção realizada com sucesso")
+            
+        
+    def get_facets_indexs(self):
+        self.facetBeginIndex = int(getattr(self, f"ffacet_entry").get())
+        self.facetEndIndex = int(getattr(self, f"lfacet_entry").get())
+        
     def get_current_material_properties(self): #exibir as informações armazenadas até agora
+        self.get_entrys_from_material_interface()
         self.update_entrysList()
         #vetor entrysList tem todas informações até agora
-        
-            
-    def write_in_matrl(self):
-        with open('matrl.txt','w') as file:
-            if not self.entrysList:
-                for i in range(self.ntria):
-                    file.write("PEC,facet description,0,0,0,0,0\n")
-            else:
-                if self.ntria != len(self.entrysList):
-                    raise ValueError("Number of entrys in matrl diferent then number of facets")
-                else:
-                    for i in range(self.ntria):
-                        file.write(self.entrysList[i])
-              
-        
+                  
     def calculate_RCS(self):
         if self.method == 'monostatic': return rcs_monostatic(self.simulationParamsList,self.coordinatesData)
         elif self.method == 'bistatic': return rcs_bistatic(self.simulationParamsList,self.coordinatesData)

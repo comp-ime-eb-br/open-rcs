@@ -337,6 +337,12 @@ def G(n,w):
             g=(cmath.exp(jw)-n*go)/jw
     return g
 
+def save_list_in_file(especific_list:list,especific_file:str) -> None :
+    with open(especific_file,'w') as file:
+        for line in especific_list:
+            line_as_str = ','.join(map(str, line))
+            file.write(line_as_str + '\n')
+
 def getEntrysFromMatrlFile(ntria:int) -> list:
     matrl = []
     with open('matrl.txt','r') as file:
