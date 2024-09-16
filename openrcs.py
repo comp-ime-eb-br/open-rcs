@@ -220,7 +220,7 @@ class App(customtkinter.CTk):
         self.thick_entry = customtkinter.CTkEntry(material_window, placeholder_text="Espessura")
         self.thick_entry.grid(row=11, column=0,columnspan=2, padx=5, pady=(5, 5))
 
-        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer", command=lambda: self.add_new_layer())
+        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer", command=lambda: self.add_new_layer_event_event())
         self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
 
         self.button_removelayer = customtkinter.CTkButton(material_window, text="Remover Último Layer", command=lambda: self.remove_last_layer())
@@ -361,7 +361,7 @@ class App(customtkinter.CTk):
 
         self.show_results_on_interface()
         
-    def get_entrys_from_material_interface(self): #pegar informações da interface
+    def get_entrys_from_material_interface(self):
         try:
             self.get_facets_indexs()
             self.type = getattr(self, f"material_type").get()
@@ -406,37 +406,45 @@ class App(customtkinter.CTk):
         
     def update_entrysList(self):
         self.entrysList = []
+        self.add_current_layer()
+        self.update_material_types()
+        
         for m in range(self.ntria):
             entry = [self.types[m],self.description[m]]
-            for layer in self.layers[m]:
-                if len(layer) == 0:
-                    for _ in range(5):
-                        entry.append(0)
-                else:
-                    for value in layer:
-                        entry.append(value)
             
-            entry = ','.join(entry)                
-            self.entrysList.append(entry)
+            if self.layers[m] == []:
+               for _ in range(5):
+                        entry.append('0') 
+                        
+            for layer in self.layers[m]:
+                for value in layer:
+                    entry.append(str(value))
+                        
+            entry_str = ''            
+            for x in entry:
+                entry_str = entry_str + x +','
+            print(entry_str[:-1])  
+                       
+            self.entrysList.append(entry_str[:-1])
+      
+    def update_material_types(self):
+        for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
+            self.types[facetIndex] = self.type
         
     def define_entrysList_from_material_interface(self):
         self.get_entrys_from_material_interface()
         self.update_entrysList()
         save_list_in_file(self.entrysList,'matrl.txt')
     
-    def add_new_layer(self):
+    def add_new_layer_event(self):
         self.get_entrys_from_material_interface()
+        self.add_current_layer()
+        self.material_message.configure(text="Nova layer adicionada com sucesso")
+    
+    def add_current_layer(self):
         layerProperties = [self.RelPermittivity, self.lossTangent, self.RelaPermeabilityReal, self.RelaPermeabilityImaginary, self.thickness]
         for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
             self.layers[facetIndex].append(layerProperties)
-        self.material_message.configure(text="Nova layer adicionada com sucesso")
-        
-    
-    def reset_all_material_lists_and_define_type(self,type):
-        self.entrysList = []
-        self.types = [type for _ in range(self.ntria)]
-        self.description = ['facet description' for _ in range(self.ntria)]
-        self.layers = [[] for _ in range(self.ntria)]
         
     def remove_last_layer(self):
         self.get_facets_indexs()
@@ -445,17 +453,17 @@ class App(customtkinter.CTk):
                 self.layers[facetIndex] = self.layers[facetIndex][:-1]
         
         self.material_message.configure(text="Remoção realizada com sucesso")
-            
-        
+                  
     def get_facets_indexs(self):
         self.facetBeginIndex = int(getattr(self, f"ffacet_entry").get())
         self.facetEndIndex = int(getattr(self, f"lfacet_entry").get())
-        
-    def get_current_material_properties(self): #exibir as informações armazenadas até agora
-        self.get_entrys_from_material_interface()
-        self.update_entrysList()
-        #vetor entrysList tem todas informações até agora
-                  
+    
+    def reset_all_material_lists_and_define_type(self,type):
+        self.entrysList = []
+        self.types = [type for _ in range(self.ntria)]
+        self.description = ['facet description' for _ in range(self.ntria)]
+        self.layers = [[] for _ in range(self.ntria)]
+             
     def calculate_RCS(self):
         if self.method == 'monostatic': return rcs_monostatic(self.simulationParamsList,self.coordinatesData)
         elif self.method == 'bistatic': return rcs_bistatic(self.simulationParamsList,self.coordinatesData)
