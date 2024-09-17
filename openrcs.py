@@ -220,7 +220,7 @@ class App(customtkinter.CTk):
         self.thick_entry = customtkinter.CTkEntry(material_window, placeholder_text="Espessura")
         self.thick_entry.grid(row=11, column=0,columnspan=2, padx=5, pady=(5, 5))
 
-        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer", command=lambda: self.add_new_layer_event_event())
+        self.button_addlayer = customtkinter.CTkButton(material_window, text="Add Layer", command=lambda: self.add_new_layer_event())
         self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
 
         self.button_removelayer = customtkinter.CTkButton(material_window, text="Remover Último Layer", command=lambda: self.remove_last_layer())
@@ -452,7 +452,7 @@ class App(customtkinter.CTk):
         self.get_entrys_from_material_interface()
         self.add_current_layer()
         self.material_message.configure(text="Nova layer adicionada com sucesso")
-    
+        
     def add_current_layer(self):
         layerProperties = [self.RelPermittivity, self.lossTangent, self.RelaPermeabilityReal, self.RelaPermeabilityImaginary, self.thickness]
         for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
@@ -461,14 +461,26 @@ class App(customtkinter.CTk):
     def remove_last_layer(self):
         self.get_facets_indexs()
         for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
-            if not self.layers[facetIndex]:
+            if self.layers[facetIndex]:
                 self.layers[facetIndex] = self.layers[facetIndex][:-1]
+            else:
+                print("Layer vazio")
         
         self.material_message.configure(text="Remoção realizada com sucesso")
                   
     def get_facets_indexs(self):
-        self.facetBeginIndex = int(getattr(self, f"ffacet_entry").get())
-        self.facetEndIndex = int(getattr(self, f"lfacet_entry").get())
+        # Obtém o valor da entrada de facetBegin e facetEnd
+        ffacet_value = getattr(self, "ffacet_entry").get()
+        lfacet_value = getattr(self, "lfacet_entry").get()
+
+        # Define valores padrão para facetBegin e facetEnd
+        default_begin = 1
+        default_end = self.ntria
+
+        # Atribui os valores às variáveis de índice, verificando se os campos estão vazios
+        self.facetBeginIndex = int(ffacet_value) if ffacet_value.strip() else default_begin
+        self.facetEndIndex = int(lfacet_value) if lfacet_value.strip() else default_end
+
     
     def reset_all_material_lists_and_define_type(self,type):
         self.entrysList = []
