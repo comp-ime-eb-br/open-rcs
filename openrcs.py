@@ -277,33 +277,30 @@ class App(customtkinter.CTk):
         self.initiate_thread_for_function(self.generate_and_show_results_event)
     
     def show_actual_material_config(self):
-        print(self.entrysList)
-        print(self.layers)
         self.material_actual_configuration = tk.Toplevel(self.material_window)
         self.material_actual_configuration.title("Características do Atual do Material")
         self.material_actual_configuration.wm_iconbitmap()
         self.material_actual_configuration.iconphoto(True, ImageTk.PhotoImage(file="./img/logo_openrcs.png"))
-        self.material_actual_configuration.resizable(False,False)
-        self.material_actual_configuration.geometry("670x300")
+        self.material_actual_configuration.resizable(False, False)
         self.material_actual_configuration.grid_columnconfigure(0, weight=1)
         self.material_actual_configuration.grid_columnconfigure(1, weight=1)
        
         self.canvas = customtkinter.CTkCanvas(self.material_actual_configuration)
-        self.canvas.grid(row=0, column=0, columnspan=3, padx=(10, 10), pady=(10, 10), sticky="nsew")
+        self.canvas.grid(row=0, column=0, columnspan=2, padx=(10, 10), pady=(10, 10), sticky="nsew")
 
         # Scrollbar para o Canvas
         scrollbar = customtkinter.CTkScrollbar(self.material_actual_configuration, orientation="vertical", command=self.canvas.yview)
-        scrollbar.grid(row=0, column=3, sticky="ns")
+        scrollbar.grid(row=0, column=2, sticky="ns")
 
         self.canvas.configure(yscrollcommand=scrollbar.set)
 
         self.table_inner_frame = customtkinter.CTkFrame(self.canvas)
 
-        columns = ["Material", "Descr", "PermisRel", "LossTan", "PermeaRelReal", "PermeaRelImg", "Espes"]
+        columns = ["Material", "Descrição", "Permis. Relat.", "Loss Tang.", "Permea. Rela. Real", "Permea. Rela. Img", "Espess."]
         for col_index, col_name in enumerate(columns):
             header_label = customtkinter.CTkLabel(self.table_inner_frame, text=col_name, font=customtkinter.CTkFont(weight="bold"))
             header_label.grid(row=0, column=col_index, padx=5, pady=5)
-        ''' para teste
+        
         data = [
             ["Composite", "facet description", 0.1, 1.0, 1.0, 0.0, 0.5],
             ["Composite Layer", "layer description", 0.2, 2.0, 1.5, 0.0, 0.4],
@@ -322,13 +319,7 @@ class App(customtkinter.CTk):
             ["Layer 12", "description 12", 1.4, 3.8, 3.2, 1.0, 1.5],
             ["Layer 13", "description 13", 1.5, 4.0, 3.4, 1.1, 1.6]
         ]
-        '''
-        data = []
-        for line in self.entrysList:
-            entrys = line.strip('\n')
-            entrys = entrys.split(',')
-            data.append(entrys)
-              
+        
         for row_index, row_data in enumerate(data):
             for col_index, cell_data in enumerate(row_data):
                 cell_label = customtkinter.CTkLabel(self.table_inner_frame, text=str(cell_data))
@@ -340,8 +331,8 @@ class App(customtkinter.CTk):
         self.table_inner_frame.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
         self.table_width = self.table_inner_frame.winfo_reqwidth()
-        self.table_height = self.table_inner_frame.winfo_reqheight()
-        self.canvas.config(scrollregion=(0, 0, self.table_width, self.table_height))
+        row_height = self.table_inner_frame.winfo_children()[0].winfo_reqheight()  # Altura de uma linha
+        self.material_actual_configuration.geometry(f"{self.table_width+30}x{row_height*9+50}") 
         
     
     def initiate_thread_for_function(self, function):
