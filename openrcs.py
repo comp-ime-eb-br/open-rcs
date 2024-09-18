@@ -439,7 +439,6 @@ class App(customtkinter.CTk):
             return True
         
         except Exception as e:
-            self.material_message.configure(text="Entradas inválidas")
             return False
         
     def run_write_matrl_and_calculate_rcs(self):
@@ -498,16 +497,13 @@ class App(customtkinter.CTk):
     def update_material_types(self):
         for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
             self.types[facetIndex] = self.type
-        
-    def define_entrysList_from_material_interface(self):
-        if self.get_entrys_from_material_interface():
-            self.update_entrysList()
-            save_list_in_file(self.entrysList,'matrl.txt')
     
     def add_new_layer_event(self):
-        self.get_entrys_from_material_interface()
-        self.add_current_layer()
-        self.material_message.configure(text="Nova layer adicionada com sucesso")
+        if self.get_entrys_from_material_interface():
+            self.add_current_layer()
+            self.material_message.configure(text="Nova layer adicionada com sucesso")
+        else:
+            self.material_message.configure(text="Entradas inválidas")
         
     def add_current_layer(self):
         layerProperties = [self.RelPermittivity, self.lossTangent, self.RelaPermeabilityReal, self.RelaPermeabilityImaginary, self.thickness]
@@ -518,14 +514,23 @@ class App(customtkinter.CTk):
         
     def remove_last_layer(self):
         try :
+            remove_some_layer = False
             for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
-                if len(self.layers[facetIndex]) != 0:
+                tamanho = len(self.layers[facetIndex])
+                if tamanho > 0:
                     self.layers[facetIndex].pop()
-                else:
-                    self.material_message.configure(text="Sem mais layers a remover")
-            self.update_entrysList()
-            self.material_message.configure(text="Remoção realizada com sucesso")
-        
+                    remove_some_layer = True
+                    
+                    if tamanho - 1 == 0:
+                        self.entrysList[facetIndex][0] = "PEC"
+                    
+                    
+            if remove_some_layer:
+                self.material_message.configure(text="Remoção realizada com sucesso")
+                self.update_entrysList()
+            else:
+                self.material_message.configure(text="Sem mais layers a remover")
+                
         except Exception as e:
             self.material_message.configure(text="Sem mais layers a remover")
                   
