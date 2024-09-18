@@ -266,7 +266,8 @@ class App(customtkinter.CTk):
         if self.get_entrys_from_material_interface():
             self.add_current_layer()
             self.define_actual_material_frame()
-            self.remove_last_layer()     
+            self.remove_last_layer()
+            self.material_message.configure(text="")   
         else:
             if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.entrysList != []:
                 self.define_actual_material_frame()
@@ -465,12 +466,20 @@ class App(customtkinter.CTk):
         self.calculate_and_show_rcs_results()
         
     def save_current_material_properties(self):
-        file_path = asksaveasfilename(defaultextension=".txt", 
-                                             filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
         if self.get_entrys_from_material_interface():
-            self.update_material_types()
-            self.update_entrysList()
+            self.add_current_layer()
+            file_path = asksaveasfilename(defaultextension=".txt", 
+                                             filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
             save_list_in_file(self.entrysList,file_path)
+            self.remove_last_layer()
+            self.material_message.configure(text="")
+        
+        elif (self.type == "Multiple Layers" or self.type == "Multiple Layers on PEC") and len(self.entrysList) > 0:
+            file_path = asksaveasfilename(defaultextension=".txt", 
+                                             filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+            save_list_in_file(self.entrysList,file_path)
+        else:
+            self.material_message.configure(text="Sem camadas incluídas.")
         
     def update_entrysList(self):
         self.entrysList = []
@@ -510,7 +519,7 @@ class App(customtkinter.CTk):
     def remove_last_layer(self):
         try :
             for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
-                if self.layers[facetIndex]:
+                if len(self.layers[facetIndex]) != 0:
                     self.layers[facetIndex].pop()
                 else:
                     self.material_message.configure(text="Sem mais layers a remover")
