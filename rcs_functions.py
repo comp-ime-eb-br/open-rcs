@@ -449,13 +449,12 @@ def spherglobal2local(sphericalVector:np.array, T21:np.array):
 
     return cart2spher(cartVector)
 
-def reflectionCoefficientsComposite(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
-    j = 1j
-    matdata=matrlLine[LAYERS]
+def reflCoeffCompo(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
+    layer=matrlLine[LAYERS]
     
-    er=matdata[0]-j*matdata[1]*matdata[0]
-    mr=matdata[2]-j*matdata[3]
-    t=matdata[4]*0.001
+    er=layer[0]-1j*layer[1]*layer[0]
+    mr=layer[2]-1j*layer[3]
+    t=layer[4]*0.001
        
     T21=rotationTransfMatrix(alpha,beta)
 
@@ -466,18 +465,18 @@ def reflectionCoefficientsComposite(thri:float,phrii:float,alpha:float,beta:floa
     G2par=-G1par; G2perp=-G1perp
 
     v=3e8/np.sqrt(np.real(er)*np.real(mr))
-    lamda=v/freq
-    b1=2*np.pi/lamda
+    wave=v/freq
+    b1=2*np.pi/wave
     phase=b1*t
 
     M1par = np.array([
-        [np.exp(j * phase), G1par * np.exp(-j * phase)],
-        [G1par * np.exp(j * phase), np.exp(-j * phase)]
+        [np.exp(1j * phase), G1par * np.exp(-1j * phase)],
+        [G1par * np.exp(1j * phase), np.exp(-1j * phase)]
     ])
 
     M1perp = np.array([
-        [np.exp(j * phase), G1perp * np.exp(-j * phase)],
-        [G1perp * np.exp(j * phase), np.exp(-j * phase)]
+        [np.exp(1j * phase), G1perp * np.exp(-1j * phase)],
+        [G1perp * np.exp(1j * phase), np.exp(-1j * phase)]
     ])
 
     M2par = np.array([
@@ -489,6 +488,7 @@ def reflectionCoefficientsComposite(thri:float,phrii:float,alpha:float,beta:floa
         [1, G2perp],
         [G2perp, 1]
     ])
+
     Mpar=np.dot(M1par,M2par)
     Mperp=np.dot(M1perp,M2perp)
 
@@ -497,7 +497,208 @@ def reflectionCoefficientsComposite(thri:float,phrii:float,alpha:float,beta:floa
     
     return RCperp,RCpar
     
-def getReflectionCoefficientsFromMatrl(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list)->tuple[float,float]:
+def reflCoeffCompoLayerOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
+    layers=matrlLine[LAYERS:]
+    
+    T21=rotationTransfMatrix(alpha,beta)
+    sphericalVector = spherglobal2local(1,thri,phrii,T21)
+
+    PEC = np.array([
+         [1, 0],
+         [-1, 0]
+    ])
+
+    WMatrix_par = np.eye(2)
+    WMatrix_perp = np.eye(2)
+    Z0 = 1
+    wave = 3e8/freq
+    B0 = 2*np.pi/wave
+    thinc = sphericalVector[THETA]
+    
+    Z_par = []
+    Z_perp = []
+    Beta = []
+    gamma_par = []
+    gamma_perp = []
+    tau_par = []
+    tau_perp = []
+
+    for i,layer in enumerate(layers):
+          erp = layer[0]
+          erdp = erp*layer[1]
+          erc = erp - 1j*erdp
+          urp = layer[2]
+          urdp = layer[3]
+          urc = urp - 1j*urdp
+          t = layer[4]*1e-3
+          
+          Z_par[i] = np.sqrt(erc/urc-np.sin(thinc)**2)/(erc/urc*np.cos(thinc))
+          Z_perp[i] = np.cos(thinc)/np.sqrt(erc/urc-np.sin(thinc)**2)
+          Beta[i] = 2*np.pi/(wave/np.sqrt(np.real(erc)*np.real(urc)))                                
+          
+          if(i == 0):
+            gamma_par[i] = (Z_par[i]-Z0)/(Z_par[i]+Z0)
+            tau_par[i] = 1 + gamma_par[i]
+            gamma_perp[i] = (Z_perp[i]-Z0)/(Z_perp[i]+Z0)
+            tau_perp[i] = 1 + gamma_perp[i]
+            phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+            
+          else:  
+            gamma_par[i] = (Z_par[i]-Z_par[i])/(Z_par[i]+Z_par[i])
+            tau_par[i] = 1 + gamma_par[i]
+            gamma_perp[i] = (Z_perp[i]-Z_perp[i])/(Z_perp[i]+Z_perp[i])
+            tau_perp[i] = 1 + gamma_perp[i]
+            phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+        
+          T_par = np.array([
+            [np.exp(1j*phi_calc), gamma_par[i]*np.exp(-1j*phi_calc)],
+            [gamma_par[i]*np.exp(1j*phi_calc),    np.exp(-1j*phi_calc)]
+          ])
+
+          WMatrix_par =1/tau_par[i]*WMatrix_par*T_par
+          
+          T_perp = np.array([
+               [np.exp(1j*phi_calc), gamma_perp[i]*np.exp(-1j*phi_calc)],
+               [gamma_perp[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
+          ])
+
+          WMatrix_perp = 1/tau_perp[i]*WMatrix_perp*T_perp
+     
+          WMatrix_par = WMatrix_par*PEC
+          WMatrix_perp = WMatrix_perp*PEC
+
+          RCperp = WMatrix_perp[1,0]/WMatrix_perp[0,0]
+          RCpar = WMatrix_par[1,0]/WMatrix_par[0,0]
+    return RCperp,RCpar
+
+
+def reflCoeffMultiLayers(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
+
+    T21=rotationTransfMatrix(alpha,beta)
+    sphericalVector=spherglobal2local(1,thri,phrii,T21)
+    layers=matrlLine[LAYERS:]
+    Mpar=np.eye(2); Mperp=np.eye(2)
+    
+    er = []; mr = []; t = []; thetat = []
+    
+    for i,layer in enumerate(layers):
+        er[i]=layer[0]-1j*layer[1]*layer[0]
+        mr[i]=layer[2]-1j*layer[3]
+        t[i]=layer[4]*0.001
+
+        if i==0:
+            Gpar, Gperp, thetat[i], TIR = reflCoeff(1,1,er[i],mr[i],sphericalVector[THETA])
+        else:
+            Gpar, Gperp, thetat[i], TIR = reflCoeff(er[i],mr[i],er[i],mr[i],thetat[i])
+           
+        v=3e8/np.sqrt(np.real(er[i])*np.real(mr[i]))
+        wave=v/freq
+        b1=2*np.pi/wave
+        phase=b1*t[i]
+
+        Mpar=Mpar*np.array([
+             [np.exp(1j*phase), Gpar*np.exp(-1j*phase)],
+             [Gpar*np.exp(1j*phase), np.exp(-1j*phase)]
+        ])
+        Mperp=Mperp*np.array([
+             [np.exp(1j*phase), Gperp*np.exp(-1j*phase)],
+             [Gperp*np.exp(1j*phase), np.exp(-1j*phase)]
+        ])
+
+    Gpar, Gperp, thetatdum, TIR = reflCoeff(er[-1],mr[-1],1,1,thetat[-1])
+    
+    Mpar = Mpar*np.array([
+         [np.exp(1j*phase), Gpar*np.exp(-1j*phase)],
+         [Gpar*np.exp(1j*phase), np.exp(-1j*phase)]
+    ])
+    Mperp = Mperp*np.array([
+         [np.exp(1j*phase), Gperp*np.exp(-1j*phase)],
+         [Gperp*np.exp(1j*phase), np.exp(-1j*phase)]
+    ])
+        
+    RCpar=Mpar[1,0]/Mpar[0,0]
+    RCperp=Mperp[1,0]/Mperp[0,0]
+    return RCperp, RCpar
+
+def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
+    T21=rotationTransfMatrix(alpha,beta)
+    sphericalVector=spherglobal2local(1,thri,phrii,T21)
+    layers=matrlLine[LAYERS:]
+    Mpar = np.eye(2); Mperp = np.eye(2)
+     
+    PEC = np.array([
+        [1, 0], 
+        [-1, 0]
+    ])
+
+    WMatrix_par = np.eye(2)
+    WMatrix_perp = np.eye(2)
+
+    Z0 = 1
+    wave = 3e8/freq
+    B0 = 2*np.pi/wave
+    thinc = sphericalVector[THETA]
+     
+    Z_par = []
+    Z_perp = []
+    Beta = []
+    gamma_par = []
+    gamma_perp = []
+    tau_par = []
+    tau_perp = []
+     
+    for i,layer in enumerate(layers):
+        erp = layer[0]
+        erdp = erp*layer[1]
+        erc = erp - 1j*erdp
+        urp = layer[2]
+        urdp = layer[3]
+        urc = urp - 1j*urdp
+        t = layer[4]*1e-3
+         
+        Z_par[i] = np.sqrt(erc/urc-np.sin(thinc)**2)/(erc/urc*np.cos(thinc))
+        Z_perp[i] = np.cos(thinc)/np.sqrt(erc/urc-np.sin(thinc)**2)  
+        Beta[i] = 2*np.pi/(wave/np.sqrt(np.real(erc)*np.real(urc))) 
+         
+        if i == 0:
+            gamma_par[i] = (Z_par[i]-Z0)/(Z_par[i]+Z0)
+            tau_par[i] = 1 + gamma_par[i]
+            gamma_perp[i] = (Z_perp[i]-Z0)/(Z_perp[i]+Z0)
+            tau_perp[i] = 1 + gamma_perp[i]
+            
+            phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+        else:
+            gamma_par[i] = (Z_par[i]-Z_par[i])/(Z_par[i]+Z_par[i])
+            tau_par[i] = 1 + gamma_par[i]
+            gamma_perp[i] = (Z_perp[i]-Z_perp[i])/(Z_perp[i]+Z_perp[i])
+            tau_perp[i] = 1 + gamma_perp[i]
+            phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+         
+
+        T_par = np.array([
+            [np.exp(1j*phi_calc), gamma_par[i]*np.exp(-1j*phi_calc)],
+            [gamma_par[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
+         ])
+          
+        WMatrix_par = 1/tau_par[i]*WMatrix_par*T_par
+         
+        T_perp = np.array([
+            [np.exp(1j*phi_calc), gamma_perp[i]*np.exp(-1j*phi_calc)],
+            [gamma_perp[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
+         ])
+          
+        WMatrix_perp = 1/tau_perp[i]*WMatrix_perp*T_perp
+     
+    WMatrix_par = WMatrix_par*PEC
+    WMatrix_perp = WMatrix_perp*PEC
+     
+    RCpar=Mpar[1,0]/Mpar[0,0]
+    RCperp=Mperp[1,0]/Mperp[0,0]
+
+    return RCperp, RCpar
+
+
+def getReflCoeffFromMatrl(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list)->tuple[float,float]:
     RCperp = 0
     RCpar = 0
     if matrlLine[TYPE] == 'PEC':
@@ -505,14 +706,17 @@ def getReflectionCoefficientsFromMatrl(thri:float,phrii:float,alpha:float,beta:f
         RCpar = -1
         
     elif matrlLine[TYPE] == 'Composite':
-       RCperp, RCpar = reflectionCoefficientsComposite(thri,phrii,alpha,beta,freq, matrlLine)
+       RCperp, RCpar = reflCoeffCompo(thri,phrii,alpha,beta,freq, matrlLine)
         
     elif matrlLine[TYPE] == 'Composite Layer on PEC':
-        pass
+        RCperp, RCpar = reflCoeffCompoLayerOnPEC(thri,phrii,alpha,beta,freq, matrlLine)
+
     elif matrlLine[TYPE] == 'Multiple Layers':
-        pass
+        RCperp, RCpar = reflCoeffMultiLayers(thri,phrii,alpha,beta,freq, matrlLine)
+
     elif matrlLine[TYPE] == 'Multiple Layers on PEC':
-        pass
+        RCperp, RCpar = reflCoeffMultiLayersOnPEC(thri,phrii,alpha,beta,freq, matrlLine)
+
     
     return RCperp, RCpar
         
@@ -521,7 +725,7 @@ def reflectionCoefficients(rs:int, th2:float, thri:float, phrii:float, alpha:flo
     para = 0
     
     if rs == MATERIALESPECIFICO:
-        perp, para = getReflectionCoefficientsFromMatrl(thri,phrii, alpha, beta, freq, matrlLine)
+        perp, para = getReflCoeffFromMatrl(thri,phrii, alpha, beta, freq, matrlLine)
     else:               
         perp=-1/(2*rs*math.cos(th2)+1)  #local TE polarization
         para=0  #local TM polarization
