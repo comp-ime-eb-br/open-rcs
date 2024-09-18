@@ -589,7 +589,7 @@ def reflCoeffMultiLayers(thri:float,phrii:float,alpha:float,beta:float,freq:floa
         if i==0:
             Gpar, Gperp, thetat[i], TIR = reflCoeff(1,1,er[i],mr[i],sphericalVector[THETA])
         else:
-            Gpar, Gperp, thetat[i], TIR = reflCoeff(er[i],mr[i],er[i],mr[i],thetat[i])
+            Gpar, Gperp, thetat[i], TIR = reflCoeff(er[i-1],mr[i-1],er[i],mr[i],thetat[i-1])
            
         v=3e8/np.sqrt(np.real(er[i])*np.real(mr[i]))
         wave=v/freq
@@ -668,9 +668,9 @@ def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq
             
             phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
         else:
-            gamma_par[i] = (Z_par[i]-Z_par[i])/(Z_par[i]+Z_par[i])
+            gamma_par[i] = (Z_par[i]-Z_par[i-1])/(Z_par[i]+Z_par[i-1])
             tau_par[i] = 1 + gamma_par[i]
-            gamma_perp[i] = (Z_perp[i]-Z_perp[i])/(Z_perp[i]+Z_perp[i])
+            gamma_perp[i] = (Z_perp[i]-Z_perp[i-1])/(Z_perp[i]+Z_perp[i-1])
             tau_perp[i] = 1 + gamma_perp[i]
             phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
          
