@@ -243,25 +243,16 @@ class App(customtkinter.CTk):
         self.button_removelayer.grid_remove()
         
     def on_select_material_type(self,choice):
-        if choice == "PEC":
+        self.reset_all_material_lists_and_define_type("PEC")
+        
+        if choice == "PEC" or choice == "Composite" or choice == "Composite Layer on PEC":
             self.button_addlayer.grid_remove()
             self.button_removelayer.grid_remove()
             
-        elif choice == "Composite":
-            self.button_addlayer.grid_remove()
-            self.button_removelayer.grid_remove()
-            
-        elif choice == "Composite Layer on PEC":
-            self.button_addlayer.grid_remove()
-            self.button_removelayer.grid_remove()
-            
-        elif choice == "Multiple Layers":
+        elif choice == "Multiple Layers" or choice == "Multiple Layers on PEC":
             self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
             self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
             
-        elif choice == "Multiple Layers on PEC":
-            self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
-            self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
     
     def generate_and_show_results(self,method,inputFont):
         try:
@@ -275,6 +266,17 @@ class App(customtkinter.CTk):
         self.initiate_thread_for_function(self.generate_and_show_results_event)
     
     def show_actual_material_config(self):
+        if self.get_entrys_from_material_interface():
+            self.add_current_layer()
+            self.define_actual_material_frame()
+            self.remove_last_layer()     
+        else:
+            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.entrysList != []:
+                self.define_actual_material_frame()
+            else:   
+                self.material_message.configure(text="Termine de preencher os campos.")
+    
+    def define_actual_material_frame(self):
         self.material_actual_configuration = customtkinter.CTkToplevel(self.material_window)
         self.material_actual_configuration.title("Características do Atual do Material")
         self.material_actual_configuration.wm_iconbitmap()
@@ -332,8 +334,7 @@ class App(customtkinter.CTk):
             ["Layer 12", "description 12", 1.4, 3.8, 3.2, 1.0, 1.5],
             ["Layer 13", "description 13", 1.5, 4.0, 3.4, 1.1, 1.6]
         ]
-
-        self.update_entrysList()    
+   
         new_data = convert_entrysList_format_to_table_format(self.entrysList)
             
         for row_index, row_data in enumerate(new_data):
@@ -445,12 +446,15 @@ class App(customtkinter.CTk):
         
     def run_write_matrl_and_calculate_rcs(self):
         if self.get_entrys_from_material_interface():
-            if self.type != 'Multiple Layer' or self.type != 'Multiple Layer on PEC':
-                self.add_current_layer()
-            self.update_material_types()    
-            self.update_entrysList()
+            self.add_current_layer()
             save_list_in_file(self.entrysList,'matrl.txt')
             self.calculate_and_show_rcs_results()
+        else:
+            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.entrysList != []:       
+                save_list_in_file(self.entrysList,'matrl.txt')
+                self.calculate_and_show_rcs_results()
+            else:
+                self.material_message.configure(text="Preencha os campos corretamente.")
 
     def define_entrysList_from_material_file(self):
         materialFile = askopenfile(title="Selecionar um arquivo", filetypes=[("Text files", "*.txt")])
@@ -490,9 +494,9 @@ class App(customtkinter.CTk):
             self.types[facetIndex] = self.type
         
     def define_entrysList_from_material_interface(self):
-        self.get_entrys_from_material_interface()
-        self.update_entrysList()
-        save_list_in_file(self.entrysList,'matrl.txt')
+        if self.get_entrys_from_material_interface():
+            self.update_entrysList()
+            save_list_in_file(self.entrysList,'matrl.txt')
     
     def add_new_layer_event(self):
         self.get_entrys_from_material_interface()
@@ -504,18 +508,20 @@ class App(customtkinter.CTk):
         for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
             self.types[facetIndex] = self.type
             self.layers[facetIndex].append(layerProperties)
+        self.update_entrysList()
         
     def remove_last_layer(self):
-        self.get_facets_indexs()
-        for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
-            if self.layers[facetIndex]:
-                print(self.layers[facetIndex])
-                self.layers[facetIndex] = self.layers[facetIndex].pop()
-                print(f"depois: {self.layers[facetIndex]}")
-            else:
-                print("Layer vazio")
+        try :
+            for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
+                if self.layers[facetIndex]:
+                    self.layers[facetIndex].pop()
+                else:
+                    self.material_message.configure(text="Sem mais layers a remover")
+            self.update_entrysList()
+            self.material_message.configure(text="Remoção realizada com sucesso")
         
-        self.material_message.configure(text="Remoção realizada com sucesso")
+        except Exception as e:
+            self.material_message.configure(text="Sem mais layers a remover")
                   
     def get_facets_indexs(self):
         ffacet_value = getattr(self, "ffacet_entry").get()
