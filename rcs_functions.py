@@ -80,6 +80,10 @@ def getParamsFromFile(method):
     
     param_list[FREQUENCY] = float(param_list[FREQUENCY]) * 1e9
     stl_converter("./stl_models/"+ param_list[INPUT_MODEL])
+    
+    if param_list[RESISTIVITY] != MATERIALESPECIFICO:
+        param_list[-1] = "matrl.txt"
+        
     return param_list
 
 def read_coordinates():
@@ -728,8 +732,10 @@ def reflectionCoefficients(rs:int, th2:float, thri:float, phrii:float, alpha:flo
     para = 0
     
     if rs == MATERIALESPECIFICO:
+        print("entrou errado")
         perp, para = getReflCoeffFromMatrl(thri,phrii, alpha, beta, freq, matrlLine)
-    else:               
+    else:
+        print("entrou certo")               
         perp=-1/(2*rs*math.cos(th2)+1)  #local TE polarization
         para=0  #local TM polarization
         if (2*rs+math.cos(th2))!=0:
