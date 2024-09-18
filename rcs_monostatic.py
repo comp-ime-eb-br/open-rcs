@@ -3,7 +3,19 @@ import numpy as np
 from rcs_functions import *
 
 def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,list]:
-    input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt = params_entrys
+    input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, matrlpath = params_entrys
+    
+    # processing coordinate data 
+    x, y, z, xpts, ypts, zpts, nverts, nfc, node1, node2, node3, iflag, ilum, Rs, ntria, vind, r = coordinatesData
+    
+    matrl = []
+    
+    if rs == MATERIALESPECIFICO:
+        try:
+            matrl = getEntrysFromMatrlFile(ntria,matrlpath)
+        except Exception as e:
+            return e,e,e
+        
     wave = 3e8/freq
     
     # 2: correlation distance 
@@ -17,16 +29,11 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
     
     Co=1  # wave amplitude at all verticesFRe
     
-    # processing coordinate data 
-    x, y, z, xpts, ypts, zpts, nverts, nfc, node1, node2, node3, iflag, ilum, Rs, ntria, vind, r = coordinatesData
-    
     # pattern loop
     Area, alpha, beta, N, d, ip, it = calculate_values(pstart, pstop, delp, tstart, tstop, delt, ntria, rad)
     # get edge vectors and normals from edge cross products
     N,d,Area,beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
     phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it)
-    
-    matrl = getEntrysFromMatrlFile(ntria)
 
     for i1 in range(ip):
         for i2 in range(it):
@@ -66,7 +73,7 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
                         Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
 
                         # reflection coefficients (Rs is normalized to eta0)   
-                        perp, para = reflectionCoefficients(Rs[m], th2, thr, phr, alpha[m], beta[m], freq, matrl[m])
+                        perp, para = reflectionCoefficients(Rs[m], m, th2, thr, phr, alpha[m], beta[m], freq, matrl)
   
                         # surface current components in local Cartesian coordinates
                         Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp*math.cos(th2));   # math.cos(th2) removed
@@ -98,5 +105,5 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
 
 if __name__ == '__main__':
     param_list = getParamsFromFile('monostatic')
-    coord_list = extractCoordinatesData()
+    coord_list = extractCoordinatesData(param_list[RESISTIVITY])
     rcs_monostatic(param_list,coord_list)

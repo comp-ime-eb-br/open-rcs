@@ -31,7 +31,6 @@ ntria=size(facet,1);
       e0=8.85e-12;%permittivity of free space
       m0=4*pi*1e-7;%permeability of free space
       
-      
       %open('MsgComputing.fig');
       txt = ['Computing the monostatic RCS of ',modelname,' model . . .'];         
       set(findobj(gcf,'Tag','Msg'),'String',txt); 
@@ -47,7 +46,7 @@ ntria=size(facet,1);
       delp   = str2num(get(findobj(h_mono,'Tag','Delp'),'String')); 
       Lt     = str2num(get(findobj(h_mono,'Tag','LRegion'),'String')); 
       Nt     = str2num(get(findobj(h_mono,'Tag','NTerms'),'String')); 
-      i_pol  = str2num(get(findobj(h_mono,'Tag','IncPolar'),'String'))           
+      i_pol  = str2num(get(findobj(h_mono,'Tag','IncPolar'),'String'));           
       freq	 = str2num(get(findobj(h_mono,'Tag','Freq'),'String')); 
       show3D = get(findobj(h_mono,'Tag','ModelandRCS'),'Value');
       showpolar = get(findobj(h_mono,'Tag','PolarPlot'),'Value');
