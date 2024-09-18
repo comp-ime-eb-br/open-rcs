@@ -15,10 +15,10 @@ STANDART_DEVIATION = 3
 RESISTIVITY = 5
 MATERIALESPECIFICO = 1
 TYPE = 0
-MATERIALCOEFFICIENTS = 1
 THETA = 1
 NTRIA = 14
-DESCRIPTION = 2
+DESCRIPTION = 1
+LAYERS = 2
 
 def getPolarization(incidentPolarization):
     if incidentPolarization == 0: # Theta-polarized (TM-z)
@@ -71,11 +71,11 @@ def getParamsFromFile(method):
     input_data_file = f"./input_files/input_data_file_{method}.dat"
     params = open(input_data_file, 'r')
     param_list = []
-    for line in params:
-        line=line.strip("\n")
-        if not line.startswith("#"):
-            if line.isnumeric(): param_list.append(float(line))
-            else: param_list.append(line)
+    for row in params:
+        row=row.strip("\n")
+        if not row.startswith("#"):
+            if row.isnumeric(): param_list.append(float(row))
+            else: param_list.append(row)
     params.close()
     
     param_list[FREQUENCY] = float(param_list[FREQUENCY]) * 1e9
@@ -338,23 +338,65 @@ def G(n,w):
     return g
 
 def save_list_in_file(especific_list:list,especific_file:str) -> None :
+    especific_list_str = []
+    for row in especific_list:
+        entry_str = str(row[TYPE])+','+ str(row[DESCRIPTION])
+                  
+        for layer in row[LAYERS:]:
+            for i in range(len(layer)):
+                entry_str = entry_str +','+ str(layer[i]) 
+        
+        especific_list_str.append(entry_str)
+    
+   
     with open(especific_file,'w') as file:
-        for line in especific_list:
-            file.write(line + '\n')
+        for row in especific_list_str:
+            file.write(row + '\n')
 
 def getEntrysFromMatrlFile(ntria:int) -> list:
-    matrl = []
     with open('matrl.txt','r') as file:
-        for line in file:
-            entrys = line.strip('\n')
-            entrys = entrys.split(',')
-            formatedEntrys = [entrys[0],entrys[1]]
-            for entry in entrys[2:]:
-                formatedEntrys.append(float(entry))
-            matrl.append(formatedEntrys)
+        matrl = get_material_properties_from_file(file)
+        
     if len(matrl) != ntria:
         raise ValueError("Number of entrys in matrl diferent from number of facets.")
+    
     return matrl
+
+def get_material_properties_from_file(filename) -> list:
+    material_text_list = []
+    for row in filename:
+        material_text_list.append(row)
+    return convert_material_textlist_to_list(material_text_list)
+        
+        
+def convert_material_textlist_to_list(text_list:str)->list:
+    matrl = []
+    for row in text_list:
+        entrys = row.strip('\n')
+        entrys = entrys.split(',')
+        formatedEntrys = [entrys[TYPE],entrys[DESCRIPTION]]
+        layer = []
+
+        for index,entry in enumerate(entrys[LAYERS:]):
+            layer.append(float(entry))
+            if (index+1)%5 == 0:
+                formatedEntrys.append(layer)
+                layer = []   
+                
+        matrl.append(formatedEntrys)
+    return matrl
+    
+
+def convert_entrysList_format_to_table_format(data:list) -> list:
+    new_data = []
+    for rowIndex, row in enumerate(data):
+        head = [row[TYPE],row[DESCRIPTION]]
+        layers = row[LAYERS:]
+        for layer in layers:
+            index = [rowIndex+1]
+            new_row = index + head + layer
+            new_data.append(new_row)
+    return new_data
 
 def rotationTransfMatrix(alpha,beta):
     T1=np.array([[np.cos(alpha), np.sin(alpha), 0],[-np.sin(alpha), np.cos(alpha), 0], [0, 0, 1]])
@@ -409,7 +451,7 @@ def spherglobal2local(sphericalVector:np.array, T21:np.array):
 
 def reflectionCoefficientsComposite(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
     j = 1j
-    matdata=matrlLine[DESCRIPTION:]
+    matdata=matrlLine[LAYERS]
     
     er=matdata[0]-j*matdata[1]*matdata[0]
     mr=matdata[2]-j*matdata[3]
