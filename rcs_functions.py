@@ -544,9 +544,9 @@ def reflCoeffCompoLayerOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:
             phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
             
           else:  
-            gamma_par[i] = (Z_par[i]-Z_par[i])/(Z_par[i]+Z_par[i])
+            gamma_par[i] = (Z_par[i]-Z_par[i-1])/(Z_par[i]+Z_par[i-1])
             tau_par[i] = 1 + gamma_par[i]
-            gamma_perp[i] = (Z_perp[i]-Z_perp[i])/(Z_perp[i]+Z_perp[i])
+            gamma_perp[i] = (Z_perp[i]-Z_perp[i-1])/(Z_perp[i]+Z_perp[i-1])
             tau_perp[i] = 1 + gamma_perp[i]
             phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
         
@@ -564,11 +564,11 @@ def reflCoeffCompoLayerOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:
 
           WMatrix_perp = 1/tau_perp[i]*WMatrix_perp*T_perp
      
-          WMatrix_par = WMatrix_par*PEC
-          WMatrix_perp = WMatrix_perp*PEC
+    WMatrix_par = WMatrix_par*PEC
+    WMatrix_perp = WMatrix_perp*PEC
 
-          RCperp = WMatrix_perp[1,0]/WMatrix_perp[0,0]
-          RCpar = WMatrix_par[1,0]/WMatrix_par[0,0]
+    RCperp = WMatrix_perp[1,0]/WMatrix_perp[0,0]
+    RCpar = WMatrix_par[1,0]/WMatrix_par[0,0]
     return RCperp,RCpar
 
 
