@@ -226,7 +226,7 @@ class App(customtkinter.CTk):
         self.material_message = customtkinter.CTkLabel(self.material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.button_openconfig = customtkinter.CTkButton(self.material_window, text="Calcular com Arquivo", command=lambda: self.define_entrysList_from_material_file())
+        self.button_openconfig = customtkinter.CTkButton(self.material_window, text="Calcular com Arquivo", command=lambda:self.initiate_thread_for_function(self.define_entrysList_from_material_file))
         self.button_openconfig.grid(row=14, column=1, padx=5, pady=(5,5))
 
         self.button_actualconfig = customtkinter.CTkButton(self.material_window, text="Ver Configuração Atual", command=lambda: self.show_actual_material_config())
@@ -407,7 +407,7 @@ class App(customtkinter.CTk):
             
     def especific_material_treatment(self):
         if self.inputFont == 'inputFile' and self.simulationParamsList[-1] != "configure":
-            self.calculate_and_show_rcs_results()    
+            self.calculate_and_show_rcs_results()
         else:
             self.simulationParamsList[-1] = 'matrl.txt'
             self.open_material_especification_tab()
@@ -434,18 +434,24 @@ class App(customtkinter.CTk):
         
     def run_write_matrl_and_calculate_rcs(self):
         if self.get_entrys_from_material_interface():
+            self.material_window.withdraw()
             self.add_current_layer()
             save_list_in_file(self.entrysList,'matrl.txt')
             self.remove_last_layer()
             self.calculate_and_show_rcs_results()
+        
         else:
-            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.entrysList != []:       
+            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.entrysList != []:
+                self.material_window.withdraw()       
                 save_list_in_file(self.entrysList,'matrl.txt')
                 self.calculate_and_show_rcs_results()
+
             else:
                 self.material_message.configure(text="Preencha os campos corretamente.")
 
     def define_entrysList_from_material_file(self):
+        self.material_window.withdraw()
+        
         materialFile = askopenfile(title="Selecionar um arquivo", filetypes=[("Text files", "*.txt")])
        
         self.entrysList = get_material_properties_from_file(materialFile)
@@ -455,6 +461,8 @@ class App(customtkinter.CTk):
         else:
             save_list_in_file(self.entrysList,'matrl.txt')
             self.calculate_and_show_rcs_results()
+            
+            
         
     def save_current_material_properties(self):
         if self.get_entrys_from_material_interface():
@@ -646,9 +654,12 @@ class App(customtkinter.CTk):
         self.reset.destroy()
 
     def restore_result_tab(self):
-        self.cancel.grid_forget()
-        self.gif.destroy()
-        self.active_buttons()
+        try:
+            self.cancel.grid_forget()
+            self.gif.destroy()
+            self.active_buttons()
+        except Exception as e:
+            print("Gif já destruido")
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
