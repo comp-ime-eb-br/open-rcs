@@ -4,8 +4,12 @@ from rcs_functions import *
 
 def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,list]:
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii, matrlpath = params_entrys
+    
+    # processing coordinate data
+    x, y, z, xpts, ypts, zpts, nverts, nfc, node1, node2, node3, iflag, ilum, Rs, ntria, vind, r = coordinatesData
+    
     matrl = []
-    if Rs == MATERIALESPECIFICO:
+    if rs == MATERIALESPECIFICO:
         matrl = getEntrysFromMatrlFile(ntria,matrlpath)
         
     wave = 3e8 / freq
@@ -17,8 +21,7 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
     [pol, Et, Ep] = getPolarization(ipol)
     Co = 1  # wave amplitude at all vertices
 
-    # processing coordinate data
-    x, y, z, xpts, ypts, zpts, nverts, nfc, node1, node2, node3, iflag, ilum, Rs, ntria, vind, r = coordinatesData
+    
 
     # pattern loop
     (

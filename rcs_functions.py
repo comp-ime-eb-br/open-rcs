@@ -465,7 +465,7 @@ def reflCoeffCompo(thri:float,phrii:float,alpha:float,beta:float,freq:float, mat
        
     T21=rotationTransfMatrix(alpha,beta)
 
-    sphericalVector = spherglobal2local(1,thri,phrii,T21)
+    sphericalVector = spherglobal2local(np.array([1,thri,phrii]),T21)
 
     G1par,G1perp,thetat,TIR = reflCoeff(1,1,er,mr,sphericalVector[THETA])
  
@@ -508,7 +508,7 @@ def reflCoeffCompoLayerOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:
     layers=matrlLine[LAYERS:]
     
     T21=rotationTransfMatrix(alpha,beta)
-    sphericalVector = spherglobal2local(1,thri,phrii,T21)
+    sphericalVector = spherglobal2local(np.array([1,thri,phrii]),T21)
 
     PEC = np.array([
          [1, 0],
@@ -522,54 +522,48 @@ def reflCoeffCompoLayerOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:
     B0 = 2*np.pi/wave
     thinc = sphericalVector[THETA]
     
-    Z_par = []
-    Z_perp = []
-    Beta = []
-    gamma_par = []
-    gamma_perp = []
-    tau_par = []
-    tau_perp = []
+    Z_par = []; Z_perp = []; Beta = []
+    gamma_par = []; gamma_perp = []
+    tau_par = []; tau_perp = []
 
     for i,layer in enumerate(layers):
-          erp = layer[0]
-          erdp = erp*layer[1]
-          erc = erp - 1j*erdp
-          urp = layer[2]
-          urdp = layer[3]
-          urc = urp - 1j*urdp
-          t = layer[4]*1e-3
+        erp = layer[0]
+        erdp = erp*layer[1]
+        erc = erp - 1j*erdp
+        urp = layer[2]
+        urdp = layer[3]
+        urc = urp - 1j*urdp
+        t = layer[4]*1e-3
           
-          Z_par[i] = np.sqrt(erc/urc-np.sin(thinc)**2)/(erc/urc*np.cos(thinc))
-          Z_perp[i] = np.cos(thinc)/np.sqrt(erc/urc-np.sin(thinc)**2)
-          Beta[i] = 2*np.pi/(wave/np.sqrt(np.real(erc)*np.real(urc)))                                
+        Z_par.append(np.sqrt(erc/urc-np.sin(thinc)**2)/(erc/urc*np.cos(thinc)))
+        Z_perp.append(np.cos(thinc)/np.sqrt(erc/urc-np.sin(thinc)**2))
+        Beta.append(2*np.pi/(wave/np.sqrt(np.real(erc)*np.real(urc))))                              
           
-          if(i == 0):
-            gamma_par[i] = (Z_par[i]-Z0)/(Z_par[i]+Z0)
-            tau_par[i] = 1 + gamma_par[i]
-            gamma_perp[i] = (Z_perp[i]-Z0)/(Z_perp[i]+Z0)
-            tau_perp[i] = 1 + gamma_perp[i]
-            phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
-            
-          else:  
-            gamma_par[i] = (Z_par[i]-Z_par[i-1])/(Z_par[i]+Z_par[i-1])
-            tau_par[i] = 1 + gamma_par[i]
-            gamma_perp[i] = (Z_perp[i]-Z_perp[i-1])/(Z_perp[i]+Z_perp[i-1])
-            tau_perp[i] = 1 + gamma_perp[i]
-            phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+        if(i == 0):
+            gamma_par.append((Z_par[i]-Z0)/(Z_par[i]+Z0))
+            gamma_perp.append((Z_perp[i]-Z0)/(Z_perp[i]+Z0))            
+        else:  
+            gamma_par.append((Z_par[i]-Z_par[i-1])/(Z_par[i]+Z_par[i-1]))
+            gamma_perp.append((Z_perp[i]-Z_perp[i-1])/(Z_perp[i]+Z_perp[i-1]))
         
-          T_par = np.array([
+        tau_par.append(1 + gamma_par[i])
+        tau_perp.append(1 + gamma_perp[i])
+        phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+        
+        
+        T_par = np.array([
             [np.exp(1j*phi_calc), gamma_par[i]*np.exp(-1j*phi_calc)],
             [gamma_par[i]*np.exp(1j*phi_calc),    np.exp(-1j*phi_calc)]
-          ])
+        ])
 
-          WMatrix_par =1/tau_par[i]*WMatrix_par*T_par
+        WMatrix_par =1/tau_par[i]*WMatrix_par*T_par
           
-          T_perp = np.array([
-               [np.exp(1j*phi_calc), gamma_perp[i]*np.exp(-1j*phi_calc)],
-               [gamma_perp[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
-          ])
+        T_perp = np.array([
+            [np.exp(1j*phi_calc), gamma_perp[i]*np.exp(-1j*phi_calc)],
+            [gamma_perp[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
+        ])
 
-          WMatrix_perp = 1/tau_perp[i]*WMatrix_perp*T_perp
+        WMatrix_perp = 1/tau_perp[i]*WMatrix_perp*T_perp
      
     WMatrix_par = WMatrix_par*PEC
     WMatrix_perp = WMatrix_perp*PEC
@@ -582,22 +576,24 @@ def reflCoeffCompoLayerOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:
 def reflCoeffMultiLayers(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
 
     T21=rotationTransfMatrix(alpha,beta)
-    sphericalVector=spherglobal2local(1,thri,phrii,T21)
+    sphericalVector=spherglobal2local(np.array([1,thri,phrii]),T21)
     layers=matrlLine[LAYERS:]
     Mpar=np.eye(2); Mperp=np.eye(2)
     
     er = []; mr = []; t = []; thetat = []
     
     for i,layer in enumerate(layers):
-        er[i]=layer[0]-1j*layer[1]*layer[0]
-        mr[i]=layer[2]-1j*layer[3]
-        t[i]=layer[4]*0.001
+        er.append(layer[0]-1j*layer[1]*layer[0])
+        mr.append(layer[2]-1j*layer[3])
+        t.append(layer[4]*0.001)
 
         if i==0:
-            Gpar, Gperp, thetat[i], TIR = reflCoeff(1,1,er[i],mr[i],sphericalVector[THETA])
+            Gpar, Gperp, thetatI, TIR = reflCoeff(1,1,er[i],mr[i],sphericalVector[THETA])
         else:
-            Gpar, Gperp, thetat[i], TIR = reflCoeff(er[i-1],mr[i-1],er[i],mr[i],thetat[i-1])
-           
+            Gpar, Gperp, thetatI, TIR = reflCoeff(er[i-1],mr[i-1],er[i],mr[i],thetat[i-1])
+            
+            
+        thetat.append(thetatI)  
         v=3e8/np.sqrt(np.real(er[i])*np.real(mr[i]))
         wave=v/freq
         b1=2*np.pi/wave
@@ -629,7 +625,7 @@ def reflCoeffMultiLayers(thri:float,phrii:float,alpha:float,beta:float,freq:floa
 
 def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list) -> tuple[float,float]:
     T21=rotationTransfMatrix(alpha,beta)
-    sphericalVector=spherglobal2local(1,thri,phrii,T21)
+    sphericalVector=spherglobal2local(np.array([1,thri,phrii]),T21)
     layers=matrlLine[LAYERS:]
     Mpar = np.eye(2); Mperp = np.eye(2)
      
@@ -646,13 +642,9 @@ def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq
     B0 = 2*np.pi/wave
     thinc = sphericalVector[THETA]
      
-    Z_par = []
-    Z_perp = []
-    Beta = []
-    gamma_par = []
-    gamma_perp = []
-    tau_par = []
-    tau_perp = []
+    Z_par = []; Z_perp = []; Beta = []
+    gamma_par = []; gamma_perp = []
+    tau_par = []; tau_perp = []
      
     for i,layer in enumerate(layers):
         erp = layer[0]
@@ -663,25 +655,21 @@ def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq
         urc = urp - 1j*urdp
         t = layer[4]*1e-3
          
-        Z_par[i] = np.sqrt(erc/urc-np.sin(thinc)**2)/(erc/urc*np.cos(thinc))
-        Z_perp[i] = np.cos(thinc)/np.sqrt(erc/urc-np.sin(thinc)**2)  
-        Beta[i] = 2*np.pi/(wave/np.sqrt(np.real(erc)*np.real(urc))) 
+        Z_par.append(np.sqrt(erc/urc-np.sin(thinc)**2)/(erc/urc*np.cos(thinc)))
+        Z_perp.append(np.cos(thinc)/np.sqrt(erc/urc-np.sin(thinc)**2))  
+        Beta.append(2*np.pi/(wave/np.sqrt(np.real(erc)*np.real(urc)))) 
          
         if i == 0:
-            gamma_par[i] = (Z_par[i]-Z0)/(Z_par[i]+Z0)
-            tau_par[i] = 1 + gamma_par[i]
-            gamma_perp[i] = (Z_perp[i]-Z0)/(Z_perp[i]+Z0)
-            tau_perp[i] = 1 + gamma_perp[i]
-            
-            phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+            gamma_par.append((Z_par[i]-Z0)/(Z_par[i]+Z0))
+            gamma_perp.append((Z_perp[i]-Z0)/(Z_perp[i]+Z0))
         else:
-            gamma_par[i] = (Z_par[i]-Z_par[i-1])/(Z_par[i]+Z_par[i-1])
-            tau_par[i] = 1 + gamma_par[i]
-            gamma_perp[i] = (Z_perp[i]-Z_perp[i-1])/(Z_perp[i]+Z_perp[i-1])
-            tau_perp[i] = 1 + gamma_perp[i]
-            phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
-         
-
+            gamma_par.append((Z_par[i]-Z_par[i-1])/(Z_par[i]+Z_par[i-1]))
+            gamma_perp.append((Z_perp[i]-Z_perp[i-1])/(Z_perp[i]+Z_perp[i-1]))
+            
+        tau_par.append(1 + gamma_par[i])
+        tau_perp.append(1 + gamma_perp[i])
+        phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+        
         T_par = np.array([
             [np.exp(1j*phi_calc), gamma_par[i]*np.exp(-1j*phi_calc)],
             [gamma_par[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
