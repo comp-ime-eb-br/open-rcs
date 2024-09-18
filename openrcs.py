@@ -457,12 +457,12 @@ class App(customtkinter.CTk):
         materialFile = askopenfile(title="Selecionar um arquivo", filetypes=[("Text files", "*.txt")])
        
         self.entrysList = get_material_properties_from_file(materialFile)
-        
+            
         if len(self.entrysList) != self.ntria:
-            raise ValueError("Number of entrys in matrl diferent from number of facets.")
-        save_list_in_file(self.entrysList,'matrl.txt')
-        
-        self.calculate_and_show_rcs_results()
+            self.material_message.configure(text="Número de facets divergentes.")
+        else:
+            save_list_in_file(self.entrysList,'matrl.txt')
+            self.calculate_and_show_rcs_results()
         
     def save_current_material_properties(self):
         if self.get_entrys_from_material_interface():
