@@ -13,14 +13,14 @@ sidewinder.stl
 # 6 start phi angle in degrees
 0
 # 7 stop phi angle in degrees
-360
+0
 # 8 phi increment (step) in degrees
-2
+0
 # 9 start theta angle in degrees
 0
 # 10 stop theta angle in degrees
-0
+360
 # 11 theta increment (step) in degrees
-0
+2
 # 12 matrl file path
 matrl_test2.txt

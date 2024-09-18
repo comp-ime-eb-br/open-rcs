@@ -4,6 +4,10 @@ from rcs_functions import *
 
 def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,list]:
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii, matrlpath = params_entrys
+    matrl = []
+    if Rs == MATERIALESPECIFICO:
+        matrl = getEntrysFromMatrlFile(ntria,matrlpath)
+        
     wave = 3e8 / freq
     # 2: correlation distance
     corel = float(corr) / wave
@@ -45,9 +49,6 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
     phi, theta, U, V, W, e0, Sth, Sph = otherVectorComponents(ip, it)
 
     e0 = bi_incidentFieldCartesian(uui, vvi, wwi, cpi, spi, Et, Ep, e0)
-    
-    
-    matrl = getEntrysFromMatrlFile(ntria,matrlpath)
     
     for i1 in range(ip):
         for i2 in range(it):
@@ -96,7 +97,7 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
                         )
 
                         # reflection coefficients (Rs is normalized to eta0)
-                        perp, para = reflectionCoefficients(Rs[m], th2, thr, phr, alpha[m], beta[m], freq, matrl[m])
+                        perp, para = reflectionCoefficients(Rs[m], m, th2, thr, phr, alpha[m], beta[m], freq, matrl[m])
                         
                         # surface current components in local Cartesian coordinates
                         Jx2 = -Et2 * cpi2 * para + Ep2 * spi2 * perp * cti2

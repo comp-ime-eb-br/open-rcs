@@ -6,6 +6,11 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
     input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt, matrlpath = params_entrys
     wave = 3e8/freq
     
+    matrl = []
+    
+    if Rs == MATERIALESPECIFICO:
+        matrl = getEntrysFromMatrlFile(ntria,matrlpath)
+    
     # 2: correlation distance 
     corel = float(corr)/wave
     
@@ -25,8 +30,6 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
     # get edge vectors and normals from edge cross products
     N,d,Area,beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
     phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it)
-    
-    matrl = getEntrysFromMatrlFile(ntria,matrlpath)
 
     for i1 in range(ip):
         for i2 in range(it):
@@ -66,7 +69,7 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
                         Et2, Ep2 = incidentFieldSphericalCoordinates(th2,e2,phi2)
 
                         # reflection coefficients (Rs is normalized to eta0)   
-                        perp, para = reflectionCoefficients(Rs[m], th2, thr, phr, alpha[m], beta[m], freq, matrl[m])
+                        perp, para = reflectionCoefficients(Rs[m], m, th2, thr, phr, alpha[m], beta[m], freq, matrl)
   
                         # surface current components in local Cartesian coordinates
                         Jx2=(-Et2*math.cos(phi2)*para+Ep2*math.sin(phi2)*perp*math.cos(th2));   # math.cos(th2) removed

@@ -727,15 +727,13 @@ def getReflCoeffFromMatrl(thri:float,phrii:float,alpha:float,beta:float,freq:flo
     
     return RCperp, RCpar
         
-def reflectionCoefficients(rs:int, th2:float, thri:float, phrii:float, alpha:float, beta:float, freq:float, matrlLine:list) -> tuple[float,float]:
+def reflectionCoefficients(rs:int, index:int, th2:float, thri:float, phrii:float, alpha:float, beta:float, freq:float, matrl:list) -> tuple[float,float]:
     perp = 0
     para = 0
     
     if rs == MATERIALESPECIFICO:
-        print("entrou errado")
-        perp, para = getReflCoeffFromMatrl(thri,phrii, alpha, beta, freq, matrlLine)
-    else:
-        print("entrou certo")               
+        perp, para = getReflCoeffFromMatrl(thri,phrii, alpha, beta, freq, matrl[index])
+    else:            
         perp=-1/(2*rs*math.cos(th2)+1)  #local TE polarization
         para=0  #local TM polarization
         if (2*rs+math.cos(th2))!=0:
