@@ -406,9 +406,10 @@ class App(customtkinter.CTk):
             self.calculate_and_show_rcs_results()
             
     def especific_material_treatment(self):
-        if self.inputFont == 'inputFile':
-            self.calculate_and_show_rcs_results()
+        if self.inputFont == 'inputFile' and self.simulationParamsList[-1] != "configure":
+            self.calculate_and_show_rcs_results()    
         else:
+            self.simulationParamsList[-1] = 'matrl.txt'
             self.open_material_especification_tab()
                 
     def open_material_especification_tab(self): 

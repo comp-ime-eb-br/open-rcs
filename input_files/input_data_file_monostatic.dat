@@ -22,5 +22,5 @@ box.stl
 360
 # 11 theta increment (step) in degrees
 2
-# 12 matrl file path
+# 12 matrl file path or write "configure" to open material configure tab
 matrl_test2.txt
