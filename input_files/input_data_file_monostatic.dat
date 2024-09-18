@@ -1,5 +1,5 @@
 # input model (stl_models)
-box.stl
+sidewinder.stl
 # 1 radar frequency(GHz)
 162.4
 # 2 correlation distance in meters
@@ -22,3 +22,5 @@ box.stl
 0
 # 11 theta increment (step) in degrees
 0
+# 12 matrl file path if material resistivity = 1 do contrario coloque 0
+matrl_test2.txt

@@ -353,9 +353,12 @@ def save_list_in_file(especific_list:list,especific_file:str) -> None :
         for row in especific_list_str:
             file.write(row + '\n')
 
-def getEntrysFromMatrlFile(ntria:int) -> list:
-    with open('matrl.txt','r') as file:
-        matrl = get_material_properties_from_file(file)
+def getEntrysFromMatrlFile(ntria:int,matrlpath:str) -> list:
+    try:
+        with open(matrlpath,'r') as file:
+            matrl = get_material_properties_from_file(file)
+    except Exception as e:
+        raise FileNotFoundError("Matrl file not found.")
         
     if len(matrl) != ntria:
         raise ValueError("Number of entrys in matrl diferent from number of facets.")
@@ -367,7 +370,7 @@ def get_material_properties_from_file(filename) -> list:
     for row in filename:
         material_text_list.append(row)
     return convert_material_textlist_to_list(material_text_list)
-        
+
         
 def convert_material_textlist_to_list(text_list:str)->list:
     matrl = []

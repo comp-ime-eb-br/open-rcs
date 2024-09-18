@@ -3,7 +3,7 @@ import numpy as np
 from rcs_functions import *
 
 def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,list]:
-    input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt = params_entrys
+    input_model, freq, corr, delstd, ipol, Rs, pstart, pstop, delp, tstart, tstop, delt, matrlpath = params_entrys
     wave = 3e8/freq
     
     # 2: correlation distance 
@@ -26,7 +26,7 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
     N,d,Area,beta,alpha =  productVector(ntria,N,r,d,Area,alpha,beta,vind)
     phi, theta, U,V,W,e0, Sth,Sph = otherVectorComponents(ip,it)
     
-    matrl = getEntrysFromMatrlFile(ntria)
+    matrl = getEntrysFromMatrlFile(ntria,matrlpath)
 
     for i1 in range(ip):
         for i2 in range(it):

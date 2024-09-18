@@ -3,7 +3,7 @@ from rcs_functions import *
 
 
 def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,list]:
-    input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii = params_entrys
+    input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, thetai, phii, matrlpath = params_entrys
     wave = 3e8 / freq
     # 2: correlation distance
     corel = float(corr) / wave
@@ -46,9 +46,9 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
 
     e0 = bi_incidentFieldCartesian(uui, vvi, wwi, cpi, spi, Et, Ep, e0)
     
-
-    matrl = getEntrysFromMatrlFile(ntria)
-
+    
+    matrl = getEntrysFromMatrlFile(ntria,matrlpath)
+    
     for i1 in range(ip):
         for i2 in range(it):
             phi[i1, i2] = pstart + (i1) * delp
@@ -96,8 +96,8 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
                         )
 
                         # reflection coefficients (Rs is normalized to eta0)
-                        perp, para = reflectionCoefficients(Rs, th2, thr, phr, alpha, beta, freq, matrl[m])
-
+                        perp, para = reflectionCoefficients(Rs[m], th2, thr, phr, alpha[m], beta[m], freq, matrl[m])
+                        
                         # surface current components in local Cartesian coordinates
                         Jx2 = -Et2 * cpi2 * para + Ep2 * spi2 * perp * cti2
                         # cti2 included

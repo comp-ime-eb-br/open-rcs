@@ -314,25 +314,7 @@ class App(customtkinter.CTk):
             header_label.grid(row=0, column=col_index, padx=5, pady=5)
        
     def load_lines_of_material_table(self):
-        data = [
-            ["Composite", "facet description", 0.1, 1.0, 1.0, 0.0, 0.5],
-            ["Composite Layer", "layer description", 0.2, 2.0, 1.5, 0.0, 0.4],
-            ["PEC", "perfect conductor", 0.0, 3.0, 2.0, 0.0, 0.3],
-            ["Layer 1", "description 1", 0.3, 1.5, 1.0, 0.0, 0.2],
-            ["Layer 2", "description 2", 0.4, 1.8, 1.3, 0.0, 0.1],
-            ["Multi Layer", "description 3", 0.5, 2.0, 1.4, 0.1, 0.6, 0.7, 2.4, 1.8, 0.3, 0.8],
-            ["Layer 4", "description 4", 0.6, 2.2, 1.6, 0.2, 0.7],
-            ["Layer 5", "description 5", 0.7, 2.4, 1.8, 0.3, 0.8],
-            ["Layer 6", "description 6", 0.8, 2.6, 2.0, 0.4, 0.9],
-            ["Layer 7", "description 7", 0.9, 2.8, 2.2, 0.5, 1.0],
-            ["Layer 8", "description 8", 1.0, 3.0, 2.4, 0.6, 1.1],
-            ["Layer 9", "description 9", 1.1, 3.2, 2.6, 0.7, 1.2],
-            ["Layer 10", "description 10", 1.2, 3.4, 2.8, 0.8, 1.3],
-            ["Layer 11", "description 11", 1.3, 3.6, 3.0, 0.9, 1.4],
-            ["Layer 12", "description 12", 1.4, 3.8, 3.2, 1.0, 1.5],
-            ["Layer 13", "description 13", 1.5, 4.0, 3.4, 1.1, 1.6]
-        ]
-   
+
         new_data = convert_entrysList_format_to_table_format(self.entrysList)
             
         for row_index, row_data in enumerate(new_data):
@@ -401,7 +383,8 @@ class App(customtkinter.CTk):
             simulationParamsList.extend(get_common_params('bi'))
             simulationParamsList.append(float(self.bitheta.get()))
             simulationParamsList.append(float(self.bipstart.get()))
-
+        simulationParamsList.append('matrl.txt')
+        
         return simulationParamsList
 
     def verify_standart_deviation(self):
@@ -411,17 +394,23 @@ class App(customtkinter.CTk):
             messagebox.showerror("Desvio", "Desvio Padrão elevado")
             raise ValueError("Desvio padrão elevado")
 
-    def define_action_for_each_resistivity_case(self): #verificar se vai ser necessário abrir nova janela
+    def define_action_for_each_resistivity_case(self):
         self.ntria = self.coordinatesData[NTRIA]
         self.reset_all_material_lists_and_define_type('PEC')
         
         if self.simulationParamsList[RESISTIVITY] == MATERIALESPECIFICO:
-            self.open_material_especification_tab()
+            self.especific_material_treatment()
         else:
             self.update_entrysList()
             save_list_in_file(self.entrysList,'matrl.txt')
             self.calculate_and_show_rcs_results()
             
+    def especific_material_treatment(self):
+        if self.inputFont == 'inputFile':
+            self.calculate_and_show_rcs_results()
+        else:
+            self.open_material_especification_tab()
+                
     def open_material_especification_tab(self): 
         self.define_material_frame()
         self.end_generate_attempt()
@@ -439,12 +428,14 @@ class App(customtkinter.CTk):
             return True
         
         except Exception as e:
+            print(e)
             return False
         
     def run_write_matrl_and_calculate_rcs(self):
         if self.get_entrys_from_material_interface():
             self.add_current_layer()
             save_list_in_file(self.entrysList,'matrl.txt')
+            self.remove_last_layer()
             self.calculate_and_show_rcs_results()
         else:
             if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.entrysList != []:       
@@ -486,7 +477,7 @@ class App(customtkinter.CTk):
         for m in range(self.ntria):
             entry = [self.types[m],self.description[m]]
             
-            if self.layers[m] == []:
+            if len(self.layers[m]) == 0:
                entry.append([0, 0, 0, 0, 0]) 
                         
             for layer in self.layers[m]:
@@ -550,14 +541,14 @@ class App(customtkinter.CTk):
         
     def calculate_and_show_rcs_results(self):
         self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
-
+    
         self.restore_result_tab()
 
         self.show_results_on_interface()
                
     def calculate_RCS(self):
         if self.method == 'monostatic': return rcs_monostatic(self.simulationParamsList,self.coordinatesData)
-        elif self.method == 'bistatic': return rcs_bistatic(self.simulationParamsList,self.coordinatesData)
+        elif self.method == 'bistatic': return rcs_bistatic(self.simulationParamsList, self.coordinatesData)
   
     def error_message_and_restore_tab(self,e):
         print(f"An error occurred: {str(e)}")
