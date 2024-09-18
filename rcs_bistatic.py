@@ -100,7 +100,7 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
                         )
 
                         # reflection coefficients (Rs is normalized to eta0)
-                        perp, para = reflectionCoefficients(Rs[m], m, th2, thr, phr, alpha[m], beta[m], freq, matrl[m])
+                        perp, para = reflectionCoefficients(Rs[m], m, th2, thr, phr, alpha[m], beta[m], freq, matrl)
                         
                         # surface current components in local Cartesian coordinates
                         Jx2 = -Et2 * cpi2 * para + Ep2 * spi2 * perp * cti2
