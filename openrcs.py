@@ -168,6 +168,7 @@ class App(customtkinter.CTk):
 
     def define_material_frame(self):
         self.material_window = customtkinter.CTkToplevel(self)
+        self.material_window.withdraw()
 
         self.material_window.title("Características do Material")
         self.material_window.wm_iconbitmap()
@@ -219,10 +220,8 @@ class App(customtkinter.CTk):
         self.thick_entry.grid(row=11, column=0,columnspan=2, padx=5, pady=(5, 5))
 
         self.button_addlayer = customtkinter.CTkButton(self.material_window, text="Adicionar Layer", command=lambda: self.add_new_layer_event())
-        self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
 
         self.button_removelayer = customtkinter.CTkButton(self.material_window, text="Remover Último Layer", command=lambda: self.remove_last_layer())
-        self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
         
         self.material_message = customtkinter.CTkLabel(self.material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
@@ -238,9 +237,7 @@ class App(customtkinter.CTk):
 
         self.button_continue = customtkinter.CTkButton(self.material_window, text="Calcular RCS",command=lambda: self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs))
         self.button_continue.grid(row=15, column=1,columnspan=2, padx=5, pady=(5,5))
-        
-        self.button_addlayer.grid_remove()
-        self.button_removelayer.grid_remove()
+        self.material_window.deiconify()
         
     def on_select_material_type(self,choice):
         self.reset_all_material_lists_and_define_type("PEC")
