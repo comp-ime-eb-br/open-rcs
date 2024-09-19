@@ -194,8 +194,8 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
 
     return plot_name, fig_name, file_name
 
-
+'''
 if __name__ == "__main__":
     param_list = getParamsFromFile('bistatic')
-    coord_list = extractCoordinatesData()
-    rcs_bistatic(param_list)
+    coord_list = extractCoordinatesData(param_list[RESISTIVITY])
+    rcs_bistatic(param_list)'''

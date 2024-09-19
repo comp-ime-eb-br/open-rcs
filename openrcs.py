@@ -60,7 +60,7 @@ class App(customtkinter.CTk):
         self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(5, 5))
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Light", "Dark", "System"], command=self.change_appearance_mode_event)
         self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(0, 20))
-        self.appearance_mode_optionemenu.set("Dark")
+        self.appearance_mode_optionemenu.set("Light")
 
     def define_description_frame_and_tabview(self):
         self.descriptionFrame = customtkinter.CTkFrame(self, width=140)
@@ -354,7 +354,7 @@ class App(customtkinter.CTk):
     def getParamsFromInterface(self) -> list:
         def get_common_params(prefix):
             return [
-                float(getattr(self, f"{prefix}freq").get()),
+                float(getattr(self, f"{prefix}freq").get())*1e9,
                 float(getattr(self, f"{prefix}corr").get()),
                 float(getattr(self, f"{prefix}delstd").get()),
                 convert_polarization(getattr(self, f"{prefix}ipol").get()),

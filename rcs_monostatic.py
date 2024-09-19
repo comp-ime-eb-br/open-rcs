@@ -3,6 +3,7 @@ import numpy as np
 from rcs_functions import *
 
 def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,list]:
+    print(params_entrys)
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, matrlpath = params_entrys
     
     # processing coordinate data 
@@ -99,8 +100,8 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
     plot_name = finalPlot(ip, it,phi, wave,theta, Lmin,Lmax,Sth_grafico,Sph_grafico,U,V,now, input_model, "Monostatic")
     return plot_name, fig_name, file_name
 
-
+'''
 if __name__ == '__main__':
     param_list = getParamsFromFile('monostatic')
-    coord_list = extractCoordinatesData()
-    rcs_monostatic(param_list,coord_list)
+    coord_list = extractCoordinatesData(param_list[RESISTIVITY])
+    rcs_monostatic(param_list,coord_list)'''
