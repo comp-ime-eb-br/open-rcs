@@ -31,7 +31,6 @@ ntria=size(facet,1);
       e0=8.85e-12;%permittivity of free space
       m0=4*pi*1e-7;%permeability of free space
       
-      
       %open('MsgComputing.fig');
       txt = ['Computing the monostatic RCS of ',modelname,' model . . .'];         
       set(findobj(gcf,'Tag','Msg'),'String',txt); 

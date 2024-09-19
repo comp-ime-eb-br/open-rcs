@@ -6,7 +6,7 @@ from datetime import datetime
 from output_validation import CorrectOutput
 from rcs_monostatic import rcs_monostatic
 from rcs_bistatic import rcs_bistatic
-from rcs_functions import MATERIALESPECIFICO, NTRIA, RESISTIVITY, copy_file_to_matrl, extractCoordinatesData, getParamsFromFile,INPUT_MODEL
+from rcs_functions import RESISTIVITY, extractCoordinatesData, getParamsFromFile,INPUT_MODEL
 
 MATLAB_EXECUTABLE_PATH = "C:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe"
 AUTOMATOR_INPUT = 'automator_input.txt'
@@ -57,7 +57,7 @@ def generate_pofacets_file(method:str) -> str:
 
 def run_openrcs_simulation(method:str) -> tuple[str,list,list]:
     param_list = getParamsFromFile(method)
-    coord_list = extractCoordinatesData()
+    coord_list = extractCoordinatesData(param_list[RESISTIVITY])
     set_and_print_model(param_list[INPUT_MODEL])
     
     print('>>> Executando Open-RCS <<<\n')

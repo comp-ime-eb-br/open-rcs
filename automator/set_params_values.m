@@ -15,10 +15,10 @@ global coord nvert modelname symplanes matrl comments
 global ntria facet scale changed
 
 C = 3*10^8;	% speed of light in m/sec
-if numel(param_list) == 12 && strcmpi(method,'monostatic')
-   [input_model, freq_str, corr_str, delstd_str, i_pol_str, rs_str, pstart_str, pstop_str, delp_str, tstart_str, tstop_str, delt_str] = param_list{:};
-elseif numel(param_list) == 14 && strcmpi(method,'bistatic')
-   [input_model, freq_str, corr_str, delstd_str, i_pol_str, rs_str, pstart_str, pstop_str, delp_str, tstart_str, tstop_str, delt_str,itheta_str,iphi_str] = param_list{:};
+if numel(param_list) == 13 && strcmpi(method,'monostatic')
+   [input_model, freq_str, corr_str, delstd_str, i_pol_str, rs_str, pstart_str, pstop_str, delp_str, tstart_str, tstop_str, delt_str,mtrl_path] = param_list{:};
+elseif numel(param_list) == 15 && strcmpi(method,'bistatic')
+   [input_model, freq_str, corr_str, delstd_str, i_pol_str, rs_str, pstart_str, pstop_str, delp_str, tstart_str, tstop_str, delt_str,itheta_str,iphi_str,mtrl_path] = param_list{:};
    h_itheta = findobj(gcf,'Tag','iTheta'); 
    itheta = getiAngle(itheta_str,1); 
    set(h_itheta,'String',num2str(itheta));
