@@ -420,7 +420,7 @@ class App(customtkinter.CTk):
         try:
             self.get_facets_indexs()
             self.type = getattr(self, f"material_type").get()
-            self.thickness = float(getattr(self, f"thick_entry").get()) * 0.1 #para igualar com espessura do pofacets, ta errado lá
+            self.thickness = float(getattr(self, f"thick_entry").get())
             self.RelPermittivity = float(getattr(self, f"relperm_entry").get())
             self.lossTangent = float(getattr(self, f"losstang_entry").get())
             self.RelaPermeabilityReal = float(getattr(self, f"real_entry").get())
