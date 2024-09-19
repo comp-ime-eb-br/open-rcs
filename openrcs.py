@@ -183,16 +183,16 @@ class App(customtkinter.CTk):
         self.material_type = customtkinter.CTkOptionMenu(self.material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layers on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'], command=self.on_select_material_type)
         self.material_type.grid(row=1, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.material_ffacet = customtkinter.CTkLabel(self.material_window, text="First Facet")
+        self.material_ffacet = customtkinter.CTkLabel(self.material_window, text="Primeira Face")
         self.material_ffacet.grid(row=2, column=0, padx=5, pady=(5,5))
 
-        self.ffacet_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="All")
+        self.ffacet_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Todas")
         self.ffacet_entry.grid(row=3, column=0, padx=5, pady=(5, 5))
 
-        self.material_lfacet = customtkinter.CTkLabel(self.material_window, text="Last Facet")
+        self.material_lfacet = customtkinter.CTkLabel(self.material_window, text="Última Face")
         self.material_lfacet.grid(row=2, column=1, padx=5, pady=(5,5))
 
-        self.lfacet_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="All")
+        self.lfacet_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Todas")
         self.lfacet_entry.grid(row=3, column=1, padx=5, pady=(5, 5))
 
         self.material_perms = customtkinter.CTkLabel(self.material_window, text="Permissividade")

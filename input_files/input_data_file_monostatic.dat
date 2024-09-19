@@ -1,7 +1,7 @@
 # input model (stl_models)
-box.stl
+sidewinder.stl
 # 1 radar frequency(GHz)
-16
+165
 # 2 correlation distance in meters
 0
 # 3 standard deviation in meters
@@ -9,7 +9,7 @@ box.stl
 # 4 incident wave polarization 
 0
 # 5 material resistivity
-0
+1
 # 6 start phi angle in degrees
 0
 # 7 stop phi angle in degrees
@@ -23,4 +23,4 @@ box.stl
 # 11 theta increment (step) in degrees
 2
 # 12 matrl file path or write "configure" to open material configure tab
-configure
+material_files/sidewinder_composite.txt

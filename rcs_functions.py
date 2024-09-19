@@ -556,17 +556,17 @@ def reflCoeffCompoLayerOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq:
             [gamma_par[i]*np.exp(1j*phi_calc),    np.exp(-1j*phi_calc)]
         ])
 
-        WMatrix_par =1/tau_par[i]*WMatrix_par*T_par
+        WMatrix_par =1/tau_par[i]*WMatrix_par@T_par
           
         T_perp = np.array([
             [np.exp(1j*phi_calc), gamma_perp[i]*np.exp(-1j*phi_calc)],
             [gamma_perp[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
         ])
 
-        WMatrix_perp = 1/tau_perp[i]*WMatrix_perp*T_perp
+        WMatrix_perp = 1/tau_perp[i]*WMatrix_perp@T_perp
      
-    WMatrix_par = WMatrix_par*PEC
-    WMatrix_perp = WMatrix_perp*PEC
+    WMatrix_par = WMatrix_par@PEC
+    WMatrix_perp = WMatrix_perp@PEC
 
     RCperp = WMatrix_perp[1,0]/WMatrix_perp[0,0]
     RCpar = WMatrix_par[1,0]/WMatrix_par[0,0]
@@ -599,22 +599,22 @@ def reflCoeffMultiLayers(thri:float,phrii:float,alpha:float,beta:float,freq:floa
         b1=2*np.pi/wave
         phase=b1*t[i]
 
-        Mpar=Mpar*np.array([
+        Mpar=Mpar@np.array([
              [np.exp(1j*phase), Gpar*np.exp(-1j*phase)],
              [Gpar*np.exp(1j*phase), np.exp(-1j*phase)]
         ])
-        Mperp=Mperp*np.array([
+        Mperp=Mperp@np.array([
              [np.exp(1j*phase), Gperp*np.exp(-1j*phase)],
              [Gperp*np.exp(1j*phase), np.exp(-1j*phase)]
         ])
 
     Gpar, Gperp, thetatdum, TIR = reflCoeff(er[-1],mr[-1],1,1,thetat[-1])
     
-    Mpar = Mpar*np.array([
+    Mpar = Mpar@np.array([
          [np.exp(1j*phase), Gpar*np.exp(-1j*phase)],
          [Gpar*np.exp(1j*phase), np.exp(-1j*phase)]
     ])
-    Mperp = Mperp*np.array([
+    Mperp = Mperp@np.array([
          [np.exp(1j*phase), Gperp*np.exp(-1j*phase)],
          [Gperp*np.exp(1j*phase), np.exp(-1j*phase)]
     ])
@@ -675,14 +675,14 @@ def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq
             [gamma_par[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
          ])
           
-        WMatrix_par = 1/tau_par[i]*WMatrix_par*T_par
+        WMatrix_par = 1/tau_par[i]*WMatrix_par@T_par
          
         T_perp = np.array([
             [np.exp(1j*phi_calc), gamma_perp[i]*np.exp(-1j*phi_calc)],
             [gamma_perp[i]*np.exp(1j*phi_calc), np.exp(-1j*phi_calc)]
          ])
           
-        WMatrix_perp = 1/tau_perp[i]*WMatrix_perp*T_perp
+        WMatrix_perp = 1/tau_perp[i]*WMatrix_perp@T_perp
      
     WMatrix_par = WMatrix_par*PEC
     WMatrix_perp = WMatrix_perp*PEC
@@ -696,6 +696,7 @@ def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq
 def getReflCoeffFromMatrl(thri:float,phrii:float,alpha:float,beta:float,freq:float, matrlLine:list)->tuple[float,float]:
     RCperp = 0
     RCpar = 0
+    
     if matrlLine[TYPE] == 'PEC':
         RCperp = -1
         RCpar = -1
