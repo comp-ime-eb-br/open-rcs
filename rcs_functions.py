@@ -628,15 +628,14 @@ def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq
     sphericalVector=spherglobal2local(np.array([1,thri,phrii]),T21)
     layers=matrlLine[LAYERS:]
     Mpar = np.eye(2); Mperp = np.eye(2)
-     
+    WMatrix_par = np.eye(2); WMatrix_perp = np.eye(2)
+    
     PEC = np.array([
         [1, 0], 
         [-1, 0]
     ])
 
-    WMatrix_par = np.eye(2)
-    WMatrix_perp = np.eye(2)
-
+    
     Z0 = 1
     wave = 3e8/freq
     B0 = 2*np.pi/wave
@@ -665,10 +664,10 @@ def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq
         else:
             gamma_par.append((Z_par[i]-Z_par[i-1])/(Z_par[i]+Z_par[i-1]))
             gamma_perp.append((Z_perp[i]-Z_perp[i-1])/(Z_perp[i]+Z_perp[i-1]))
-            
+        
         tau_par.append(1 + gamma_par[i])
         tau_perp.append(1 + gamma_perp[i])
-        phi_calc = B0*t*np.sqrt(erc*urc-np.sin(thinc)**2)
+        phi_calc = B0*t*(erc*urc-np.sin(thinc)**2)**0.5 
         
         T_par = np.array([
             [np.exp(1j*phi_calc), gamma_par[i]*np.exp(-1j*phi_calc)],
@@ -683,13 +682,14 @@ def reflCoeffMultiLayersOnPEC(thri:float,phrii:float,alpha:float,beta:float,freq
          ])
           
         WMatrix_perp = 1/tau_perp[i]*WMatrix_perp@T_perp
+    
+    WMatrix_par = WMatrix_par@PEC
+    WMatrix_perp = WMatrix_perp@PEC
+    
      
-    WMatrix_par = WMatrix_par*PEC
-    WMatrix_perp = WMatrix_perp*PEC
-     
-    RCpar=Mpar[1,0]/Mpar[0,0]
-    RCperp=Mperp[1,0]/Mperp[0,0]
-
+    RCpar=WMatrix_par[1,0]/WMatrix_par[0,0]
+    RCperp=WMatrix_perp[1,0]/WMatrix_perp[0,0]
+        
     return RCperp, RCpar
 
 
