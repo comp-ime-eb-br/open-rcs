@@ -1,5 +1,5 @@
 # input model (stl_models)
-sidewinder_multiple_layer_on_pec.stl
+F16.stl
 # 1 radar frequency(GHz)
 165
 # 2 correlation distance in meters
@@ -22,5 +22,5 @@ sidewinder_multiple_layer_on_pec.stl
 360
 # 11 theta increment (step) in degrees
 2
-# 12 matrl file path or write "configure" to open material configure tab
-material_files/sidewinder_multiple_layer_on_pec.txt
+# 12 matrl file path or write "configure" below to open material configure tab
+configure

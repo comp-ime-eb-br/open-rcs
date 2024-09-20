@@ -56,11 +56,12 @@ class App(customtkinter.CTk):
         self.logo_label.grid(row=1, column=0, padx=20, pady=(10, 10))
         # self.organization = customtkinter.CTkLabel(self.sidebar_frame, text="CIGE - Centro de Instrução\nde Guerra Eletrônica", anchor="w")
         # self.organization.grid(row=2, column=0, padx=20, pady=(0, 10),sticky="s")
-        self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="s")
+        self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Modo de Aparência:", anchor="s")
         self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(5, 5))
-        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Light", "Dark", "System"], command=self.change_appearance_mode_event)
+        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Claro", "Escuro", "Sistema"], command=self.change_appearance_mode_event)
         self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(0, 20))
-        self.appearance_mode_optionemenu.set("Light")
+        self.appearance_mode_optionemenu.set("Claro")
+        self.last_appearance_mode = "Claro"
 
     def define_description_frame_and_tabview(self):
         self.descriptionFrame = customtkinter.CTkFrame(self, width=140)
@@ -101,11 +102,11 @@ class App(customtkinter.CTk):
         self.monopstop.grid(row=3, column=1, padx=5, pady=(5, 5))
         self.monodelp = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Phi (º)")
         self.monodelp.grid(row=4, column=1, padx=5, pady=(5, 5))
-        self.monotstart = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Theta Inicial (º)")
+        self.monotstart = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Teta Inicial (º)")
         self.monotstart.grid(row=2, column=2, padx=5, pady=(5, 5))
-        self.monotstop = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Theta Final (º)")
+        self.monotstop = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Teta Final (º)")
         self.monotstop.grid(row=3, column=2, padx=5, pady=(5, 5))
-        self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Theta (º)")
+        self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Teta (º)")
         self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
         self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_and_show_results_event('monostatic','interface'))
         self.monoresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
@@ -133,7 +134,7 @@ class App(customtkinter.CTk):
         self.birest.set("Resistividade")
         self.biphi = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Incidente (º)")
         self.biphi.grid(row=2, column=1, padx=5, pady=(5, 5))
-        self.bitheta = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Incidente (º)")
+        self.bitheta = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Teta Incidente (º)")
         self.bitheta.grid(row=2, column=2, padx=5, pady=(5, 5))
         self.bipstart = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Phi Inicial (º)")
         self.bipstart.grid(row=3, column=1, padx=5, pady=(5, 5))
@@ -141,11 +142,11 @@ class App(customtkinter.CTk):
         self.bipstop.grid(row=4, column=1, padx=5, pady=(5, 5))
         self.bidelp = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Phi (º)")
         self.bidelp.grid(row=5, column=1, padx=5, pady=(5, 5))
-        self.bitstart = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Inicial (º)")
+        self.bitstart = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Teta Inicial (º)")
         self.bitstart.grid(row=3, column=2, padx=5, pady=(5, 5))
-        self.bitstop = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Theta Final (º)")
+        self.bitstop = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Teta Final (º)")
         self.bitstop.grid(row=4, column=2, padx=5, pady=(5, 5))
-        self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Theta (º)")
+        self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Teta (º)")
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
         self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_and_show_results_event('bistatic','interface'))
         self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")
@@ -183,13 +184,13 @@ class App(customtkinter.CTk):
         self.material_type = customtkinter.CTkOptionMenu(self.material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layers on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'], command=self.on_select_material_type)
         self.material_type.grid(row=1, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.material_ffacet = customtkinter.CTkLabel(self.material_window, text="Primeira Face")
+        self.material_ffacet = customtkinter.CTkLabel(self.material_window, text="Primeira Faceta")
         self.material_ffacet.grid(row=2, column=0, padx=5, pady=(5,5))
 
         self.ffacet_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Todas")
         self.ffacet_entry.grid(row=3, column=0, padx=5, pady=(5, 5))
 
-        self.material_lfacet = customtkinter.CTkLabel(self.material_window, text="Última Face")
+        self.material_lfacet = customtkinter.CTkLabel(self.material_window, text="Última Facetas")
         self.material_lfacet.grid(row=2, column=1, padx=5, pady=(5,5))
 
         self.lfacet_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Todas")
@@ -198,10 +199,10 @@ class App(customtkinter.CTk):
         self.material_perms = customtkinter.CTkLabel(self.material_window, text="Permissividade")
         self.material_perms.grid(row=4, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.relperm_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Rel. Permissividade")
+        self.relperm_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Permissividade Rel.")
         self.relperm_entry.grid(row=6, column=0, padx=5, pady=(5, 5))
 
-        self.losstang_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Loss Tangent")
+        self.losstang_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Tang. de Perdas")
         self.losstang_entry.grid(row=6, column=1, padx=5, pady=(5, 5))
 
         self.material_perm = customtkinter.CTkLabel(self.material_window, text="Permeabilidade")
@@ -284,6 +285,10 @@ class App(customtkinter.CTk):
         self.initiate_thread_for_function(self.generate_and_show_results)
     
     def initiate_thread_for_function(self, function):
+        try:
+            self.end_generate_attempt()
+        except Exception as e:
+            pass
         self.thread = thread_with_trace(target=function)
         self.thread.start()
         self.result_tab_loading()
@@ -573,7 +578,7 @@ class App(customtkinter.CTk):
         self.savefile.grid(row=4, column=1, columnspan=2, padx=5, pady=(5, 5))
         self.savefig = customtkinter.CTkButton(self.results_frame, text="⬇ Download Arquivo de Dados", command=self.save_file, width=300)
         self.savefig.grid(row=5, column=1, columnspan=2, padx=5, pady=(5, 5))
-        self.reset = customtkinter.CTkButton(self.results_frame, text="Reset", command=self.reset_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.reset = customtkinter.CTkButton(self.results_frame, text="Limpar Área", command=self.reset_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.reset.grid(row=6, column=1, columnspan=2, padx=5, pady=15)  
        
     def upload(self):
@@ -586,7 +591,7 @@ class App(customtkinter.CTk):
             self.monomodel.configure(text=self.monomodel_text)
     
     def load_header_of_material_table(self): 
-        columns = ["facet", "Material", "Descrição", "Permis. Relat.", "Loss Tang.", "Permea. Rela. Real", "Permea. Rela. Img", "Espess."]
+        columns = ["faceta", "Material", "Descrição", "Permis. Relat.", "Tang. de Perdas", "Permea. Rela. Real", "Permea. Rela. Img", "Espess."]
         for col_index, col_name in enumerate(columns):
             header_label = customtkinter.CTkLabel(self.table_inner_frame, text=col_name, font=customtkinter.CTkFont(weight="bold"))
             header_label.grid(row=0, column=col_index, padx=5, pady=5)
@@ -666,14 +671,27 @@ class App(customtkinter.CTk):
     def restore_result_tab(self):
         try:
             self.cancel.grid_forget()
-            self.gif.destroy()
             self.active_buttons()
+            self.gif.destroy()
         except Exception as e:
-            print("Gif já destruido")
+            pass
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
-        customtkinter.set_appearance_mode(new_appearance_mode)
-
+        if self.gif.winfo_exists():
+            self.appearance_mode_optionemenu.set(self.last_appearance_mode)
+        else:
+            if new_appearance_mode == "Claro": 
+                self.last_appearance_mode = "Light"
+            elif new_appearance_mode == "Escuro": 
+                self.last_appearance_mode = "Dark"
+            else: 
+                self.last_appearance_mode = "System"
+            
+            self.withdraw()
+            customtkinter.set_appearance_mode(self.last_appearance_mode)
+            time.sleep(0.1)
+            self.deiconify()
+        
     def end_generate_attempt(self):
         self.restore_result_tab()
         if self.thread.isAlive():
@@ -681,6 +699,7 @@ class App(customtkinter.CTk):
         
     def loading_gif(self):
         self.gif = ImageLabel(self.results_frame)
+        self.gif.set_background_color_for_appearence(customtkinter.get_appearance_mode())
         self.gif.grid(row=4, column=1, padx=5, pady=(25, 5))
         self.gif.load('img/load.gif')
 

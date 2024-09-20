@@ -26,5 +26,5 @@ box.stl
 30
 # 13 phi incidence in degrees
 0
-# 14 matrl file path or write "configure" to open material configure tab
+# 14 matrl file path or write "configure" below to open material configure tab
 matrl_test2.txt

@@ -26,16 +26,23 @@ class ImageLabel(tk.Label):
             self.delay = 100
 
         if len(frames) == 1:
-            self.config(image=next(self.frames),width=100,height=100,bg='#e8e4e4')
+            self.config(image=next(self.frames),width=100,height=100,bg=self.background_color)
         else:
             self.next_frame()
 
     def unload(self):
-        self.config(image=None,width=100,height=100,bg='#e8e4e4')
+        self.config(image=None,width=100,height=100,bg=self.background_color)
         self.frames = None
+
 
     def next_frame(self):
         if self.frames:
-            self.config(image=next(self.frames),width=100,height=100,bg='#e8e4e4')
+            self.config(image=next(self.frames),width=100,height=100,bg=self.background_color)
             self.after(self.delay, self.next_frame)
+    
+    def set_background_color_for_appearence(self, appearence_mode):
+        if appearence_mode == "Light":
+            self.background_color = '#e8e4e4'
+        else:
+            self.background_color = '#212121'
 
