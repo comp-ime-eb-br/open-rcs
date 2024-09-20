@@ -107,9 +107,9 @@ class App(customtkinter.CTk):
         self.monotstop.grid(row=3, column=2, padx=5, pady=(5, 5))
         self.monodelt = customtkinter.CTkEntry(self.tabview.tab("Monoestático"), placeholder_text="Passo Theta (º)")
         self.monodelt.grid(row=4, column=2, padx=5, pady=(5, 5))
-        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_and_show_results('monostatic','interface'))
+        self.monoresult = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados", command=lambda: self.generate_and_show_results_event('monostatic','interface'))
         self.monoresult.grid(row=6, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=lambda:self.generate_and_show_results('monostatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.monoresultfile = customtkinter.CTkButton(self.tabview.tab("Monoestático"), text="Gerar Resultados do Input File", command=lambda:self.generate_and_show_results_event('monostatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.monoresultfile.grid(row=7, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.monoerror = customtkinter.CTkLabel(self.tabview.tab("Monoestático"), text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.monoerror.grid(row=8, column=1, padx=5, pady=0, sticky="ew")
@@ -147,9 +147,9 @@ class App(customtkinter.CTk):
         self.bitstop.grid(row=4, column=2, padx=5, pady=(5, 5))
         self.bidelt = customtkinter.CTkEntry(self.tabview.tab("Biestático"), placeholder_text="Passo Theta (º)")
         self.bidelt.grid(row=5, column=2, padx=5, pady=(5, 5))
-        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_and_show_results('bistatic','interface'))
+        self.biresult = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados", command=lambda: self.generate_and_show_results_event('bistatic','interface'))
         self.biresult.grid(row=7, column=1, padx=5, pady=(40, 0), sticky="nsew")
-        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_and_show_results('bistatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.biresultfile = customtkinter.CTkButton(self.tabview.tab("Biestático"), text="Gerar Resultados do Input File", command=lambda: self.generate_and_show_results_event('bistatic','inputFile'), fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
         self.biresultfile.grid(row=8, column=0, columnspan=3, padx=5, pady=(10, 0))
         self.bierror = customtkinter.CTkLabel(self.tabview.tab("Biestático"), text="")
         self.bierror.grid(row=9, column=1, padx=5, pady=0, sticky="ew")
@@ -226,7 +226,7 @@ class App(customtkinter.CTk):
         self.material_message = customtkinter.CTkLabel(self.material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.button_openconfig = customtkinter.CTkButton(self.material_window, text="Calcular com Arquivo", command=lambda:self.initiate_thread_for_function(self.define_material_properties_list_from_material_file))
+        self.button_openconfig = customtkinter.CTkButton(self.material_window, text="Calcular com Arquivo", command=lambda:self.define_material_properties_list_from_material_file_event())
         self.button_openconfig.grid(row=14, column=1, padx=5, pady=(5,5))
 
         self.button_actualconfig = customtkinter.CTkButton(self.material_window, text="Ver Configuração Atual", command=lambda: self.show_actual_material_config_event())
@@ -235,7 +235,7 @@ class App(customtkinter.CTk):
         self.button_saveconfig = customtkinter.CTkButton(self.material_window, text="Salvar", command=lambda: self.save_current_material_properties())
         self.button_saveconfig.grid(row=15, column=0, padx=5, pady=(5,5))
 
-        self.button_continue = customtkinter.CTkButton(self.material_window, text="Calcular RCS",command=lambda: self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs_event))
+        self.button_continue = customtkinter.CTkButton(self.material_window, text="Calcular RCS",command=lambda: self.run_write_matrl_and_calculate_rcs_event())
         self.button_continue.grid(row=15, column=1,columnspan=2, padx=5, pady=(5,5))
         self.material_window.deiconify()
         
@@ -276,12 +276,12 @@ class App(customtkinter.CTk):
         try:
             self.reset_event()
         except:
-            print("")
+            pass
 
         self.method = method # monostatic or bistatic
         self.inputFont = inputFont # interface or inputFile
         
-        self.initiate_thread_for_function(self.generate_and_show_results_event)
+        self.initiate_thread_for_function(self.generate_and_show_results)
     
     def initiate_thread_for_function(self, function):
         self.thread = thread_with_trace(target=function)
@@ -392,8 +392,15 @@ class App(customtkinter.CTk):
         except Exception as e:
             print(e)
             return False
-        
+    
     def run_write_matrl_and_calculate_rcs_event(self):
+        try:
+            self.reset_event()
+        except Exception as e:
+            pass
+        self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs)
+        
+    def run_write_matrl_and_calculate_rcs(self):
         if self.get_entrys_from_material_interface():
             self.material_window.withdraw()
             self.add_current_layer()
@@ -422,6 +429,13 @@ class App(customtkinter.CTk):
             else:   
                 self.material_message.configure(text="Termine de preencher os campos.")
     
+    def define_material_properties_list_from_material_file_event(self):
+        try:
+            self.reset_event()
+        except Exception as e:
+            pass
+        self.initiate_thread_for_function(self.define_material_properties_list_from_material_file)
+    
     def define_material_properties_list_from_material_file(self):
         self.material_window.withdraw()
         
@@ -434,7 +448,7 @@ class App(customtkinter.CTk):
         else:
             save_list_in_file(self.material_properties_list,'matrl.txt')
             self.calculate_and_show_rcs_results()
-            
+                     
     def save_current_material_properties(self):
         if self.get_entrys_from_material_interface():
             self.add_current_layer()

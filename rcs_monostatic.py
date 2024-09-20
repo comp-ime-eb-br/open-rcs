@@ -3,7 +3,6 @@ import numpy as np
 from rcs_functions import *
 
 def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,list]:
-    print(params_entrys)
     input_model, freq, corr, delstd, ipol, rs, pstart, pstop, delp, tstart, tstop, delt, matrlpath = params_entrys
     
     # processing coordinate data 
