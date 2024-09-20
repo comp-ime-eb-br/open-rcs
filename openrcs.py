@@ -226,54 +226,19 @@ class App(customtkinter.CTk):
         self.material_message = customtkinter.CTkLabel(self.material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.button_openconfig = customtkinter.CTkButton(self.material_window, text="Calcular com Arquivo", command=lambda:self.initiate_thread_for_function(self.define_entrysList_from_material_file))
+        self.button_openconfig = customtkinter.CTkButton(self.material_window, text="Calcular com Arquivo", command=lambda:self.initiate_thread_for_function(self.define_material_properties_list_from_material_file))
         self.button_openconfig.grid(row=14, column=1, padx=5, pady=(5,5))
 
-        self.button_actualconfig = customtkinter.CTkButton(self.material_window, text="Ver Configuração Atual", command=lambda: self.show_actual_material_config())
+        self.button_actualconfig = customtkinter.CTkButton(self.material_window, text="Ver Configuração Atual", command=lambda: self.show_actual_material_config_event())
         self.button_actualconfig.grid(row=14, column=0, padx=5, pady=(5,5))
 
         self.button_saveconfig = customtkinter.CTkButton(self.material_window, text="Salvar", command=lambda: self.save_current_material_properties())
         self.button_saveconfig.grid(row=15, column=0, padx=5, pady=(5,5))
 
-        self.button_continue = customtkinter.CTkButton(self.material_window, text="Calcular RCS",command=lambda: self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs))
+        self.button_continue = customtkinter.CTkButton(self.material_window, text="Calcular RCS",command=lambda: self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs_event))
         self.button_continue.grid(row=15, column=1,columnspan=2, padx=5, pady=(5,5))
         self.material_window.deiconify()
         
-    def on_select_material_type(self,choice):
-        self.reset_all_material_lists_and_define_type("PEC")
-        
-        if choice == "PEC" or choice == "Composite" or choice == "Composite Layer on PEC":
-            self.button_addlayer.grid_remove()
-            self.button_removelayer.grid_remove()
-            
-        elif choice == "Multiple Layers" or choice == "Multiple Layers on PEC":
-            self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
-            self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
-            
-    
-    def generate_and_show_results(self,method,inputFont):
-        try:
-            self.reset_event()
-        except:
-            print("")
-
-        self.method = method # monostatic or bistatic
-        self.inputFont = inputFont # interface or inputFile
-        
-        self.initiate_thread_for_function(self.generate_and_show_results_event)
-    
-    def show_actual_material_config(self):
-        if self.get_entrys_from_material_interface():
-            self.add_current_layer()
-            self.define_actual_material_frame()
-            self.remove_last_layer()
-            self.material_message.configure(text="")   
-        else:
-            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.entrysList != []:
-                self.define_actual_material_frame()
-            else:   
-                self.material_message.configure(text="Termine de preencher os campos.")
-    
     def define_actual_material_frame(self):
         self.material_actual_configuration = customtkinter.CTkToplevel(self.material_window)
         self.material_actual_configuration.title("Características do Atual do Material")
@@ -306,35 +271,31 @@ class App(customtkinter.CTk):
         self.table_width = self.table_inner_frame.winfo_reqwidth()
         row_height = self.table_inner_frame.winfo_children()[0].winfo_reqheight()
         self.material_actual_configuration.geometry(f"{self.table_width+30}x{row_height*9+50}") 
-    
-    def load_header_of_material_table(self): 
-        columns = ["facet", "Material", "Descrição", "Permis. Relat.", "Loss Tang.", "Permea. Rela. Real", "Permea. Rela. Img", "Espess."]
-        for col_index, col_name in enumerate(columns):
-            header_label = customtkinter.CTkLabel(self.table_inner_frame, text=col_name, font=customtkinter.CTkFont(weight="bold"))
-            header_label.grid(row=0, column=col_index, padx=5, pady=5)
-       
-    def load_lines_of_material_table(self):
+        
+    def generate_and_show_results_event(self,method,inputFont):
+        try:
+            self.reset_event()
+        except:
+            print("")
 
-        new_data = convert_entrysList_format_to_table_format(self.entrysList)
-            
-        for row_index, row_data in enumerate(new_data):
-            for col_index, cell_data in enumerate(row_data):
-                cell_label = customtkinter.CTkLabel(self.table_inner_frame, text=str(cell_data))
-                cell_label.grid(row=row_index + 1, column=col_index, padx=5, pady=5)
+        self.method = method # monostatic or bistatic
+        self.inputFont = inputFont # interface or inputFile
+        
+        self.initiate_thread_for_function(self.generate_and_show_results_event)
     
     def initiate_thread_for_function(self, function):
         self.thread = thread_with_trace(target=function)
         self.thread.start()
         self.result_tab_loading()
-
-    def generate_and_show_results_event(self):         
+    
+    def generate_and_show_results(self):         
         try:
-            self.generate_and_show_rcs_results()
+            self.update_all_data_and_run_rcs_simulation()
 
         except Exception as e:
             self.error_message_and_restore_tab(e)
-            
-    def generate_and_show_rcs_results(self):
+    
+    def update_all_data_and_run_rcs_simulation(self):
         self.update_simulation_params_list()
         
         self.verify_standart_deviation()
@@ -401,8 +362,8 @@ class App(customtkinter.CTk):
         if self.simulationParamsList[RESISTIVITY] == MATERIALESPECIFICO:
             self.especific_material_treatment()
         else:
-            self.update_entrysList()
-            save_list_in_file(self.entrysList,'matrl.txt')
+            self.update_material_properties_list()
+            save_list_in_file(self.material_properties_list,'matrl.txt')
             self.calculate_and_show_rcs_results()
             
     def especific_material_treatment(self):
@@ -432,56 +393,66 @@ class App(customtkinter.CTk):
             print(e)
             return False
         
-    def run_write_matrl_and_calculate_rcs(self):
+    def run_write_matrl_and_calculate_rcs_event(self):
         if self.get_entrys_from_material_interface():
             self.material_window.withdraw()
             self.add_current_layer()
-            save_list_in_file(self.entrysList,'matrl.txt')
+            save_list_in_file(self.material_properties_list,'matrl.txt')
             self.remove_last_layer()
             self.calculate_and_show_rcs_results()
         
         else:
-            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.entrysList != []:
+            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.material_properties_list != []:
                 self.material_window.withdraw()       
-                save_list_in_file(self.entrysList,'matrl.txt')
+                save_list_in_file(self.material_properties_list,'matrl.txt')
                 self.calculate_and_show_rcs_results()
 
             else:
                 self.material_message.configure(text="Preencha os campos corretamente.")
 
-    def define_entrysList_from_material_file(self):
+    def show_actual_material_config_event(self):
+        if self.get_entrys_from_material_interface():
+            self.add_current_layer()
+            self.define_actual_material_frame()
+            self.remove_last_layer()
+            self.material_message.configure(text="")   
+        else:
+            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.material_properties_list != []:
+                self.define_actual_material_frame()
+            else:   
+                self.material_message.configure(text="Termine de preencher os campos.")
+    
+    def define_material_properties_list_from_material_file(self):
         self.material_window.withdraw()
         
         materialFile = askopenfile(title="Selecionar um arquivo", filetypes=[("Text files", "*.txt")])
        
-        self.entrysList = get_material_properties_from_file(materialFile)
+        self.material_properties_list = get_material_properties_from_file(materialFile)
             
-        if len(self.entrysList) != self.ntria:
+        if len(self.material_properties_list) != self.ntria:
             self.material_message.configure(text="Número de facets divergentes.")
         else:
-            save_list_in_file(self.entrysList,'matrl.txt')
+            save_list_in_file(self.material_properties_list,'matrl.txt')
             self.calculate_and_show_rcs_results()
             
-            
-        
     def save_current_material_properties(self):
         if self.get_entrys_from_material_interface():
             self.add_current_layer()
             file_path = asksaveasfilename(defaultextension=".txt", 
                                              filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
-            save_list_in_file(self.entrysList,file_path)
+            save_list_in_file(self.material_properties_list,file_path)
             self.remove_last_layer()
             self.material_message.configure(text="")
         
-        elif (self.type == "Multiple Layers" or self.type == "Multiple Layers on PEC") and len(self.entrysList) > 0:
+        elif (self.type == "Multiple Layers" or self.type == "Multiple Layers on PEC") and len(self.material_properties_list) > 0:
             file_path = asksaveasfilename(defaultextension=".txt", 
                                              filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
-            save_list_in_file(self.entrysList,file_path)
+            save_list_in_file(self.material_properties_list,file_path)
         else:
             self.material_message.configure(text="Sem camadas incluídas.")
         
-    def update_entrysList(self):
-        self.entrysList = []
+    def update_material_properties_list(self):
+        self.material_properties_list = []
         
         for m in range(self.ntria):
             entry = [self.types[m],self.description[m]]
@@ -492,7 +463,7 @@ class App(customtkinter.CTk):
             for layer in self.layers[m]:
                 entry.append(layer)
                                  
-            self.entrysList.append(entry)
+            self.material_properties_list.append(entry)
       
     def update_material_types(self):
         for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
@@ -510,7 +481,7 @@ class App(customtkinter.CTk):
         for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
             self.types[facetIndex] = self.type
             self.layers[facetIndex].append(layerProperties)
-        self.update_entrysList()
+        self.update_material_properties_list()
         
     def remove_last_layer(self):
         try :
@@ -522,12 +493,12 @@ class App(customtkinter.CTk):
                     remove_some_layer = True
                     
                     if tamanho - 1 == 0:
-                        self.entrysList[facetIndex][0] = "PEC"
+                        self.material_properties_list[facetIndex][0] = "PEC"
                     
                     
             if remove_some_layer:
                 self.material_message.configure(text="Remoção realizada com sucesso")
-                self.update_entrysList()
+                self.update_material_properties_list()
             else:
                 self.material_message.configure(text="Sem mais layers a remover")
                 
@@ -540,10 +511,9 @@ class App(customtkinter.CTk):
 
         self.facetBeginIndex = int(ffacet_value) if ffacet_value.strip() else 1
         self.facetEndIndex = int(lfacet_value) if lfacet_value.strip() else self.ntria
-
-    
+ 
     def reset_all_material_lists_and_define_type(self,type):
-        self.entrysList = []
+        self.material_properties_list = []
         self.types = [type for _ in range(self.ntria)]
         self.description = ['facet description' for _ in range(self.ntria)]
         self.layers = [[] for _ in range(self.ntria)]  
@@ -600,6 +570,21 @@ class App(customtkinter.CTk):
             self.model = os.path.basename(file.name)
             self.monomodel_text = f"\n⬆\nUploaded: {self.model}\n"
             self.monomodel.configure(text=self.monomodel_text)
+    
+    def load_header_of_material_table(self): 
+        columns = ["facet", "Material", "Descrição", "Permis. Relat.", "Loss Tang.", "Permea. Rela. Real", "Permea. Rela. Img", "Espess."]
+        for col_index, col_name in enumerate(columns):
+            header_label = customtkinter.CTkLabel(self.table_inner_frame, text=col_name, font=customtkinter.CTkFont(weight="bold"))
+            header_label.grid(row=0, column=col_index, padx=5, pady=5)
+       
+    def load_lines_of_material_table(self):
+
+        new_data = convert_material_properties_list_format_to_table_format(self.material_properties_list)
+            
+        for row_index, row_data in enumerate(new_data):
+            for col_index, cell_data in enumerate(row_data):
+                cell_label = customtkinter.CTkLabel(self.table_inner_frame, text=str(cell_data))
+                cell_label.grid(row=row_index + 1, column=col_index, padx=5, pady=5)
             
     def on_button_enter(self, event):
         if self.model:
@@ -609,6 +594,17 @@ class App(customtkinter.CTk):
         # Restore the button text if not uploaded on mouse leave
         if self.model:
             self.monomodel.configure(text=f"\n⬆\nUploaded: {self.model}\n")
+            
+    def on_select_material_type(self,choice):
+        self.reset_all_material_lists_and_define_type("PEC")
+        
+        if choice == "PEC" or choice == "Composite" or choice == "Composite Layer on PEC":
+            self.button_addlayer.grid_remove()
+            self.button_removelayer.grid_remove()
+            
+        elif choice == "Multiple Layers" or choice == "Multiple Layers on PEC":
+            self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
+            self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
             
     def save_plot(self):
         im= Image.open(self.plotpath)

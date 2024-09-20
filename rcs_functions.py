@@ -394,7 +394,7 @@ def convert_material_textlist_to_list(text_list:str)->list:
     return matrl
     
 
-def convert_entrysList_format_to_table_format(data:list) -> list:
+def convert_material_properties_list_format_to_table_format(data:list) -> list:
     new_data = []
     for rowIndex, row in enumerate(data):
         head = [row[TYPE],row[DESCRIPTION]]
