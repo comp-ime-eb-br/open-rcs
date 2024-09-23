@@ -1,5 +1,5 @@
 # input model (stl_models)
-F16_composite.stl
+F16_multiple_layers.stl
 # 1 radar frequency(GHz)
 165
 # 2 correlation distance in meters
@@ -23,4 +23,4 @@ F16_composite.stl
 # 11 theta increment (step) in degrees
 2
 # 12 matrl file path or write "configure" below to open material configure tab
-material_files/F16_composite.txt
+material_files/F16_multiple_layers.txt
