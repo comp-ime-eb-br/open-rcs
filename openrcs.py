@@ -181,7 +181,7 @@ class App(customtkinter.CTk):
         self.material_text = customtkinter.CTkLabel(self.material_window, text="Selecione o Tipo de Material")
         self.material_text.grid(row=0, column=0,columnspan=2, padx=10, pady=10)
 
-        self.material_type = customtkinter.CTkOptionMenu(self.material_window, values=["PEC","Composite", "Composite Layer on PEC", "Multiple Layers", "Multiple Layers on PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'], command=self.on_select_material_type)
+        self.material_type = customtkinter.CTkOptionMenu(self.material_window, values=["PEC","Composito", "Camada de Composito em PEC", "Multiplas Camadas", "Multiplas Camadas em PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'], command=self.on_select_material_type)
         self.material_type.grid(row=1, column=0, columnspan=2, padx=5, pady=(5,5))
 
         self.material_ffacet = customtkinter.CTkLabel(self.material_window, text="Primeira Faceta")
@@ -220,9 +220,9 @@ class App(customtkinter.CTk):
         self.thick_entry = customtkinter.CTkEntry(self.material_window, placeholder_text="Espessura")
         self.thick_entry.grid(row=11, column=0,columnspan=2, padx=5, pady=(5, 5))
 
-        self.button_addlayer = customtkinter.CTkButton(self.material_window, text="Adicionar Layer", command=lambda: self.add_new_layer_event())
+        self.button_addlayer = customtkinter.CTkButton(self.material_window, text="Adicionar Camada", command=lambda: self.add_new_layer_event())
 
-        self.button_removelayer = customtkinter.CTkButton(self.material_window, text="Remover Último Layer", command=lambda: self.remove_last_layer())
+        self.button_removelayer = customtkinter.CTkButton(self.material_window, text="Remover Última Camada", command=lambda: self.remove_last_layer())
         
         self.material_message = customtkinter.CTkLabel(self.material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
@@ -414,7 +414,7 @@ class App(customtkinter.CTk):
             self.calculate_and_show_rcs_results()
         
         else:
-            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.material_properties_list != []:
+            if (self.type == 'Multiplas Camadas' or self.type == 'Multiplas Camadas em PEC') and self.material_properties_list != []:
                 self.material_window.withdraw()       
                 save_list_in_file(self.material_properties_list,'matrl.txt')
                 self.calculate_and_show_rcs_results()
@@ -429,7 +429,7 @@ class App(customtkinter.CTk):
             self.remove_last_layer()
             self.material_message.configure(text="")   
         else:
-            if (self.type == 'Multiple Layers' or self.type == 'Multiple Layers on PEC') and self.material_properties_list != []:
+            if (self.type == 'Multiplas Camadas' or self.type == 'Multiplas Camadas em PEC') and self.material_properties_list != []:
                 self.define_actual_material_frame()
             else:   
                 self.material_message.configure(text="Termine de preencher os campos.")
@@ -463,7 +463,7 @@ class App(customtkinter.CTk):
             self.remove_last_layer()
             self.material_message.configure(text="")
         
-        elif (self.type == "Multiple Layers" or self.type == "Multiple Layers on PEC") and len(self.material_properties_list) > 0:
+        elif (self.type == "Multiplas Camadas" or self.type == "Multiplas Camadas em PEC") and len(self.material_properties_list) > 0:
             file_path = asksaveasfilename(defaultextension=".txt", 
                                              filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
             save_list_in_file(self.material_properties_list,file_path)
@@ -491,7 +491,7 @@ class App(customtkinter.CTk):
     def add_new_layer_event(self):
         if self.get_entrys_from_material_interface():
             self.add_current_layer()
-            self.material_message.configure(text="Nova layer adicionada com sucesso")
+            self.material_message.configure(text="Nova camada adicionada com sucesso")
         else:
             self.material_message.configure(text="Entradas inválidas")
         
@@ -519,10 +519,10 @@ class App(customtkinter.CTk):
                 self.material_message.configure(text="Remoção realizada com sucesso")
                 self.update_material_properties_list()
             else:
-                self.material_message.configure(text="Sem mais layers a remover")
+                self.material_message.configure(text="Sem mais camadas a remover")
                 
         except Exception as e:
-            self.material_message.configure(text="Sem mais layers a remover")
+            self.material_message.configure(text="Sem mais camadas a remover")
                   
     def get_facets_indexs(self):
         ffacet_value = getattr(self, "ffacet_entry").get()
@@ -617,11 +617,11 @@ class App(customtkinter.CTk):
     def on_select_material_type(self,choice):
         self.reset_all_material_lists_and_define_type("PEC")
         
-        if choice == "PEC" or choice == "Composite" or choice == "Composite Layer on PEC":
+        if choice == "PEC" or choice == "Composito" or choice == "Composito Layer on PEC":
             self.button_addlayer.grid_remove()
             self.button_removelayer.grid_remove()
             
-        elif choice == "Multiple Layers" or choice == "Multiple Layers on PEC":
+        elif choice == "Multiplas Camadas" or choice == "Multiplas Camadas em PEC":
             self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
             self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
             

@@ -701,16 +701,16 @@ def getReflCoeffFromMatrl(thri:float,phrii:float,alpha:float,beta:float,freq:flo
         RCperp = -1
         RCpar = -1
         
-    elif matrlLine[TYPE] == 'Composite':
+    elif matrlLine[TYPE] == 'Composito':
        RCperp, RCpar = reflCoeffCompo(thri,phrii,alpha,beta,freq, matrlLine)
         
-    elif matrlLine[TYPE] == 'Composite Layer on PEC':
+    elif matrlLine[TYPE] ==  'Camada de Composito em PEC':
         RCperp, RCpar = reflCoeffCompoLayerOnPEC(thri,phrii,alpha,beta,freq, matrlLine)
 
-    elif matrlLine[TYPE] == 'Multiple Layers':
+    elif matrlLine[TYPE] == 'Multiplas Camadas':
         RCperp, RCpar = reflCoeffMultiLayers(thri,phrii,alpha,beta,freq, matrlLine)
 
-    elif matrlLine[TYPE] == 'Multiple Layers on PEC':
+    elif matrlLine[TYPE] == 'Multiplas Camadas em PEC':
         RCperp, RCpar = reflCoeffMultiLayersOnPEC(thri,phrii,alpha,beta,freq, matrlLine)
 
     
