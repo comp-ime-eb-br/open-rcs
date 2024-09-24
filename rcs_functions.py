@@ -394,15 +394,20 @@ def convert_material_textlist_to_list(text_list:str)->list:
     return matrl
     
 
-def convert_material_properties_list_format_to_table_format(data:list) -> list:
+def erase_widges_from_table(table_frame):
+    for widget in table_frame.winfo_children():
+        try:
+            widget.destroy()
+        except Exception as e:
+            pass
+def get_surface_layers(facet_material_properties):
+    layers = facet_material_properties[2:]
     new_data = []
-    for rowIndex, row in enumerate(data):
-        head = [row[TYPE],row[DESCRIPTION]]
-        layers = row[LAYERS:]
-        for layer in layers:
-            index = [rowIndex+1]
-            new_row = index + head + layer
-            new_data.append(new_row)
+    for i,layer in enumerate(layers):
+        prop = [i+1,facet_material_properties[0],facet_material_properties[1]]
+        for x in layer:
+            prop.append(x)
+        new_data.append(prop)
     return new_data
 
 def rotationTransfMatrix(alpha,beta):

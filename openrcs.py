@@ -12,7 +12,6 @@ from rcs_bistatic import *
 from rcs_functions import getParamsFromFile,FREQUENCY,STANDART_DEVIATION,RESISTIVITY,MATERIALESPECIFICO,NTRIA
 from thread_trace import thread_with_trace
 from gif import ImageLabel
-import warnings
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -227,7 +226,7 @@ class App(customtkinter.CTk):
         self.material_message = customtkinter.CTkLabel(self.material_window, text="", font=customtkinter.CTkFont(size=10, weight="bold"))
         self.material_message.grid(row=13, column=0, columnspan=2, padx=5, pady=(5,5))
 
-        self.button_openconfig = customtkinter.CTkButton(self.material_window, text="Calcular com Arquivo", command=lambda:self.define_material_properties_list_from_material_file_event())
+        self.button_openconfig = customtkinter.CTkButton(self.material_window, text="Calcular com Arquivo", command=lambda:self.initiate_thread_for_function(self.define_material_properties_list_from_material_file))
         self.button_openconfig.grid(row=14, column=1, padx=5, pady=(5,5))
 
         self.button_actualconfig = customtkinter.CTkButton(self.material_window, text="Ver Camadas Atuais", command=lambda: self.show_actual_material_config_event())
@@ -236,13 +235,9 @@ class App(customtkinter.CTk):
         self.button_saveconfig = customtkinter.CTkButton(self.material_window, text="Salvar", command=lambda: self.save_current_material_properties())
         self.button_saveconfig.grid(row=15, column=0, padx=5, pady=(5,5))
 
-        self.button_continue = customtkinter.CTkButton(self.material_window, text="Calcular RCS",command=lambda: self.run_write_matrl_and_calculate_rcs_event())
+        self.button_continue = customtkinter.CTkButton(self.material_window, text="Calcular RCS",command=lambda: self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs))
         self.button_continue.grid(row=15, column=1,columnspan=2, padx=5, pady=(5,5))
         self.material_window.deiconify()
-        
-    def slider_value_changed(self,new_value = 1):
-        self.slider_value_label.configure(text=f"Faceta Selecionada: {int(new_value)}",font=customtkinter.CTkFont(size=13, weight="bold"))
-        self.load_lines_of_material_table(int(new_value))
         
     def define_actual_material_frame(self):
         self.material_actual_configuration = customtkinter.CTkToplevel(self.material_window)
@@ -251,58 +246,40 @@ class App(customtkinter.CTk):
         self.material_actual_configuration.iconphoto(True, self.icon_image)
         self.material_actual_configuration.resizable(True, True)
 
-        # Configuração da grid para a janela principal
         self.material_actual_configuration.grid_rowconfigure(0, weight=1)
         self.material_actual_configuration.grid_columnconfigure(0, weight=1)
 
-        # Criação do canvas para conter todo o conteúdo
         self.canvas = customtkinter.CTkCanvas(self.material_actual_configuration)
         self.canvas.grid(row=0, column=0, sticky="nsew")
 
-        # Scrollbar para o canvas
         self.scrollbar = customtkinter.CTkScrollbar(self.material_actual_configuration, orientation="vertical", command=self.canvas.yview)
         self.scrollbar.grid(row=0, column=1, sticky="ns")
 
-        # Configuração da scrollbar para controlar o canvas
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        # Frame interno onde todo o conteúdo será colocado
         self.inner_frame = customtkinter.CTkFrame(self.canvas)
         self.canvas.create_window((0, 0), window=self.inner_frame, anchor="nw")
 
-        # Configuração de layout do frame interno
         self.inner_frame.grid_rowconfigure(2, weight=1)
         self.inner_frame.grid_columnconfigure(0, weight=1)
 
-        # Label do slider
         self.slider_value_label = customtkinter.CTkLabel(self.inner_frame, text="Faceta Selecionada: 1",font=customtkinter.CTkFont(size=13, weight="bold"))
         self.slider_value_label.grid(row=0, column=0, columnspan=2, padx=10, pady=5)
 
-        # Slider
-        self.slider = customtkinter.CTkSlider(self.inner_frame, from_=self.facetBeginIndex, to=self.facetEndIndex, command=self.slider_value_changed)
+        self.slider = customtkinter.CTkSlider(self.inner_frame, from_=self.facetBeginIndex, to=self.facetEndIndex, command=self.on_slidebar_change)
         self.slider.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
         self.slider.set(1)
 
-        # Tabela dentro do frame
         self.table_inner_frame = customtkinter.CTkFrame(self.inner_frame)
         self.table_inner_frame.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
-        # Carregar o conteúdo da tabela
         self.load_lines_of_material_table(1)
 
-        # Atualizar a área rolável
         self.inner_frame.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
-
-        # Configuração final da janela
         self.material_actual_configuration.deiconify()
         
     def generate_and_show_results_event(self,method,inputFont):
-        try:
-            self.reset_event()
-        except:
-            pass
-
         self.method = method # monostatic or bistatic
         self.inputFont = inputFont # interface or inputFile
         
@@ -310,8 +287,8 @@ class App(customtkinter.CTk):
     
     def initiate_thread_for_function(self, function):
         try:
-            self.end_generate_attempt()
-        except Exception as e:
+            self.reset_event()
+        except:
             pass
         self.thread = thread_with_trace(target=function)
         self.thread.start()
@@ -420,13 +397,6 @@ class App(customtkinter.CTk):
         except Exception as e:
             print(e)
             return False
-    
-    def run_write_matrl_and_calculate_rcs_event(self):
-        try:
-            self.reset_event()
-        except Exception as e:
-            pass
-        self.initiate_thread_for_function(self.run_write_matrl_and_calculate_rcs)
         
     def run_write_matrl_and_calculate_rcs(self):
         if self.get_entrys_from_material_interface():
@@ -452,13 +422,6 @@ class App(customtkinter.CTk):
 
         else:   
             self.material_message.configure(text="Sem camadas adicionadas.")
-    
-    def define_material_properties_list_from_material_file_event(self):
-        try:
-            self.reset_event()
-        except Exception as e:
-            pass
-        self.initiate_thread_for_function(self.define_material_properties_list_from_material_file)
     
     def define_material_properties_list_from_material_file(self):
         self.material_window.withdraw()
@@ -502,10 +465,6 @@ class App(customtkinter.CTk):
                 entry.append(layer)
                                  
             self.material_properties_list.append(entry)
-      
-    def update_material_types(self):
-        for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
-            self.types[facetIndex] = self.type
     
     def add_new_layer_event(self):
         if self.get_entrys_from_material_interface():
@@ -523,24 +482,26 @@ class App(customtkinter.CTk):
         
     def remove_last_layer(self):
         try :
-            remove_some_layer = False
-            for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
-                tamanho = len(self.layers[facetIndex])
-                if tamanho > 0:
-                    self.layers[facetIndex].pop()
-                    remove_some_layer = True
-                    
-                    if tamanho - 1 == 0:
-                        self.material_properties_list[facetIndex][0] = "PEC"
-                    
-                    
-            if remove_some_layer:
-                self.material_message.configure(text="Remoção realizada com sucesso")
-                self.update_material_properties_list()
-            else:
-                self.material_message.configure(text="Sem mais camadas a remover")
+            self.try_remove_last_layer()
                 
         except Exception as e:
+            self.material_message.configure(text="Sem mais camadas a remover")
+            
+    def try_remove_last_layer(self):
+        remove_some_layer = False
+        for facetIndex in range(self.facetBeginIndex-1,self.facetEndIndex):
+            tamanho = len(self.layers[facetIndex])
+            if tamanho > 0:
+                self.layers[facetIndex].pop()
+                remove_some_layer = True
+                
+                if tamanho - 1 == 0:
+                    self.material_properties_list[facetIndex][0] = "PEC"
+                               
+        if remove_some_layer:
+            self.material_message.configure(text="Remoção realizada com sucesso")
+            self.update_material_properties_list()
+        else:
             self.material_message.configure(text="Sem mais camadas a remover")
                   
     def get_facets_indexs(self):
@@ -549,6 +510,10 @@ class App(customtkinter.CTk):
 
         self.facetBeginIndex = int(ffacet_value) if ffacet_value.strip() else 1
         self.facetEndIndex = int(lfacet_value) if lfacet_value.strip() else self.ntria
+        
+        if self.facetBeginIndex > self.facetEndIndex:
+            self.material_message.configure(text="Índices das facetas conflitantes.")
+            raise ValueError("Last facet index must be bigger ther first index facet.")
  
     def reset_all_material_lists_and_define_type(self,type):
         self.material_properties_list = []
@@ -609,8 +574,8 @@ class App(customtkinter.CTk):
             self.monomodel_text = f"\n⬆\nUploaded: {self.model}\n"
             self.monomodel.configure(text=self.monomodel_text)
     
+    
     def load_header_of_material_table(self): 
-        #columns = ["faceta", "Material", "Descrição", "Permis. Relat.", "Tang. de Perdas", "Permea. Rela. Real", "Permea. Rela. Img", "Espess."]
         columns = ["Camada","Material", "Descrição", "Permis. Relat.", "Tang. de Perdas", "Permea. Rela. Real", "Permea. Rela. Img", "Espess."]
         
         for col_index, col_name in enumerate(columns):
@@ -618,40 +583,25 @@ class App(customtkinter.CTk):
             header_label.grid(row=0, column=col_index, padx=5, pady=5)
        
     def load_lines_of_material_table(self, facet):
-        #new_data = convert_material_properties_list_format_to_table_format(self.material_properties_list)  
-        '''
-        for row_index, row_data in enumerate(new_data):
-            for col_index, cell_data in enumerate(row_data):
-                cell_label = customtkinter.CTkLabel(self.table_inner_frame, text=str(cell_data))
-                cell_label.grid(row=row_index + 1, column=col_index, padx=5, pady=5)
-        ''' 
-        for widget in self.table_inner_frame.winfo_children():
-            try:
-                widget.destroy()
-            except Exception as e:
-                pass
+        erase_widges_from_table(self.table_inner_frame)
             
         self.load_header_of_material_table()
-            
-        row = self.material_properties_list[facet-1]
-        layers = row[2:]
-        new_data = []
-        for i,layer in enumerate(layers):
-            prop = [i+1,row[0],row[1]]
-            for x in layer:
-                prop.append(x)
-            new_data.append(prop)
+           
+        new_data = get_surface_layers(self.material_properties_list[facet-1])
                 
         for row_index, row_data in enumerate(new_data):       
             for col_index, cell_data in enumerate(row_data):
                 cell_label = customtkinter.CTkLabel(self.table_inner_frame, text=str(cell_data))
                 cell_label.grid(row=row_index + 1, column=col_index, padx=5, pady=5)
+
+        self.redefine_table_inner_frame(len(new_data))
         
+    def redefine_table_inner_frame(self,size):    
         self.table_inner_frame.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
         self.table_width = self.table_inner_frame.winfo_reqwidth()
         row_height = self.table_inner_frame.winfo_children()[0].winfo_reqheight()
-        ideal_height = len(layers)+5 if len(layers) < 5 else 9
+        ideal_height = size+4 if size < 5 else 9
         self.material_actual_configuration.geometry(f"{self.table_width+30}x{row_height*ideal_height+50}") 
             
             
@@ -674,6 +624,10 @@ class App(customtkinter.CTk):
         elif choice == "Multiplas Camadas" or choice == "Multiplas Camadas em PEC":
             self.button_addlayer.grid(row=12, column=0, padx=5, pady=(5,5))
             self.button_removelayer.grid(row=12, column=1, padx=5, pady=(5,5))
+            
+    def on_slidebar_change(self,new_value = 1):
+        self.slider_value_label.configure(text=f"Faceta Selecionada: {int(new_value)}",font=customtkinter.CTkFont(size=13, weight="bold"))
+        self.load_lines_of_material_table(int(new_value))
             
     def save_plot(self):
         im= Image.open(self.plotpath)
