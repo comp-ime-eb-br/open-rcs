@@ -1,3 +1,4 @@
+import multiprocessing
 import time
 import customtkinter, shutil
 from tkinter.filedialog import askopenfile, asksaveasfilename
@@ -15,6 +16,10 @@ from gif import ImageLabel
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
+
+def run_rcs_monostatic(simulationParamsList, coordinatesData, result_queue):
+    result = rcs_monostatic(simulationParamsList, coordinatesData)
+    result_queue.put(result)
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -429,9 +434,9 @@ class App(customtkinter.CTk):
         materialFile = askopenfile(title="Selecionar um arquivo", filetypes=[("Text files", "*.txt")])
        
         self.material_properties_list = get_material_properties_from_file(materialFile)
-            
         if len(self.material_properties_list) != self.ntria:
             self.material_message.configure(text="Número de facets divergentes.")
+            self.end_generate_attempt()
         else:
             save_list_in_file(self.material_properties_list,'matrl.txt')
             self.calculate_and_show_rcs_results()
@@ -522,15 +527,28 @@ class App(customtkinter.CTk):
         self.layers = [[] for _ in range(self.ntria)]  
         
     def calculate_and_show_rcs_results(self):
-        self.plotpath, self.figpath, self.filepath = self.calculate_RCS()
-    
+        self.initiate_process(self.method)
+        
+        self.plotpath, self.figpath, self.filepath = self.result_queue.get()
+
         self.restore_result_tab()
+        
+        if self.plotpath == "Number of entrys in matrl diferent from number of facets." or self.plotpath == "Matrl file not found.":
+            raise Exception("Error no arquivo de caracteristicas do materiais.")
 
         self.show_results_on_interface()
+    
                
-    def calculate_RCS(self):
-        if self.method == 'monostatic': return rcs_monostatic(self.simulationParamsList,self.coordinatesData)
-        elif self.method == 'bistatic': return rcs_bistatic(self.simulationParamsList, self.coordinatesData)
+    def initiate_process(self,method):
+        self.result_queue = multiprocessing.Queue()
+            
+        if method == 'monostatic':
+            self.process = multiprocessing.Process(target=run_rcs_monostatic, args=(self.simulationParamsList, self.coordinatesData, self.result_queue))
+        elif self.method == 'bistatic':
+            self.process = multiprocessing.Process(target=run_rcs_bistatic, args=(self.simulationParamsList, self.coordinatesData, self.result_queue))
+            
+        self.process.start()
+        self.process.join()
   
     def error_message_and_restore_tab(self,e):
         print(f"An error occurred: {str(e)}")
@@ -738,6 +756,15 @@ class App(customtkinter.CTk):
     def on_save(self):
         messagebox.showinfo("Arquivo Salvo", f"Arquivo salvo na pasta results do diretório do OpenRCS")
         
+        
+def run_rcs_monostatic(simulationParamsList, coordinatesData, result_queue):
+    result = rcs_monostatic(simulationParamsList, coordinatesData)
+    result_queue.put(result)
+            
+def run_rcs_bistatic(simulationParamsList, coordinatesData, result_queue):
+    result = rcs_bistatic(simulationParamsList, coordinatesData)
+    result_queue.put(result)
+    
 if __name__ == "__main__":
     app = App()
     app.mainloop()

@@ -11,7 +11,10 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
     matrl = []
     
     if rs == MATERIALESPECIFICO:
-        matrl = getEntrysFromMatrlFile(ntria,matrlpath)
+        try:
+            matrl = getEntrysFromMatrlFile(ntria,matrlpath)
+        except Exception as e:
+            return e,e,e
         
     wave = 3e8/freq
     

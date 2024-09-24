@@ -400,6 +400,7 @@ def erase_widges_from_table(table_frame):
             widget.destroy()
         except Exception as e:
             pass
+        
 def get_surface_layers(facet_material_properties):
     layers = facet_material_properties[2:]
     new_data = []

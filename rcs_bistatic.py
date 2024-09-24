@@ -10,7 +10,10 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
     
     matrl = []
     if rs == MATERIALESPECIFICO:
-        matrl = getEntrysFromMatrlFile(ntria,matrlpath)
+        try:
+            matrl = getEntrysFromMatrlFile(ntria,matrlpath)
+        except Exception as e:
+            return e,e,e
         
     wave = 3e8 / freq
     # 2: correlation distance
