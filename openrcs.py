@@ -241,7 +241,7 @@ class App(customtkinter.CTk):
         self.material_window.deiconify()
         
     def slider_value_changed(self,new_value = 1):
-        self.slider_value_label.configure(text=f"Faceta Selecionada: {int(new_value)}")
+        self.slider_value_label.configure(text=f"Faceta Selecionada: {int(new_value)}",font=customtkinter.CTkFont(size=13, weight="bold"))
         self.load_lines_of_material_table(int(new_value))
         
     def define_actual_material_frame(self):
@@ -275,7 +275,7 @@ class App(customtkinter.CTk):
         self.inner_frame.grid_columnconfigure(0, weight=1)
 
         # Label do slider
-        self.slider_value_label = customtkinter.CTkLabel(self.inner_frame, text="Faceta Selecionada: 1")
+        self.slider_value_label = customtkinter.CTkLabel(self.inner_frame, text="Faceta Selecionada: 1",font=customtkinter.CTkFont(size=13, weight="bold"))
         self.slider_value_label.grid(row=0, column=0, columnspan=2, padx=10, pady=5)
 
         # Slider
@@ -651,7 +651,8 @@ class App(customtkinter.CTk):
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
         self.table_width = self.table_inner_frame.winfo_reqwidth()
         row_height = self.table_inner_frame.winfo_children()[0].winfo_reqheight()
-        self.material_actual_configuration.geometry(f"{self.table_width+30}x{row_height*9+50}") 
+        ideal_height = len(layers)+5 if len(layers) < 5 else 9
+        self.material_actual_configuration.geometry(f"{self.table_width+30}x{row_height*ideal_height+50}") 
             
             
     def on_button_enter(self, event):
