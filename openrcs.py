@@ -185,7 +185,7 @@ class App(customtkinter.CTk):
         self.material_text = customtkinter.CTkLabel(self.material_window, text="Selecione o Tipo de Material")
         self.material_text.grid(row=0, column=0,columnspan=2, padx=10, pady=10)
 
-        self.material_type = customtkinter.CTkOptionMenu(self.material_window, values=["PEC","Composito", "Camada de Composito em PEC", "Multiplas Camadas", "Multiplas Camadas em PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'], command=self.on_select_material_type)
+        self.material_type = customtkinter.CTkOptionMenu(self.material_window, values=["Material Transparente","PEC","Composito", "Camada de Composito em PEC", "Multiplas Camadas", "Multiplas Camadas em PEC"], fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'], command=self.on_select_material_type)
         self.material_type.grid(row=1, column=0, columnspan=2, padx=5, pady=(5,5))
 
         self.material_ffacet = customtkinter.CTkLabel(self.material_window, text="Primeira Faceta")
@@ -419,6 +419,7 @@ class App(customtkinter.CTk):
 
             else:
                 self.material_message.configure(text="Preencha os campos corretamente.")
+                self.end_generate_attempt()
 
     def show_actual_material_config_event(self):
         if (self.get_entrys_from_material_interface() or self.type == 'Multiplas Camadas' or self.type == 'Multiplas Camadas em PEC') and len(self.material_properties_list) != 0:

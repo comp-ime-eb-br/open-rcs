@@ -1,5 +1,5 @@
 # input model (stl_models)
-F16.stl
+sidewinder_multiple_layers.stl
 # 1 radar frequency(GHz)
 165
 # 2 correlation distance in meters
@@ -23,4 +23,4 @@ F16.stl
 # 11 theta increment (step) in degrees
 2
 # 12 matrl file path or write "configure" below to open material configure tab
-configure
+material_files/sidewinder_multiple_layers.txt
