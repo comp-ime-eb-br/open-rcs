@@ -170,6 +170,8 @@ class App(customtkinter.CTk):
         self.adjust = customtkinter.CTkLabel(self.results_frame, image=adjust, text="")
         self.adjust.grid(row=1, column=0, columnspan=4, rowspan=4, padx=(30,30), pady=(10,10))
         self.cancel = customtkinter.CTkButton(self.results_frame, text="Cancelar Carregamento", command=self.end_generate_attempt,fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
+        self.gif = ImageLabel(self.results_frame)
+        self.gif.destroy()
 
     def define_material_frame(self):
         self.material_window = customtkinter.CTkToplevel(self)
@@ -712,7 +714,7 @@ class App(customtkinter.CTk):
             
             self.withdraw()
             customtkinter.set_appearance_mode(self.last_appearance_mode)
-            time.sleep(0.1)
+            time.sleep(0.3)
             self.deiconify()
         
     def end_generate_attempt(self):

@@ -27,4 +27,4 @@ F16.stl
 # 13 phi incidence in degrees
 0
 # 14 matrl file path or write "configure" below to open material configure tab
-configure
+material_files/F16_composite.txt
