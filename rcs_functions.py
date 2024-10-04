@@ -728,6 +728,11 @@ def reflectionCoefficients(rs:int, index:int, th2:float, thri:float, phrii:float
     
     if rs == MATERIALESPECIFICO:
         perp, para = getReflCoeffFromMatrl(thri,phrii, alpha, beta, freq, matrl[index])
+    else:          
+        perp=-1/(2*rs*math.cos(th2)+1)  #local TE polarization
+        para=0  #local TM polarization
+        if (2*rs+math.cos(th2))!=0:
+            para=-math.cos(th2)/(2*rs+math.cos(th2))
     
     return perp, para
 
