@@ -249,7 +249,7 @@ class App(customtkinter.CTk):
     def define_actual_material_frame(self):
         self.material_actual_configuration = customtkinter.CTkToplevel(self.material_window)
         self.material_actual_configuration.withdraw()
-        self.material_actual_configuration.title("Características do Atual do Material")
+        self.material_actual_configuration.title("Camadas Já Incluídas")
         self.material_actual_configuration.iconphoto(True, self.icon_image)
         self.material_actual_configuration.resizable(True, True)
 
