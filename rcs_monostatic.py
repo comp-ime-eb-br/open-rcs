@@ -105,5 +105,8 @@ def rcs_monostatic(params_entrys:list, coordinatesData:list)-> tuple[str,list,li
 
 if __name__ == '__main__':
     param_list = getParamsFromFile('monostatic')
-    coord_list = extractCoordinatesData(param_list[RESISTIVITY])
-    rcs_monostatic(param_list,coord_list)
+    if param_list[RESISTIVITY] == 1 and param_list[-1] == 'configure':
+        print("Arquivo de configuração errado")
+    else:
+        coord_list = extractCoordinatesData(param_list[RESISTIVITY])
+        rcs_monostatic(param_list,coord_list)

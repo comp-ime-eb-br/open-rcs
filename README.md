@@ -43,7 +43,7 @@ The reflection directions are defined using simple spherical coordinates from th
    git clone https://github.com/comp-ime-eb-br/open-rcs
    ```
 
-2. Install Python 3.11.1+ and libraries
+2. Install Python 3.10.9+ and libraries
 
    You can do it by running the .exe available on the Python official website: [Windows](https://www.python.org/downloads/windows/) | [MacOS](https://www.python.org/downloads/macos/) | [Others](https://www.python.org/download/other/)
 

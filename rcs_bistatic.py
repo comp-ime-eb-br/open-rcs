@@ -197,8 +197,11 @@ def rcs_bistatic(params_entrys:list, coordinatesData:list) -> tuple[str,list,lis
 
     return plot_name, fig_name, file_name
 
-'''
+
 if __name__ == "__main__":
     param_list = getParamsFromFile('bistatic')
-    coord_list = extractCoordinatesData(param_list[RESISTIVITY])
-    rcs_bistatic(param_list)'''
+    if param_list[RESISTIVITY] == 1 and param_list[-1] == 'configure':
+        print("Arquivo de configuração errado")
+    else:
+        coord_list = extractCoordinatesData(param_list[RESISTIVITY])
+        rcs_bistatic(param_list,coord_list)

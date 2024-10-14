@@ -1,5 +1,5 @@
 # input model (stl_models)
-F16.stl
+sidewinder.stl
 # 1 radar frequency(GHz)
 162.4
 # 2 correlation distance in meters
@@ -27,4 +27,4 @@ F16.stl
 # 13 phi incidence in degrees
 0
 # 14 matrl file path or write "configure" below to open material configure tab
-material_files/F16_composite.txt
+configure

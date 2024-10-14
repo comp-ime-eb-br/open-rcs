@@ -13,6 +13,7 @@ from rcs_bistatic import *
 from rcs_functions import getParamsFromFile,FREQUENCY,STANDART_DEVIATION,RESISTIVITY,MATERIALESPECIFICO,NTRIA
 from thread_trace import thread_with_trace
 from gif import ImageLabel
+import platform
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -26,7 +27,14 @@ class App(customtkinter.CTk):
         super().__init__()
         self.model = None
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.verify_operational_system()
         self.defineInterfaceComponents()
+        
+    def verify_operational_system(self):
+        if platform.system() == "Windows":
+            self.system = "win"
+        else:
+            self.system = "lin"
         
     def defineInterfaceComponents(self):
         self.define_window_and_grid()
@@ -38,15 +46,16 @@ class App(customtkinter.CTk):
 
     def define_window_and_grid(self):
         self.title("Open RCS")
-        self.wm_iconbitmap()
-        self.icon_image = ImageTk.PhotoImage(file="./img/logo_openrcs.png")
-        self.iconphoto(True, self.icon_image)
-        self.geometry(f"{1350}x{600}")
+        if self.system == "win":
+            self.wm_iconbitmap()
+            self.icon_image = ImageTk.PhotoImage(file="./img/logo_openrcs.png")
+            self.iconphoto(True, self.icon_image)
+        self.geometry(f"{1420}x{720}")
         self.resizable(True,True)
         self.grid_columnconfigure((0, 1), weight=0)
         self.grid_columnconfigure(2, weight=1)
         self.grid_rowconfigure((0, 1, 2), weight=1)
-        self.minsize(1350, 600)
+        self.minsize(1080, 720)
 
     def define_sidebars(self):
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
@@ -64,8 +73,8 @@ class App(customtkinter.CTk):
         self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(5, 5))
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Claro", "Escuro", "Sistema"], command=self.change_appearance_mode_event)
         self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(0, 20))
-        self.appearance_mode_optionemenu.set("Claro")
-        self.last_appearance_mode = "Claro"
+        self.appearance_mode_optionemenu.set("Sistema")
+        self.last_appearance_mode = "Sistema"
 
     def define_description_frame_and_tabview(self):
         self.descriptionFrame = customtkinter.CTkFrame(self, width=140)
@@ -178,8 +187,10 @@ class App(customtkinter.CTk):
         self.material_window.withdraw()
 
         self.material_window.title("Características do Material")
-        self.material_window.wm_iconbitmap()
-        self.material_window.iconphoto(True, self.icon_image)
+        if self.system == "win":
+            self.material_window.wm_iconbitmap()
+            self.material_window.iconphoto(True, self.icon_image)
+
         self.material_window.resizable(True,True)
         self.material_window.grid_columnconfigure(0, weight=1)
         self.material_window.grid_columnconfigure(1, weight=1)
@@ -250,7 +261,10 @@ class App(customtkinter.CTk):
         self.material_actual_configuration = customtkinter.CTkToplevel(self.material_window)
         self.material_actual_configuration.withdraw()
         self.material_actual_configuration.title("Camadas Já Incluídas")
-        self.material_actual_configuration.iconphoto(True, self.icon_image)
+        
+        if self.system == "win":
+            self.material_actual_configuration.iconphoto(True, self.icon_image)
+            
         self.material_actual_configuration.resizable(True, True)
 
         self.material_actual_configuration.grid_rowconfigure(0, weight=1)
