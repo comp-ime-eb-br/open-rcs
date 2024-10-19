@@ -4,7 +4,7 @@ import customtkinter, shutil
 from tkinter.filedialog import askopenfile, asksaveasfilename
 from customtkinter import ThemeManager
 from tkinter import messagebox
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 import tkinter as tk
 import os
 from stl_module import *
@@ -579,26 +579,32 @@ class App(customtkinter.CTk):
         elif self.method == 'bistatic': self.bierror.configure(text="")
             
     def results_window(self):
-        w,h=Image.open(self.plotpath).size
-        plot= customtkinter.CTkImage(dark_image=Image.open(self.plotpath), size=(400,400*h/w))
+        # Plot - Garantir que a imagem seja quadrada
+        plot_image = Image.open(self.plotpath)
+        plot = customtkinter.CTkImage(dark_image=plot_image, size=(400, 400))  
         self.plottext = customtkinter.CTkLabel(self.results_frame, text="Seção Reta Radar do Alvo Carregado")
         self.plottext.grid(row=1, column=1, columnspan=1, padx=0, pady=0, stick="nsew")
         self.plot = customtkinter.CTkLabel(self.results_frame, image=plot, text="")
         self.plot.grid(row=2, column=1, padx=(20, 5), pady=0, sticky="nsew")
+
+        # Fig - Garantir que a imagem seja quadrada
+        fig_image = Image.open(self.figpath)
+        fig_image = ImageOps.pad(fig_image, (400, 400), color="white") 
+        fig = customtkinter.CTkImage(dark_image=fig_image, size=(400, 400)) 
         self.figtext = customtkinter.CTkLabel(self.results_frame, text="Modelo Triangular do Alvo Carregado (.stl)")
         self.figtext.grid(row=1, column=2, columnspan=1, padx=0, pady=0, stick="nsew")
-        w,h=Image.open(self.figpath).size
-        fig= customtkinter.CTkImage(dark_image=Image.open(self.figpath), size=(400,400*h/w))
         self.fig = customtkinter.CTkLabel(self.results_frame, image=fig, text="")
         self.fig.grid(row=2, column=2, columnspan=1, padx=(5, 10), pady=0, sticky="nsew")
-        self.saveplot = customtkinter.CTkButton(self.results_frame, text="⬇ Download Gráfico ", command=self.save_plot, width=300)
+
+        # Botões de download e reset
+        self.saveplot = customtkinter.CTkButton(self.results_frame, text="⬇ Download Gráfico", command=self.save_plot, width=300)
         self.saveplot.grid(row=3, column=1, columnspan=2, padx=5, pady=(25, 5))
         self.savefile = customtkinter.CTkButton(self.results_frame, text="⬇ Download Modelo Triangular", command=self.save_fig, width=300)
         self.savefile.grid(row=4, column=1, columnspan=2, padx=5, pady=(5, 5))
         self.savefig = customtkinter.CTkButton(self.results_frame, text="⬇ Download Arquivo de Dados", command=self.save_file, width=300)
         self.savefig.grid(row=5, column=1, columnspan=2, padx=5, pady=(5, 5))
         self.reset = customtkinter.CTkButton(self.results_frame, text="Limpar Área", command=self.reset_event, fg_color=ThemeManager.theme['CTkEntry']['fg_color'], text_color=ThemeManager.theme['CTkEntry']['placeholder_text_color'])
-        self.reset.grid(row=6, column=1, columnspan=2, padx=5, pady=15)  
+        self.reset.grid(row=6, column=1, columnspan=2, padx=5, pady=15)
        
     def upload(self):
         file = askopenfile(title="Selecionar um arquivo",
@@ -608,7 +614,6 @@ class App(customtkinter.CTk):
             self.model = os.path.basename(file.name)
             self.monomodel_text = f"\n⬆\nUploaded: {self.model}\n"
             self.monomodel.configure(text=self.monomodel_text)
-    
     
     def load_header_of_material_table(self): 
         columns = ["Camada","Material", "Descrição", "Permis. Relat.", "Tang. de Perdas", "Permea. Rela. Real", "Permea. Rela. Img", "Espess."]
@@ -638,7 +643,6 @@ class App(customtkinter.CTk):
         row_height = self.table_inner_frame.winfo_children()[0].winfo_reqheight()
         ideal_height = size+4 if size < 5 else 9
         self.material_actual_configuration.geometry(f"{self.table_width+30}x{row_height*ideal_height+50}") 
-            
             
     def on_button_enter(self, event):
         if self.model:

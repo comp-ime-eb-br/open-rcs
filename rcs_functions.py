@@ -138,7 +138,7 @@ def plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, nt
         Y = [y[vind[i, 0]-1], y[vind[i, 1]-1], y[vind[i, 2]-1], y[vind[i, 0]-1]]
         Z = [z[vind[i, 0]-1], z[vind[i, 1]-1], z[vind[i, 2]-1], z[vind[i, 0]-1]]
         ax.plot(X, Y, Z)
-    #ax.set_title(f'Triangle Model of Target:')
+
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
@@ -148,11 +148,20 @@ def plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, nt
     ymin = min(ypts)
     zmax = max(zpts)
     zmin = min(zpts)
-    dmax = max([xmax, ymax, zmax])
-    dmin = min([xmin, ymin, zmin])
-    # this is to avoid both a max and min of zero in any one dimension
-    xmax = dmax; ymax = dmax; zmax = dmax
-    xmin = dmin; ymin = dmin; zmin = dmin
+    
+    # Definindo o maior intervalo entre os eixos para manter a proporção
+    x_range = xmax - xmin
+    y_range = ymax - ymin
+    z_range = zmax - zmin
+    max_range = max(x_range, y_range, z_range)
+
+    # Ajustando os limites de cada eixo para garantir a mesma proporção
+    ax.set_xlim([xmin, xmin + max_range])
+    ax.set_ylim([ymin, ymin + max_range])
+    ax.set_zlim([zmin, zmin + max_range])
+
+    # Mantendo a proporção entre os eixos x, y e z
+    ax.set_box_aspect([1, 1, 1])
     
     if ilabv == 'y':
         for i in range(nverts):
@@ -168,8 +177,6 @@ def plot_triangle_model(input_model, vind, x, y, z, xpts, ypts, zpts, nverts, nt
 
     # plot parameters
     # param = plotParameters("Monostatic",freq,wave,corr,delstd, pol,ntria,pstart,pstop,delp,tstart,tstop,delt)
-    ax.set_xlim(xmin, xmax)
-    ax.set_ylim(ymin, ymax)
     
     # save plots
     now = datetime.now().strftime("%Y%m%d%H%M%S")
